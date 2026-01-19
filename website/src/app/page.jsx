@@ -35,11 +35,12 @@
 // }
 
 import MainLayout from "./main/layout";
+import LeadsharingHome from "./components/LeadsharingHome";
 
 export default function Home() {
   return (
-    <>
-      <MainLayout />
-    </>
+    <MainLayout>
+      <LeadsharingHome />
+    </MainLayout>
   );
 }
