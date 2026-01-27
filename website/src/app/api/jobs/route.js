@@ -1,152 +1,90 @@
-// import { NextResponse } from 'next/server';
-// import { connectToDatabase } from '@/lib/mongodb';
-// import { Job } from '@/models/Job';
-// import { Category } from '@/models/Category';
-// import { getCurrentUser } from '@/lib/serverAuth';
+import { NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { connectToDatabase } from "@/lib/mongodb";
+import Job from "@/models/Job";
 
-// // POST /api/jobs – create job (HOMEOWNER)
-// export async function POST(req) {
-//   await connectToDatabase();
+// register schemas
+import "@/models/User";
+import "@/models/Category";
+import "@/models/SubCategory";
 
-//   const user = await getCurrentUser();
-//   if (!user || user.role !== 'HOMEOWNER') {
-//     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-//   }
-
-//   const body = await req.json();
-//   const { title, description, location, categoryId, categoryName, budgetMin, budgetMax } = body;
-
-//   if (!title || !description || !location || (!categoryId && !categoryName)) {
-//     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-//   }
-
-//   let category;
-//   if (categoryId) {
-//     category = await Category.findById(categoryId);
-//     if (!category) {
-//       return NextResponse.json({ message: 'Invalid category' }, { status: 400 });
-//     }
-//   } else {
-//     const name = categoryName.trim();
-//     const slug = name.toLowerCase().replace(/\s+/g, '-');
-//     category = await Category.findOneAndUpdate(
-//       { slug },
-//       { name, slug },
-//       { upsert: true, new: true, setDefaultsOnInsert: true }
-//     );
-//   }
-
-//   const job = await Job.create({
-//     homeowner: user.id,
-//     category: category._id,
-//     title,
-//     description,
-//     location,
-//     budgetMin,
-//     budgetMax,
-//   });
-
-//   return NextResponse.json(job, { status: 201 });
-// }
-
-// // GET /api/jobs – list open jobs (for TRADESPERSON) with filters
-// export async function GET(req) {
-//   await connectToDatabase();
-
-//   const { searchParams } = new URL(req.url);
-//   const categoryId = searchParams.get('categoryId');
-//   const location = searchParams.get('location');
-
-//   const query = { status: 'OPEN' };
-//   if (categoryId) query.category = categoryId;
-//   if (location) query.location = { $regex: location, $options: 'i' };
-
-//   const jobs = await Job.find(query).sort({ createdAt: -1 }).limit(50).lean();
-
-//   return NextResponse.json(jobs, { status: 200 });
-// }
-
-
-
-
-import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import { Job } from '@/models/Job';
-import { Category } from '@/models/Category';
-import { getCurrentUser } from '@/lib/serverAuth';
-import { pusherServer } from "@/lib/pusher"; // 1. Import Pusher
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 export async function POST(req) {
-  await connectToDatabase();
+  try {
+    await connectToDatabase();
+    const body = await req.json();
 
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'HOMEOWNER') {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
-  const body = await req.json();
-  const { title, description, location, categoryId, categoryName, budgetMin, budgetMax } = body;
-
-  if (!title || !description || !location || (!categoryId && !categoryName)) {
-    return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-  }
-
-  let category;
-  if (categoryId) {
-    category = await Category.findById(categoryId);
-    if (!category) {
-      return NextResponse.json({ message: 'Invalid category' }, { status: 400 });
+    // 🔐 strict validation
+    if (
+      !isValidObjectId(body.homeowner) ||
+      !isValidObjectId(body.category) ||
+      !isValidObjectId(body.subCategory) ||
+      !body.description ||
+      !body.location?.postcode ||
+      !body.startTime ||
+      !body.jobStage ||
+      !body.ownership
+    ) {
+      return NextResponse.json(
+        { message: "Invalid or missing required fields" },
+        { status: 400 }
+      );
     }
-  } else {
-    const name = categoryName.trim();
-    const slug = name.toLowerCase().replace(/\s+/g, '-');
-    category = await Category.findOneAndUpdate(
-      { slug },
-      { name, slug },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+
+    const media = (body.media || []).map((item) => ({
+      url: item.url,
+      type: item.type?.toUpperCase(), // IMAGE | VIDEO
+    }));
+
+    const job = await Job.create({
+      homeowner: body.homeowner,
+      category: body.category,
+      subCategory: body.subCategory,
+      description: body.description,
+      location: {
+        postcode: body.location.postcode,
+        city: body.location.city || "",
+      },
+      startTime: body.startTime,
+      jobStage: body.jobStage,
+      ownership: body.ownership,
+      budgetMin: body.budgetMin || 0,
+      budgetMax: body.budgetMax || 0,
+      media,
+    });
+
+    return NextResponse.json(job, { status: 201 });
+  } catch (error) {
+    console.error("JOB CREATE ERROR:", error);
+    return NextResponse.json(
+      { message: error.message },
+      { status: 500 }
     );
   }
-
-  const job = await Job.create({
-    homeowner: user.id,
-    category: category._id,
-    title,
-    description,
-    location,
-    budgetMin,
-    budgetMax,
-  });
-
-  // 2. Trigger Real-Time Notification
-  // We use 'trades-channel' and the event 'new-job'
-  try {
-    await pusherServer.trigger("trades-channel", "new-job", {
-      id: job._id.toString(),
-      title: job.title,
-      location: job.location,
-      category: category.name,
-      budgetMax: job.budgetMax
-    });
-  } catch (pusherError) {
-    console.error("Pusher trigger failed:", pusherError);
-    // We don't return error here because the job WAS saved to DB successfully
-  }
-
-  return NextResponse.json(job, { status: 201 });
 }
 
-export async function GET(req) {
-  await connectToDatabase();
+export async function GET() {
+  try {
+    await connectToDatabase();
 
-  const { searchParams } = new URL(req.url);
-  const categoryId = searchParams.get('categoryId');
-  const location = searchParams.get('location');
+    const jobs = await Job.find({
+      subCategory: { $type: "objectId" }, // 💥 SAFETY FILTER
+      category: { $type: "objectId" },
+      homeowner: { $type: "objectId" },
+    })
+      .populate("category", "name slug")
+      .populate("subCategory", "name slug")
+      .populate("homeowner", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
 
-  const query = { status: 'OPEN' };
-  if (categoryId) query.category = categoryId;
-  if (location) query.location = { $regex: location, $options: 'i' };
-
-  const jobs = await Job.find(query).sort({ createdAt: -1 }).limit(50).lean();
-
-  return NextResponse.json(jobs, { status: 200 });
+    return NextResponse.json(jobs, { status: 200 });
+  } catch (error) {
+    console.error("JOB GET ERROR:", error);
+    return NextResponse.json(
+      { message: error.message },
+      { status: 500 }
+    );
+  }
 }

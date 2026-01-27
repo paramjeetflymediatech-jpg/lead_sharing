@@ -1,21 +1,73 @@
-import mongoose, { Schema, models, model } from 'mongoose';
+import mongoose from "mongoose";
 
-const JobSchema = new Schema(
+const JobSchema = new mongoose.Schema(
   {
-    homeowner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
-    title: { type: String, required: true },
+    homeowner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+
+    subCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
+      required: true,
+    },
+
     description: { type: String, required: true },
-    location: { type: String, required: true },
-    budgetMin: { type: Number },
-    budgetMax: { type: Number },
+
+    location: {
+      postcode: { type: String, required: true },
+      city: String,
+    },
+
+    startTime: {
+      type: String,
+      enum: [
+        "URGENT",
+        "WITHIN_2_DAYS",
+        "WITHIN_2_WEEKS",
+        "WITHIN_2_MONTHS",
+        "FLEXIBLE",
+      ],
+      required: true,
+    },
+
+    jobStage: {
+      type: String,
+      enum: ["READY_TO_HIRE", "PLANNING", "INSURANCE"],
+      required: true,
+    },
+
+    ownership: {
+      type: String,
+      enum: ["OWNER", "LANDLORD", "AUTHORIZED", "BUYING"],
+      required: true,
+    },
+
+    budgetMin: Number,
+    budgetMax: Number,
+
+    media: [
+      {
+        url: String,
+        type: { type: String, enum: ["IMAGE", "VIDEO"] },
+      },
+    ],
+
     status: {
       type: String,
-      enum: ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
-      default: 'OPEN',
+      enum: ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
+      default: "OPEN",
     },
   },
   { timestamps: true }
 );
 
-export const Job = models.Job || model('Job', JobSchema);
+export default mongoose.models.Job || mongoose.model("Job", JobSchema);
