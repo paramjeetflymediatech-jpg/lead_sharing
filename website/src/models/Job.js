@@ -8,6 +8,22 @@ const JobSchema = new mongoose.Schema(
       required: true,
     },
 
+    // 🔐 Contact info (used for lead unlock)
+    contactName: {
+      type: String,
+      required: true,
+    },
+
+    contactPhone: {
+      type: String,
+      required: true,
+    },
+
+    contactEmail: {
+      type: String,
+      required: true,
+    },
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
