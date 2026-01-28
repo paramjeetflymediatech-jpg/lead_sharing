@@ -1,355 +1,222 @@
-// "use client";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/serverAuth";
+import Link from "next/link";
+import { cookies } from "next/headers";
 
-// import { useState } from "react";
-
-// export default function NewJobPage() {
-//   const [title, setTitle] = useState("");
-//   const [description, setDescription] = useState("");
-//   const [location, setLocation] = useState("");
-//   const [categoryName, setCategoryName] = useState("");
-//   const [budgetMin, setBudgetMin] = useState("");
-//   const [budgetMax, setBudgetMax] = useState("");
-//   const [error, setError] = useState("");
-//   const [success, setSuccess] = useState("");
-//   const [loading, setLoading] = useState(false);
-
-//   async function handleSubmit(e) {
-//     e.preventDefault();
-//     setError("");
-//     setSuccess("");
-//     setLoading(true);
-
-//     const body = {
-//       title,
-//       description,
-//       location,
-//       categoryName,
-//       budgetMin: budgetMin ? Number(budgetMin) : undefined,
-//       budgetMax: budgetMax ? Number(budgetMax) : undefined,
-//     };
-
-//     const res = await fetch("/api/jobs", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(body),
-//     });
-
-//     const data = await res.json().catch(() => ({}));
-
-//     if (!res.ok) {
-//       setError(data.message || "Could not create job");
-//     } else {
-//       setSuccess("Job posted successfully");
-//       setTitle("");
-//       setDescription("");
-//       setLocation("");
-//       setCategoryName("");
-//       setBudgetMin("");
-//       setBudgetMax("");
-//     }
-
-//     setLoading(false);
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-zinc-50 flex justify-center">
-//       <main className="w-full max-w-2xl bg-white border border-zinc-200 shadow-sm mt-10 mb-10 p-6 rounded-lg">
-//         <h1 className="text-xl font-semibold mb-4">Post a new job</h1>
-//         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-//         {success && <p className="mb-2 text-sm text-emerald-600">{success}</p>}
-//         <form onSubmit={handleSubmit} className="space-y-4">
-//           <label className="block text-sm font-medium">
-//             Job title
-//             <input
-//               className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-//               value={title}
-//               onChange={(e) => setTitle(e.target.value)}
-//               required
-//             />
-//           </label>
-
-//           <label className="block text-sm font-medium">
-//             Describe the job
-//             <textarea
-//               className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-//               rows={4}
-//               value={description}
-//               onChange={(e) => setDescription(e.target.value)}
-//               required
-//             />
-//           </label>
-
-//           <label className="block text-sm font-medium">
-//             Location (town or postcode)
-//             <input
-//               className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-//               value={location}
-//               onChange={(e) => setLocation(e.target.value)}
-//               required
-//             />
-//           </label>
-
-//           <label className="block text-sm font-medium">
-//             Category (e.g. Plumber, Electrician)
-//             <input
-//               className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-//               value={categoryName}
-//               onChange={(e) => setCategoryName(e.target.value)}
-//               required
-//             />
-//           </label>
-
-//           <div className="grid grid-cols-2 gap-4">
-//             <label className="block text-sm font-medium">
-//               Budget min (optional)
-//               <input
-//                 type="number"
-//                 className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-//                 value={budgetMin}
-//                 onChange={(e) => setBudgetMin(e.target.value)}
-//               />
-//             </label>
-//             <label className="block text-sm font-medium">
-//               Budget max (optional)
-//               <input
-//                 type="number"
-//                 className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-//                 value={budgetMax}
-//                 onChange={(e) => setBudgetMax(e.target.value)}
-//               />
-//             </label>
-//           </div>
-
-//           <div className="flex items-center gap-3 pt-2">
-//             <button
-//               type="submit"
-//               disabled={loading}
-//               className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
-//             >
-//               {loading ? "Posting..." : "Post job"}
-//             </button>
-//             <a
-//               href="/homeowner"
-//               className="text-sm text-zinc-600 hover:text-zinc-900"
-//             >
-//               Cancel and go back
-//             </a>
-//           </div>
-//         </form>
-//       </main>
-//     </div>
-//   );
-// }
-
-
-
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-export default function NewJobPage() {
-  const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [categoryName, setCategoryName] = useState("");
-  const [budgetMin, setBudgetMin] = useState("");
-  const [budgetMax, setBudgetMax] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
-    const body = {
-      title,
-      description,
-      location,
-      categoryName,
-      budgetMin: budgetMin ? Number(budgetMin) : undefined,
-      budgetMax: budgetMax ? Number(budgetMax) : undefined,
-    };
-
-    try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(data.message || "Could not create job");
-      }
-
-      setSuccess("Job posted successfully! Redirecting...");
-      setTimeout(() => router.push("/homeowner"), 2000);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
+async function getJob(id) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    const res = await fetch(`http://localhost:3000/api/homeowner/jobs/${id}`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': `auth_token=${token}`
+      },
+    });
+    
+    if (!res.ok) {
+      console.error('API error:', res.status);
+      return null;
     }
+    
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
+  }
+}
+
+export default async function JobDetailsPage({ params }) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "HOMEOWNER") {
+    redirect("/auth/login");
   }
 
-  return (
-    <div className="relative min-h-screen w-full bg-zinc-50 py-8 px-4 transition-colors dark:bg-[#000000] sm:py-12">
-      {/* Background Decorative Accents */}
-      <div className="absolute top-0 right-0 h-[300px] w-[300px] rounded-full bg-[#155DFC] opacity-5 blur-[120px]" />
-      
-      <main className="relative z-10 mx-auto w-full max-w-2xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">
-              Post a <span className="text-[#155DFC]">New Job</span>
-            </h1>
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              Tell us what you need, and we'll find the right pros.
-            </p>
-          </div>
-          <button 
-            onClick={() => router.back()}
-            className="hidden sm:block text-sm font-bold text-zinc-400 hover:text-black dark:hover:text-white"
+  const { id } = await params;
+  const jobData = await getJob(id);
+
+  if (!jobData || !jobData.success) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600">Job Not Found</h2>
+          <Link 
+            href="/homeowner/jobs"
+            className="mt-4 inline-block text-[#155DFC] hover:underline"
           >
-            ✕ Close
-          </button>
+            ← Back to My Jobs
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { job, leads, leadCount } = jobData;
+
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-black">
+      <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <Link href="/homeowner/jobs" className="flex items-center gap-2 group transition-opacity hover:opacity-80">
+            <div className="h-8 w-8 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold shadow-lg shadow-[#155DFC]/20">
+              L
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-black dark:text-white">
+              Job Details
+            </h1>
+          </Link>
+          
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/homeowner"
+              className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-black hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 transition-colors"
+            >
+              Dashboard
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-4xl px-6 py-10">
+        <Link 
+          href="/homeowner/jobs"
+          className="inline-flex items-center text-sm text-[#155DFC] hover:underline mb-6"
+        >
+          ← Back to My Jobs
+        </Link>
+
+        {/* Job Info Card */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900 mb-8">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-black dark:text-white">
+                {job.category?.name || 'Job'} - {job.subCategory?.name || 'Service'}
+              </h2>
+              <span className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                job.status === 'OPEN' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                job.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                job.status === 'COMPLETED' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
+                'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400'
+              }`}>
+                {job.status?.replace('_', ' ') || 'OPEN'}
+              </span>
+            </div>
+            
+            <div className="text-right">
+              <p className="text-sm text-zinc-500">Job ID</p>
+              <p className="font-mono text-sm">{job._id?.substring(0, 8)}...</p>
+            </div>
+          </div>
+
+          <p className="text-zinc-700 dark:text-zinc-300 mb-6">{job.description}</p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <p className="text-sm text-zinc-500">Location</p>
+              <p className="font-medium">{job.location?.city || 'N/A'}</p>
+              <p className="text-sm text-zinc-500">{job.location?.postcode}</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500">Start Time</p>
+              <p className="font-medium">{job.startTime?.replace('_', ' ') || 'Flexible'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500">Job Stage</p>
+              <p className="font-medium">{job.jobStage || 'Planning'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500">Budget</p>
+              <p className="font-medium">
+                {job.budgetMin > 0 ? `₹${job.budgetMin} - ₹${job.budgetMax}` : 'Not specified'}
+              </p>
+            </div>
+          </div>
+
+          {/* Contact Info */}
+          <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+            <p className="text-sm font-medium text-zinc-500 mb-2">Your Contact Info</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-zinc-500">Name</p>
+                <p className="font-medium">{job.contactName}</p>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500">Phone</p>
+                <p className="font-medium">{job.contactPhone}</p>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500">Email</p>
+                <p className="font-medium">{job.contactEmail}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Feedback Messages */}
-        {error && (
-          <div className="mb-6 rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-600 dark:bg-red-900/20 dark:text-red-400">
-            {error}
+        {/* Leads Section */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-black dark:text-white">
+              Professionals Interested ({leadCount || 0})
+            </h3>
+            <span className="text-sm text-zinc-500">
+              Max 3 leads per job
+            </span>
           </div>
-        )}
-        {success && (
-          <div className="mb-6 rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
-            {success}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section 1: Basic Info */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-8">
-            <h2 className="mb-6 text-xs font-bold uppercase tracking-widest text-[#155DFC]">1. General Details</h2>
-            
-            <div className="space-y-5">
-              <div className="space-y-1">
-                <label className="ml-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Job Title
-                </label>
-                <input
-                  required
-                  placeholder="e.g. Fix leaking pipe in kitchen"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="ml-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Description
-                </label>
-                <textarea
-                  required
-                  placeholder="Please provide details about the work required..."
-                  rows={4}
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
+          {leads && leads.length > 0 ? (
+            <div className="space-y-4">
+              {leads.map((lead) => (
+                <div 
+                  key={lead.id}
+                  className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-black dark:text-white">
+                        {lead.tradesperson?.companyName || 'Professional'}
+                      </h4>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                        {lead.tradesperson?.user?.name || 'Tradesperson'}
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        {lead.tradesperson?.skills?.slice(0, 3).map((skill, i) => (
+                          <span 
+                            key={i} 
+                            className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs rounded-full"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-zinc-500">Contacted</p>
+                      <p className="text-sm font-medium">
+                        {new Date(lead.unlockedAt).toLocaleDateString()}
+                      </p>
+                      <button className="mt-2 rounded-lg bg-[#155DFC] px-4 py-2 text-xs font-medium text-white hover:bg-[#1149c7] transition-colors">
+                        Message
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-
-          {/* Section 2: Logistics */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-8">
-            <h2 className="mb-6 text-xs font-bold uppercase tracking-widest text-[#155DFC]">2. Location & Type</h2>
-            
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="ml-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Location
-                </label>
-                <input
-                  required
-                  placeholder="Town or Postcode"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="ml-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Category
-                </label>
-                <input
-                  required
-                  placeholder="e.g. Plumber"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                />
-              </div>
+          ) : (
+            <div className="text-center py-10">
+              <div className="h-12 w-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xl mb-4 mx-auto">👷</div>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                No professionals have unlocked this lead yet.
+              </p>
+              <p className="text-sm text-zinc-500 mt-1">
+                Your job is live and visible to tradespeople.
+              </p>
             </div>
-          </div>
-
-          {/* Section 3: Budget */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-8">
-            <h2 className="mb-6 text-xs font-bold uppercase tracking-widest text-[#155DFC]">3. Budget (Optional)</h2>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="ml-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Min (£)
-                </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                  value={budgetMin}
-                  onChange={(e) => setBudgetMin(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="ml-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Max (£)
-                </label>
-                <input
-                  type="number"
-                  placeholder="1000"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                  value={budgetMax}
-                  onChange={(e) => setBudgetMax(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 rounded-2xl bg-[#155DFC] py-4 text-sm font-bold text-white shadow-xl shadow-[#155DFC]/20 transition-all hover:bg-[#1149c7] active:scale-[0.98] disabled:opacity-70"
-            >
-              {loading ? "Posting Job..." : "Post Job Successfully"}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/homeowner")}
-              className="rounded-2xl border border-zinc-200 bg-white px-8 py-4 text-sm font-bold text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+          )}
+        </div>
       </main>
     </div>
   );

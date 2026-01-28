@@ -1,26 +1,26 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Lead } from "@/models/Lead";
-import { TradespersonProfile } from "@/models/TradespersonProfile";
+import Job from "@/models/Job";
 
-export async function GET(req) {
+export async function GET(req, { params }) {
   try {
     await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
-    if (!userId || role !== "TRADESPERSON") {
+    if (!userId || role !== "HOMEOWNER") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const profile = await TradespersonProfile.findOne({ user: userId });
-    if (!profile) {
-      return NextResponse.json({ message: "Profile not found" }, { status: 404 });
+    const job = await Job.findById(params.jobId);
+    if (!job || job.homeowner.toString() !== userId) {
+      return NextResponse.json({ message: "Access denied" }, { status: 403 });
     }
 
-    const leads = await Lead.find({ tradesperson: profile._id })
-      .populate("job")
+    const leads = await Lead.find({ job: params.jobId })
+      .populate("tradesperson")
       .sort({ createdAt: -1 });
 
     return NextResponse.json(leads);
