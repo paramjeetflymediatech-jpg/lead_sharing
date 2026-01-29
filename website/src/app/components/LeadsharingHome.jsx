@@ -22,6 +22,9 @@ export default function LeadsharingHome() {
     const [trade, setTrade] = useState("");
     const [description, setDescription] = useState("");
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [categories, setCategories] = useState([]);
+    const [subcategories, setSubcategories] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const images = [
         "/trades/painter.png",
@@ -33,6 +36,25 @@ export default function LeadsharingHome() {
     ];
 
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [catsRes, subCatsRes] = await Promise.all([
+                    fetch('/api/categories'),
+                    fetch('/api/subcategories')
+                ]);
+                const catsData = await catsRes.json();
+                const subCatsData = await subCatsRes.json();
+                setCategories(catsData);
+                setSubcategories(subCatsData);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+
         const timer = setInterval(() => {
             setCurrentImageIndex((prev) => (prev + 1) % images.length);
         }, 5000);
@@ -47,7 +69,16 @@ export default function LeadsharingHome() {
         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
     };
 
-    const popularTrades = [
+    // Use subcategories for popular trades (top 6 or similar)
+    const popularTrades = subcategories.slice(0, 6).map(sub => ({
+        name: sub.name,
+        sub: sub.category?.name || "General Trade",
+        slug: sub.slug,
+        image: `/trades/${sub.slug}.png` // Fallback logic might be needed if images don't exist
+    }));
+
+    // If popularTrades is empty (still loading), fallback to some defaults or show nothing
+    const displayPopularTrades = popularTrades.length > 0 ? popularTrades : [
         { name: "Painter & decorator", sub: "Internal painting and decorating", slug: "painter", image: "/trades/painter.png" },
         { name: "Electrician", sub: "Electrical installation or testing", slug: "electrician", image: "/trades/electrician.png" },
         { name: "Plumber", sub: "Plumbing repair and maintenance", slug: "plumber", image: "/trades/plumber.png" },
@@ -62,7 +93,11 @@ export default function LeadsharingHome() {
         { name: "Jean", title: "Would highly recommend", quote: "It was so easy, leave an explanation of what you would like done and wait on the responses." },
     ];
 
-    const allTrades = [
+    // Get all subcategory names for the dropdown
+    const allTrades = subcategories.map(sub => sub.name);
+
+    // If allTrades is empty, use the hardcoded ones as fallback
+    const displayAllTrades = allTrades.length > 0 ? allTrades : [
         "Bathroom Fitter", "Blacksmith / Metal Worker", "Bricklayer", "Builder", "Carpenter / Joiner",
         "CCTV / Satellites / Alarms", "Cleaner", "Drainage Specialist", "Driverway Specialist", "Electrician",
         "Floor Fitters", "Gardener / Landscape Gardeners", "Gas / Heating Engineer", "Handyperson", "Kitchen Specialist",
@@ -80,8 +115,8 @@ export default function LeadsharingHome() {
     ];
 
     const filteredTrades = trade === ""
-        ? allTrades
-        : allTrades.filter((t) => t.toLowerCase().includes(trade.toLowerCase()));
+        ? displayAllTrades
+        : displayAllTrades.filter((t) => t.toLowerCase().includes(trade.toLowerCase()));
 
     const filteredJobs = description === ""
         ? jobTypes
@@ -238,7 +273,7 @@ export default function LeadsharingHome() {
                 <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Our most popular jobs</h2>
                 {/* Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {popularTrades.map((item, idx) => (
+                    {displayPopularTrades.map((item, idx) => (
                         <Link
                             href={`/auth/register?role=HOMEOWNER&trade=${item.slug}`}
                             key={idx}
@@ -413,7 +448,7 @@ export default function LeadsharingHome() {
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8 border-b border-gray-200 pb-4">Our Trades and Services</h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-y-2 gap-x-8">
-                        {allTrades.map(trade => (
+                        {displayAllTrades.map(trade => (
                             <Link
                                 key={trade}
                                 href={`/auth/register?role=HOMEOWNER&trade=${trade.toLowerCase().replace(/ /g, '-')}`}

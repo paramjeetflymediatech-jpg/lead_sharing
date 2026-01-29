@@ -12,19 +12,20 @@ import "@/models/SubCategory";
 import "@/models/User";
 
 export default async function TradespersonDashboard() {
+  const user = await getCurrentUser();
+
+  if (!user || user.role !== "TRADESPERSON") {
+    redirect("/auth/login");
+  }
+
+  await connectToDatabase();
+  const profile = await TradespersonProfile.findOne({ user: user.id }).lean();
+
+  if (!profile) {
+    redirect("/tradesperson/setup");
+  }
+
   try {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "TRADESPERSON") {
-      redirect("/auth/login");
-    }
-
-    await connectToDatabase();
-    const profile = await TradespersonProfile.findOne({ user: user.id }).lean();
-
-    if (!profile) {
-      redirect("/tradesperson/setup");
-    }
-
     const Job = (await import("@/models/Job")).default;
 
     const openJobs = await Job.find({ status: "OPEN" })
@@ -116,178 +117,142 @@ export default async function TradespersonDashboard() {
     const availableJobsCount = validJobs.filter((j) => j.canUnlock).length;
 
     return (
-      <div className="min-h-screen bg-zinc-50 transition-colors dark:bg-[#000000]">
-        {/* Premium Sticky Header */}
-        <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-4 sm:px-6 py-4">
-          <div className="mx-auto flex max-w-7xl items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="h-8 w-8 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold shadow-lg shadow-[#155DFC]/20">
-                L
-              </div>
-              <h1 className="text-xl font-bold tracking-tight text-black dark:text-white">
-                ProDashboard
-              </h1>
+      <div className="space-y-8">
+        {/* Welcome Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-zinc-900 dark:text-white">
+              Business Portal
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
+              Hello, {profile.companyName || user.name || "Business"}! Here are your latest opportunities.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-2xl bg-[#155DFC]/10 px-4 py-2 border border-[#155DFC]/20">
+              <span className="text-sm font-bold text-[#155DFC]">
+                {profile.credits ?? 0} Credits
+              </span>
+            </div>
+            <Link
+              href="/tradesperson/credits"
+              className="px-5 py-2.5 bg-[#155DFC] text-white text-sm font-bold rounded-xl hover:bg-[#1149C7] transition-all shadow-lg shadow-blue-500/20"
+            >
+              Top Up
             </Link>
-
-            <div className="flex items-center gap-3 sm:gap-6">
-              <div className="hidden md:block text-right">
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                  Tradesperson
-                </p>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  {profile.companyName || user.name || "Business"}
-                </p>
-              </div>
-
-              {/* Credit Badge */}
-              <div className="flex items-center gap-2 rounded-full bg-[#155DFC]/10 px-3 py-1.5 border border-[#155DFC]/20">
-                <span className="text-xs font-bold text-[#155DFC]">
-                  Credits: {profile.credits ?? 0}
-                </span>
-              </div>
-
-              <Link
-                href="/tradesperson/leads"
-                className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-black transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white shadow-sm"
-              >
-                My Leads
-              </Link>
-
-              <form action="/api/auth/logout" method="POST">
-                <button
-                  type="submit"
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-black transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white shadow-sm"
-                >
-                  Log out
-                </button>
-              </form>
-            </div>
           </div>
-        </header>
+        </div>
 
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
-          {/* Top Section: Quick Stats */}
-          <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-3xl bg-black p-6 text-white dark:bg-[#155DFC] shadow-xl shadow-blue-500/10">
-              <h3 className="text-sm font-bold opacity-70 uppercase tracking-wider">
-                Available Credits
-              </h3>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-4xl font-black">{profile.credits ?? 0}</span>
-                <span className="text-xs opacity-60">Ready to use</span>
-              </div>
-              <Link
-                href="/tradesperson/credits"
-                className="mt-4 block w-full rounded-xl bg-white/20 py-2 text-center text-xs font-bold backdrop-blur-md hover:bg-white/30 transition-all"
-              >
-                Top Up Credits
-              </Link>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">
-                Active Leads
-              </h3>
-              <p className="mt-2 text-4xl font-black text-black dark:text-white">
-                {activeLeadsCount}
-              </p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {monthlyLeadsCount} unlocked this month
-              </p>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">
-                Available Jobs
-              </h3>
-              <p className="mt-2 text-4xl font-black text-black dark:text-white">
-                {availableJobsCount}
-              </p>
-              <p className="mt-1 text-xs text-zinc-500">New opportunities for you</p>
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="rounded-3xl bg-zinc-900 p-6 text-white dark:bg-[#155DFC] shadow-xl shadow-blue-500/10 relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:blur-xl transition-all" />
+            <h3 className="text-xs font-bold opacity-70 uppercase tracking-widest">
+              Available Credits
+            </h3>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-4xl font-black">{profile.credits ?? 0}</span>
+              <span className="text-xs opacity-60 font-bold uppercase tracking-widest leading-none">Ready</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Feed: Available Jobs */}
-            <section className="lg:col-span-2 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-extrabold text-black dark:text-white">
-                    Latest Job Leads
-                  </h2>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                    New jobs matching your trade
-                  </p>
-                </div>
+          <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900 shadow-sm group">
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+              Active Leads
+            </h3>
+            <p className="mt-4 text-4xl font-black text-zinc-900 dark:text-white transition-transform group-hover:scale-105 origin-left">
+              {activeLeadsCount}
+            </p>
+            <p className="mt-2 text-xs font-bold text-zinc-500 uppercase tracking-tight">
+              {monthlyLeadsCount} this month
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900 shadow-sm group">
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+              Open Jobs
+            </h3>
+            <p className="mt-4 text-4xl font-black text-zinc-900 dark:text-white transition-transform group-hover:scale-105 origin-left">
+              {availableJobsCount}
+            </p>
+            <p className="mt-2 text-xs font-bold text-zinc-500 uppercase tracking-tight">New opportunities</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Feed: Available Jobs */}
+          <section className="lg:col-span-2 space-y-6">
+            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+                  Available Jobs
+                </h2>
                 <Link
                   href="/tradesperson/leads"
                   className="text-sm font-bold text-[#155DFC] hover:underline"
                 >
-                  View all leads →
+                  My Leads →
                 </Link>
               </div>
-
-              <div className="rounded-3xl bg-white p-2 shadow-sm border border-zinc-100 dark:bg-zinc-900/50 dark:border-zinc-800">
+              <div className="p-4">
                 <TradespersonJobsList jobs={validJobs} profileId={profile._id.toString()} />
               </div>
-            </section>
+            </div>
+          </section>
 
-            {/* Sidebar: Business Growth */}
-            <aside className="space-y-6">
-              <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <h3 className="text-lg font-bold text-black dark:text-white mb-4">
-                  Complete your Profile
-                </h3>
-                <div className="space-y-4">
-                  <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden dark:bg-zinc-800">
-                    <div
-                      className="h-full bg-[#155DFC] transition-all"
-                      style={{ width: `${profileCompletion}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    Your profile is {profileCompletion}% complete.
-                    {profileCompletion < 100 &&
-                      " Add more details to get 2x more leads."}
-                  </p>
-                  <Link
-                    href="/tradesperson/profile/edit"
-                    className="block w-full rounded-xl border-2 border-[#155DFC] py-3 text-center text-sm font-bold text-[#155DFC] hover:bg-[#155DFC] hover:text-white transition-all"
-                  >
-                    Edit Profile
-                  </Link>
+          {/* Sidebar: Business Growth */}
+          <aside className="space-y-6">
+            <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900 shadow-sm">
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">
+                Profile Growth
+              </h3>
+              <div className="space-y-4">
+                <div className="h-3 w-full bg-zinc-100 rounded-full overflow-hidden dark:bg-zinc-800 p-0.5">
+                  <div
+                    className="h-full bg-[#155DFC] rounded-full transition-all duration-1000"
+                    style={{ width: `${profileCompletion}%` }}
+                  />
                 </div>
-              </div>
-
-              <div className="rounded-3xl bg-zinc-900 p-6 dark:bg-zinc-800">
-                <h3 className="font-bold text-white mb-2">Pro Tip 💡</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  Respond to leads within 30 minutes to increase your chance of
-                  winning the job by 40%.
+                <p className="text-sm text-zinc-500 font-medium">
+                  Your business profile is <span className="font-bold text-zinc-900 dark:text-white">{profileCompletion}%</span> complete.
                 </p>
+                <Link
+                  href="/tradesperson/profile/edit"
+                  className="block w-full rounded-xl bg-zinc-900 dark:bg-zinc-800 py-3 text-center text-sm font-bold text-white hover:bg-black dark:hover:bg-zinc-700 transition-all shadow-lg shadow-black/5"
+                >
+                  Edit Profile
+                </Link>
               </div>
+            </div>
 
-              {activeLeadsCount > 0 && (
-                <div className="rounded-3xl border-2 border-green-500/20 bg-green-50 dark:bg-green-900/20 p-6">
-                  <h3 className="font-bold text-green-900 dark:text-green-100 mb-2">
-                    🎯 Active Leads
-                  </h3>
-                  <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed mb-3">
-                    You have {activeLeadsCount} unlocked lead
-                    {activeLeadsCount !== 1 ? "s" : ""}. View contact details and
-                    reach out now!
-                  </p>
-                  <Link
-                    href="/tradesperson/leads"
-                    className="block w-full rounded-xl bg-green-600 py-3 text-center text-sm font-bold text-white hover:bg-green-700 transition-all"
-                  >
-                    View My Leads
-                  </Link>
-                </div>
-              )}
-            </aside>
-          </div>
-        </main>
+            <div className="rounded-3xl bg-gradient-to-br from-zinc-900 to-black p-6 relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/20 rounded-full blur-2xl" />
+              <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                Pro Tip 💡
+              </h3>
+              <p className="text-sm text-zinc-400 font-medium leading-relaxed">
+                Fast responses (within 30 mins) increase win rates by 40%. Keep your notification bell on!
+              </p>
+            </div>
+
+            {activeLeadsCount > 0 && (
+              <div className="rounded-3xl bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 p-6">
+                <h3 className="font-bold text-green-900 dark:text-green-100 mb-2">
+                  🎯 Active Leads
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-400 font-medium leading-relaxed mb-4">
+                  You have {activeLeadsCount} unlocked lead{activeLeadsCount !== 1 ? "s" : ""}. Reach out now!
+                </p>
+                <Link
+                  href="/tradesperson/leads"
+                  className="block w-full rounded-xl bg-green-600 py-3 text-center text-sm font-bold text-white hover:bg-green-700 transition-all shadow-lg shadow-green-600/20"
+                >
+                  View My Leads
+                </Link>
+              </div>
+            )}
+          </aside>
+        </div>
       </div>
     );
   } catch (error) {

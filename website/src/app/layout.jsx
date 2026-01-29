@@ -14,7 +14,7 @@
 //     </html>
 //   );
 // }
- 
+
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
   return (
     // Add suppressHydrationWarning to the <html> tag
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased bg-zinc-50 text-zinc-900">
+      <body className="antialiased bg-zinc-50 text-zinc-900" suppressHydrationWarning>
         {children}
         <Toaster
           position="top-right"
