@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronDownIcon, Bars3Icon, XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/navigation";
+import { ChevronDownIcon, Bars3Icon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/solid";
 
 export default function Header() {
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null); // 'trades', 'advice', 'location', or null
   // Mobile accordion states
@@ -13,16 +15,48 @@ export default function Header() {
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [trades, setTrades] = useState([]);
 
-  const trades = [
-    "Bathroom fitter", "Blacksmith / Metal worker", "Bricklayer", "Builder", "Carpenter / Joiner",
-    "CCTV / Satellites / Alarms", "Cleaner", "Drainage Specialist", "Driveway pavers", "Electrician",
-    "Floor fitters", "Gardener / Landscape gardeners", "Gas / Heating engineer", "Handyperson", "Kitchen Specialist",
-    "Locksmith", "Loft Conversion Specialist", "Painter and decorator", "Pest Control", "Plasterer / Renderer",
-    "Plumber", "Removal Services", "Renewable Energy Specialist", "Roofer", "Security systems / Alarms",
-    "Specialist Tradesperson", "Stoneworker / Stonemason", "Swimming Pool Specialist", "Tiler",
-    "Traditional Craftsperson", "Tree Surgeon", "Window fitter / Conservatory installer"
-  ];
+  // User state
+  const [user, setUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  useEffect(() => {
+    // Fetch trades
+    fetch('/api/subcategories')
+      .then(res => res.json())
+      .then(data => setTrades(data.map(t => t.name)))
+      .catch(err => console.error(err));
+
+    // Fetch user
+    fetchUser();
+  }, []);
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("/api/profile", {
+        credentials: "include"
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setUser(null);
+      setShowUserMenu(false);
+      router.push("/auth/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   const filteredHeaderTrades = searchQuery === ""
     ? []
@@ -43,6 +77,13 @@ export default function Header() {
 
   const toggleMobileSection = (section) => {
     setMobileExpanded(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const getDashboardLink = () => {
+    if (!user) return "/";
+    if (user.role === "ADMIN") return "/admin";
+    if (user.role === "TRADESPERSON") return "/tradesperson";
+    return "/homeowner";
   };
 
   return (
@@ -203,13 +244,61 @@ export default function Header() {
 
         {/* Right Side Actions */}
         <div className="hidden lg:flex items-center space-x-6">
-          <Link href="/auth/login" className="text-sm font-medium hover:text-[#1149C7]">Log in</Link>
-          <Link
-            href="/auth/register?role=TRADESPERSON"
-            className="rounded-md bg-[#1149C7] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0d38a0]"
-          >
-            Trade sign up
-          </Link>
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-[#1149C7] transition-all"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7]">
+                  <UserCircleIcon className="w-6 h-6" />
+                </div>
+                <span>{user.name}</span>
+                <ChevronDownIcon className={`w-4 h-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                  <div className="px-4 py-2 border-b border-gray-50 mb-2">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Signed in as</p>
+                    <p className="font-bold text-gray-900 truncate">{user.email}</p>
+                  </div>
+                  <Link
+                    href={getDashboardLink()}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#1149C7]"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#1149C7]"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    My Profile
+                  </Link>
+                  <div className="border-t border-gray-100 my-1"></div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  >
+                    <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link href="/auth/login" className="text-sm font-medium hover:text-[#1149C7]">Log in</Link>
+              <Link
+                href="/auth/register?role=TRADESPERSON"
+                className="rounded-md bg-[#1149C7] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0d38a0]"
+              >
+                Trade sign up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -225,6 +314,34 @@ export default function Header() {
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-20 bg-white z-40 overflow-y-auto pb-20">
           <div className="flex flex-col p-4 space-y-2">
+
+            {/* Mobile User Section */}
+            {user && (
+              <div className="border-b border-gray-100 pb-4 mb-2">
+                <div className="flex items-center gap-3 px-2 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7]">
+                    <UserCircleIcon className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{user.name}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                </div>
+                <Link
+                  href={getDashboardLink()}
+                  className="block w-full text-left px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
 
             {/* Mobile Trade Section */}
             <div className="border-b border-gray-100 pb-2">
@@ -291,10 +408,12 @@ export default function Header() {
               )}
             </div>
 
-            <div className="pt-4 space-y-3">
-              <Link href="/auth/login" className="block text-center w-full border-2 border-gray-200 text-gray-800 rounded-lg py-3 font-bold hover:bg-gray-50">Log in</Link>
-              <Link href="/auth/register?role=TRADESPERSON" className="block text-center w-full bg-[#fa005c] text-white rounded-lg py-3 font-bold hover:bg-[#d6004f]">Trade sign up</Link>
-            </div>
+            {!user && (
+              <div className="pt-4 space-y-3">
+                <Link href="/auth/login" className="block text-center w-full border-2 border-gray-200 text-gray-800 rounded-lg py-3 font-bold hover:bg-gray-50">Log in</Link>
+                <Link href="/auth/register?role=TRADESPERSON" className="block text-center w-full bg-[#1149C7] text-white rounded-lg py-3 font-bold hover:bg-[#0d38a0]">Trade sign up</Link>
+              </div>
+            )}
           </div>
         </div>
       )}

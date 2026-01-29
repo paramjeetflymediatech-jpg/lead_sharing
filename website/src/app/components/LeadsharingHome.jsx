@@ -78,14 +78,7 @@ export default function LeadsharingHome() {
     }));
 
     // If popularTrades is empty (still loading), fallback to some defaults or show nothing
-    const displayPopularTrades = popularTrades.length > 0 ? popularTrades : [
-        { name: "Painter & decorator", sub: "Internal painting and decorating", slug: "painter", image: "/trades/painter.png" },
-        { name: "Electrician", sub: "Electrical installation or testing", slug: "electrician", image: "/trades/electrician.png" },
-        { name: "Plumber", sub: "Plumbing repair and maintenance", slug: "plumber", image: "/trades/plumber.png" },
-        { name: "Plumber", sub: "Bathroom, kitchen and WC Plumbing", slug: "bathroom-plumber", image: "/trades/plumber.png" },
-        { name: "Gas / Heating engineer", sub: "Gas boiler - installation", slug: "heating-engineer", image: "/trades/heating.png" },
-        { name: "Plasterer / Renderer", sub: "Plaster skimming", slug: "plasterer", image: "/trades/plasterer.png" },
-    ];
+    const displayPopularTrades = popularTrades;
 
     const testimonials = [
         { name: "Hannat", title: "Well Proven", quote: "Reliable and efficient website and team in helping to find and connect with workmen and people who do various jobs and to a high standard :)" },
@@ -97,15 +90,7 @@ export default function LeadsharingHome() {
     const allTrades = subcategories.map(sub => sub.name);
 
     // If allTrades is empty, use the hardcoded ones as fallback
-    const displayAllTrades = allTrades.length > 0 ? allTrades : [
-        "Bathroom Fitter", "Blacksmith / Metal Worker", "Bricklayer", "Builder", "Carpenter / Joiner",
-        "CCTV / Satellites / Alarms", "Cleaner", "Drainage Specialist", "Driverway Specialist", "Electrician",
-        "Floor Fitters", "Gardener / Landscape Gardeners", "Gas / Heating Engineer", "Handyperson", "Kitchen Specialist",
-        "Locksmith", "Loft Conversion Specialist", "Painter and decorator", "Pest Control", "Plasterer / Renderer",
-        "Plumber", "Removal Services", "Renewables Specialists", "Roofer", "Security systems / Alarms",
-        "Specialist Tradesperson", "Stoneworker / Stonemason", "Swimming Pool Specialist", "Tiler",
-        "Traditional Craftspeople", "Tree Surgeon", "Window fitter / Conservatory installer"
-    ];
+    const displayAllTrades = allTrades;
 
     const [showTradeDropdown, setShowTradeDropdown] = useState(false);
     const [showJobDropdown, setShowJobDropdown] = useState(false);

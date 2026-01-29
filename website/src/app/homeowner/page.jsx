@@ -257,13 +257,19 @@ export default function HomeownerDashboard() {
               </div>
 
               <div className="flex justify-between items-center text-sm font-bold mt-6">
-                <span className="text-zinc-500 tracking-widest uppercase">Success Rate</span>
-                <span className="text-purple-500">85%</span>
+                <span className="text-zinc-500 tracking-widest uppercase">Completion Rate</span>
+                <span className="text-purple-500">
+                  {summary.totalJobs > 0
+                    ? Math.round((summary.completedJobs / summary.totalJobs) * 100)
+                    : 0}%
+                </span>
               </div>
               <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-purple-500"
-                  style={{ width: '85%' }}
+                  style={{
+                    width: `${summary.totalJobs > 0 ? (summary.completedJobs / summary.totalJobs) * 100 : 0}%`
+                  }}
                 />
               </div>
             </div>

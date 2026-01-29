@@ -17,7 +17,13 @@ import {
     CreditCardIcon,
     BellIcon,
     ArrowRightOnRectangleIcon,
-    ClipboardDocumentListIcon
+    ClipboardDocumentListIcon,
+    UsersIcon,
+    Squares2X2Icon,
+    ListBulletIcon,
+    MagnifyingGlassPlusIcon,
+    CurrencyDollarIcon,
+    Cog6ToothIcon
 } from "@heroicons/react/24/outline";
 
 const REQUESTED_ICONS = {
@@ -32,7 +38,13 @@ const REQUESTED_ICONS = {
     CreditCardIcon,
     BellIcon,
     ArrowRightOnRectangleIcon,
-    ClipboardDocumentListIcon
+    ClipboardDocumentListIcon,
+    UsersIcon,
+    Squares2X2Icon,
+    ListBulletIcon,
+    MagnifyingGlassPlusIcon,
+    CurrencyDollarIcon,
+    Cog6ToothIcon
 };
 
 export default function DashboardLayout({ children, navItems, user }) {
