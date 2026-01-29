@@ -1,80 +1,65 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/serverAuth";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlusIcon, ChatBubbleLeftRightIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 
-async function getHomeownerJobs(userId) {
-  try {
-    console.log("Fetching homeowner jobs for user:", userId);
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/homeowner/my-jobs`, {
-      cache: 'no-store',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': userId,
-        'x-user-role': 'HOMEOWNER'
-      },
-    });
-
-    if (!res.ok) {
-      console.log('Homeowner Jobs API Error:', res.status, res.statusText);
-      return {
-        success: false,
-        data: {
-          jobs: [],
-          summary: {
-            totalJobs: 0,
-            activeJobs: 0,
-            completedJobs: 0,
-            cancelledJobs: 0,
-            totalLeads: 0
-          }
-        }
-      };
-    }
-
-    const data = await res.json();
-    console.log("Homeowner jobs data received:", data);
-    return data;
-  } catch (error) {
-    console.log('Fetch Error:', error);
-    return {
-      success: false,
-      data: {
-        jobs: [],
-        summary: {
-          totalJobs: 0,
-          activeJobs: 0,
-          completedJobs: 0,
-          cancelledJobs: 0,
-          totalLeads: 0
-        }
-      }
-    };
-  }
-}
-
-export default async function HomeownerDashboard() {
-  const user = await getCurrentUser();
-
-  if (!user || user.role !== "HOMEOWNER") {
-    console.log("User not authenticated or not homeowner, redirecting to login");
-    redirect("/auth/login");
-  }
-
-  console.log("User authenticated:", user.id, user.email);
-
-  const data = await getHomeownerJobs(user.id);
-  const jobs = data.data?.jobs || [];
-  const summary = data.data?.summary || {
+export default function HomeownerDashboard() {
+  const router = useRouter();
+  const [user, setUser] = useState({});
+  const [jobs, setJobs] = useState([]);
+  const [summary, setSummary] = useState({
     totalJobs: 0,
     activeJobs: 0,
     completedJobs: 0,
     cancelledJobs: 0,
     totalLeads: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch user profile - THIS IS THE FIX for showing user name
+      const userRes = await fetch("/api/profile", {
+        credentials: "include"
+      });
+
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        setUser(userData.data);
+        console.log("User data loaded:", userData.data);
+      }
+
+      // Fetch jobs
+      const jobsRes = await fetch("/api/homeowner/my-jobs", {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (jobsRes.ok) {
+        const data = await jobsRes.json();
+        setJobs(data.data?.jobs || []);
+        setSummary(data.data?.summary || summary);
+      } else {
+        console.error("Failed to fetch jobs:", jobsRes.status);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Format status for display
   const formatStatus = (status) => {
     const statusMap = {
       'OPEN': 'Open',
@@ -85,7 +70,6 @@ export default async function HomeownerDashboard() {
     return statusMap[status] || status;
   };
 
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return '';
     try {
@@ -100,7 +84,6 @@ export default async function HomeownerDashboard() {
     }
   };
 
-  // Format time ago
   const formatTimeAgo = (dateString) => {
     if (!dateString) return '';
     try {
@@ -120,8 +103,18 @@ export default async function HomeownerDashboard() {
     }
   };
 
-  // Get recent jobs (first 5)
   const recentJobs = jobs.slice(0, 5);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
