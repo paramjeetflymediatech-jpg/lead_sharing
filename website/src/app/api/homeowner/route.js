@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+
+// ✅ REGISTER ALL MODELS USED IN POPULATE
+import "@/models/Category";
+import "@/models/SubCategory";
+
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
 
@@ -16,19 +21,19 @@ export async function GET(req) {
 
     // Get all jobs for this homeowner
     const allJobs = await Job.find({ homeowner: userId });
-    
-    // Count active jobs (OPEN or IN_PROGRESS)
+
+    // Count active jobs
     const activeJobs = allJobs.filter(
       job => job.status === "OPEN" || job.status === "IN_PROGRESS"
     );
 
-    // Get total quotes received across all jobs
+    // Get total quotes
     const jobIds = allJobs.map(job => job._id);
-    const totalQuotes = await Lead.countDocuments({ 
-      job: { $in: jobIds } 
+    const totalQuotes = await Lead.countDocuments({
+      job: { $in: jobIds }
     });
 
-    // Get recent jobs (last 5)
+    // Get recent jobs
     const recentJobs = await Job.find({ homeowner: userId })
       .populate("category", "name slug")
       .populate("subCategory", "name slug")
@@ -41,11 +46,12 @@ export async function GET(req) {
       stats: {
         activeJobs: activeJobs.length,
         quotesReceived: totalQuotes,
-        totalSpent: 0, // You can implement payment tracking later
+        totalSpent: 0,
         totalJobs: allJobs.length,
       },
       recentJobs,
     });
+
   } catch (error) {
     console.error("DASHBOARD ERROR:", error);
     return NextResponse.json(

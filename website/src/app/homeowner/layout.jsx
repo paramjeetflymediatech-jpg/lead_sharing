@@ -12,7 +12,7 @@ export default async function HomeownerLayout({ children }) {
     const navItems = [
         { name: "Dashboard", href: "/homeowner", icon: "HomeIcon" },
         { name: "My Posted Jobs", href: "/homeowner/jobs", icon: "BriefcaseIcon" },
-        { name: "Post New Job", href: "/homeowner/jobs/new", icon: "PlusCircleIcon" },
+        { name: "Post New Job", href: "/jobs", icon: "PlusCircleIcon" },
         // { name: "Messages", href: "/homeowner/messages", icon: "ChatBubbleBottomCenterTextIcon" },
         // { name: "Settings", href: "/homeowner/profile", icon: "UserIcon" },
     ];
