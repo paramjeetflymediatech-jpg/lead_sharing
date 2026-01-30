@@ -441,7 +441,7 @@ export default function LeadsharingHome() {
             </section>
 
             {/* --- ALL TRADES --- */}
-            <section className="py-16 px-6 bg-white">
+            {/* <section className="py-16 px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8 border-b border-gray-200 pb-4">Our Trades and Services</h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-y-2 gap-x-8">
@@ -456,7 +456,7 @@ export default function LeadsharingHome() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section> */}
 
         </div>
     );
