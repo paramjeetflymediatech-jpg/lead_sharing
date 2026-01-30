@@ -8,10 +8,12 @@ import jwt from "jsonwebtoken";
 const AUTH_COOKIE_NAME = "auth_token";
 const JWT_SECRET = process.env.JWT_SECRET;
 
-if (!JWT_SECRET) {
-  throw new Error(
-    "Please define the JWT_SECRET environment variable in .env.local"
-  );
+// Helper to validate secret lazily
+function getJwtSecret() {
+  if (!JWT_SECRET) {
+    throw new Error("Please define the JWT_SECRET environment variable in .env.local");
+  }
+  return JWT_SECRET;
 }
 
 export async function setAuthCookie(token) {
@@ -43,7 +45,7 @@ export async function getCurrentUser() {
   if (!token) return null;
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
     await connectToDatabase();
     const user = await User.findById(decoded.userId).lean();
     if (!user) return null;

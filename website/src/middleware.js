@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
-}
-
-const secret = new TextEncoder().encode(JWT_SECRET);
+// const JWT_SECRET = process.env.JWT_SECRET; // Remove top-level
+// const secret = ... // Remove top-level
 
 export async function middleware(req) {
   const token = req.cookies.get("auth_token")?.value;
   const pathname = req.nextUrl.pathname;
 
-  console.log("🔐 Middleware checking:", pathname, "Has token:", !!token);
+  const JWT_SECRET = process.env.JWT_SECRET;
+  if (!JWT_SECRET) {
+    // Log error but don't crash build unless runtime
+    console.error("JWT_SECRET is not defined");
+    return NextResponse.json(
+      { message: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+  const secret = new TextEncoder().encode(JWT_SECRET);
 
   if (!token) {
-    console.log("❌ No token found");
     return NextResponse.json(
       { message: "Authentication required" },
       { status: 401 }
@@ -29,11 +32,8 @@ export async function middleware(req) {
     const userId = payload.userId;
     const role = payload.role; // HOMEOWNER | TRADESPERSON | ADMIN
 
-    console.log("✅ Token verified:", { userId, role });
-
     // ❌ Invalid role
     if (!["HOMEOWNER", "TRADESPERSON", "ADMIN"].includes(role)) {
-      console.log("❌ Invalid role:", role);
       return NextResponse.json(
         { message: "Invalid role" },
         { status: 403 }
@@ -58,7 +58,6 @@ export async function middleware(req) {
 
     // 🏠 HOMEOWNER routes - only homeowners can access
     if (pathname.startsWith("/api/homeowner/") && role !== "HOMEOWNER") {
-      console.log("❌ Non-homeowner trying to access homeowner route");
       return NextResponse.json(
         { message: "Only homeowners can access this resource" },
         { status: 403 }
@@ -89,13 +88,11 @@ export async function middleware(req) {
     headers.set("x-user-id", userId);
     headers.set("x-user-role", role);
 
-    console.log("✅ Request authorized, forwarding with headers");
-
     return NextResponse.next({
       request: { headers },
     });
   } catch (error) {
-    console.error("❌ Token verification failed:", error.message);
+    console.error("Token verification failed:", error.message);
     return NextResponse.json(
       { message: "Invalid or expired token" },
       { status: 401 }
