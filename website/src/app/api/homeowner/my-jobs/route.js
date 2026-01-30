@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
 
-
+// ✅ IMPORTANT: register populate schemas
+import "@/models/Category";
+import "@/models/SubCategory";
 
 export async function GET(req) {
   try {

@@ -1,3 +1,42 @@
+// import mongoose, { Schema, models, model } from 'mongoose';
+
+// const TradespersonProfileSchema = new Schema(
+//   {
+//     user: {
+//       type: Schema.Types.ObjectId,
+//       ref: 'User',
+//       required: true,
+//       unique: true,
+//     },
+
+//     companyName: {
+//       type: String,
+//       required: true,
+//     },
+
+//     skills: [String],
+
+//     serviceAreas: [String],
+
+//     credits: {
+//       type: Number,
+//       default: 5,
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// export const TradespersonProfile =
+//   models.TradespersonProfile ||
+//   model('TradespersonProfile', TradespersonProfileSchema);
+
+
+
+
+
+
+
+// models/TradespersonProfile.js
 import mongoose, { Schema, models, model } from 'mongoose';
 
 const TradespersonProfileSchema = new Schema(
@@ -8,27 +47,59 @@ const TradespersonProfileSchema = new Schema(
       required: true,
       unique: true,
     },
-
     companyName: {
       type: String,
       required: true,
+      trim: true,
     },
-
-    skills: [String],
-
-    serviceAreas: [String],
-
+    profileImage: {
+      type: String,
+      default: "",
+    },
+    bio: {
+      type: String,
+      default: "",
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    skills: [{
+      type: String,
+      trim: true,
+    }],
+    serviceAreas: [{
+      type: String,
+      trim: true,
+    }],
     credits: {
       type: Number,
       default: 5,
+      min: 0,
+    },
+    media: [{
+      url: String,
+      publicId: String,
+      type: {
+        type: String,
+        enum: ['IMAGE', 'VIDEO'],
+        default: 'IMAGE'
+      }
+    }],
+    updatedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }
 );
 
+// Auto-update updatedAt on save
+TradespersonProfileSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
 export const TradespersonProfile =
   models.TradespersonProfile ||
   model('TradespersonProfile', TradespersonProfileSchema);
-
-
-
