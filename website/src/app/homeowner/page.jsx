@@ -121,11 +121,11 @@ export default function HomeownerDashboard() {
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back, {user.name || 'Homeowner'}!</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back, {user?.name || 'Homeowner'}!</h1>
           <p className="text-gray-600 dark:text-zinc-400 mt-2">Track your projects and manage quotes from professionals.</p>
         </div>
         <Link
-          href="/homeowner/jobs/new"
+          href="/jobs"
           className="inline-flex items-center px-5 py-3 bg-[#1149C7] text-white text-sm font-bold rounded-xl hover:bg-[#155DFC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/20 transition-all"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
@@ -280,7 +280,7 @@ export default function HomeownerDashboard() {
             <h3 className="text-lg font-bold mb-2">Need a Pro?</h3>
             <p className="text-sm text-zinc-400 mb-6 font-medium leading-relaxed">The fastest way to get your project done accurately.</p>
             <Link
-              href="/homeowner/jobs/new"
+              href="/jobs"
               className="flex items-center justify-center gap-2 py-3 bg-white text-black text-sm font-bold rounded-xl hover:bg-zinc-100 transition-all"
             >
               <PlusIcon className="w-5 h-5" />

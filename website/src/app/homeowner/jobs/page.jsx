@@ -9,7 +9,7 @@ export default function HomeownerJobsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const status = searchParams.get('status');
-  
+
   const [user, setUser] = useState({});
   const [jobs, setJobs] = useState([]);
   const [summary, setSummary] = useState({
@@ -110,7 +110,7 @@ export default function HomeownerJobsPage() {
           <p className="text-gray-600 dark:text-zinc-400 mt-2">Manage all your home project jobs and quotes</p>
         </div>
         <Link
-          href="/homeowner/jobs/new"
+          href="/jobs"
           className="inline-flex items-center px-5 py-3 bg-[#1149C7] text-white text-sm font-bold rounded-xl hover:bg-[#155DFC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/20 transition-all"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
@@ -122,41 +122,37 @@ export default function HomeownerJobsPage() {
       <div className="flex space-x-2 overflow-x-auto pb-2">
         <Link
           href="/homeowner/jobs"
-          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${
-            !status 
-              ? 'bg-[#1149C7] text-white shadow-lg shadow-blue-500/20' 
-              : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-          }`}
+          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${!status
+            ? 'bg-[#1149C7] text-white shadow-lg shadow-blue-500/20'
+            : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
         >
           All Jobs ({summary.totalJobs})
         </Link>
         <Link
           href="/homeowner/jobs?status=OPEN"
-          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${
-            status === 'OPEN'
-              ? 'bg-green-600 text-white shadow-lg shadow-green-500/20' 
-              : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-          }`}
+          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${status === 'OPEN'
+            ? 'bg-green-600 text-white shadow-lg shadow-green-500/20'
+            : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
         >
           Open ({summary.activeJobs})
         </Link>
         <Link
           href="/homeowner/jobs?status=IN_PROGRESS"
-          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${
-            status === 'IN_PROGRESS'
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
-              : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-          }`}
+          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${status === 'IN_PROGRESS'
+            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+            : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
         >
           In Progress ({jobs.filter(j => j.status === 'IN_PROGRESS').length})
         </Link>
         <Link
           href="/homeowner/jobs?status=COMPLETED"
-          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${
-            status === 'COMPLETED'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' 
-              : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-          }`}
+          className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${status === 'COMPLETED'
+            ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
+            : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
         >
           Completed ({summary.completedJobs})
         </Link>
@@ -179,12 +175,11 @@ export default function HomeownerJobsPage() {
                           <p className="text-xs font-bold text-[#1149C7] uppercase tracking-widest">
                             {job.category?.name}
                           </p>
-                          <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                            job.status === 'OPEN' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
+                          <span className={`px-2 py-1 text-xs font-bold rounded-full ${job.status === 'OPEN' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
                             job.status === 'IN_PROGRESS' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' :
-                            job.status === 'COMPLETED' ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400' :
-                            'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'
-                          }`}>
+                              job.status === 'COMPLETED' ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400' :
+                                'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'
+                            }`}>
                             {formatStatus(job.status)}
                           </span>
                         </div>
@@ -222,17 +217,17 @@ export default function HomeownerJobsPage() {
                       <span className="text-2xl font-black text-[#1149C7]">{job.leadCount || 0}</span>
                       <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Leads</span>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2">
-                      <Link 
+                      <Link
                         href={`/homeowner/jobs/${job._id}`}
                         className="px-4 py-2 text-sm font-bold text-white bg-zinc-900 dark:bg-white dark:text-black rounded-xl hover:opacity-90 transition-all text-center shadow-lg shadow-black/5"
                       >
                         View Details
                       </Link>
-                      
+
                       {job.leadCount > 0 && (
-                        <Link 
+                        <Link
                           href={`/homeowner/jobs/${job._id}#leads`}
                           className="px-4 py-2 text-sm font-bold text-[#1149C7] bg-white dark:bg-zinc-900 border-2 border-[#1149C7] rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all text-center"
                         >
@@ -287,12 +282,12 @@ export default function HomeownerJobsPage() {
               {status ? `No ${formatStatus(status)} jobs found` : 'No jobs posted yet'}
             </h3>
             <p className="text-zinc-500 dark:text-zinc-400 mb-6 max-w-md mx-auto">
-              {status 
+              {status
                 ? `You don't have any ${formatStatus(status).toLowerCase()} jobs.`
                 : 'Post your first job to start receiving quotes from local trusted tradespeople.'}
             </p>
             <Link
-              href="/homeowner/jobs/new"
+              href="/jobs"
               className="inline-flex items-center px-6 py-3 bg-[#1149C7] text-white font-bold rounded-xl hover:bg-[#155DFC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/20 transition-all"
             >
               <PlusIcon className="h-5 w-5 mr-2" />

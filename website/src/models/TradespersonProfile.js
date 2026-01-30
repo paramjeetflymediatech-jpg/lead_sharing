@@ -95,10 +95,7 @@ const TradespersonProfileSchema = new Schema(
 );
 
 // Auto-update updatedAt on save
-TradespersonProfileSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+
 
 export const TradespersonProfile =
   models.TradespersonProfile ||

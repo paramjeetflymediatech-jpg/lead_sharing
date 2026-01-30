@@ -1,9 +1,9 @@
 
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { hash } from "bcryptjs";
 import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
+import { hashPassword } from "@/lib/auth";
 
 export async function POST(req) {
     try {
@@ -12,18 +12,16 @@ export async function POST(req) {
 
         if (!token || !password) {
             return NextResponse.json(
-                { success: false, message: "Missing token or password" },
+                { success: false, message: "Token and password are required" },
                 { status: 400 }
             );
         }
 
-        // Hash the token to compare with DB
         const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-        // Find user with valid token and not expired
         const user = await User.findOne({
             passwordResetToken: hashedToken,
-            passwordResetExpires: { $gt: Date.now() },
+            passwordResetExpires: { $gt: new Date() },
         });
 
         if (!user) {
@@ -33,24 +31,21 @@ export async function POST(req) {
             );
         }
 
-        // Hash new password
-        const hashedPassword = await hash(password, 12);
-
-        // Update user
+        // Set new password
+        const hashedPassword = await hashPassword(password);
         user.password = hashedPassword;
         user.passwordResetToken = undefined;
         user.passwordResetExpires = undefined;
+
         await user.save();
 
         return NextResponse.json({
             success: true,
-            message: "Password reset successfully",
+            message: "Password reset successful"
         });
+
     } catch (error) {
         console.error("Reset Password Error:", error);
-        return NextResponse.json(
-            { success: false, message: "Internal server error" },
-            { status: 500 }
-        );
+        return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
     }
 }

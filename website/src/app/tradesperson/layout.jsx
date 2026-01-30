@@ -14,8 +14,8 @@ export default async function TradespersonLayout({ children }) {
         { name: "My Unlocked Leads", href: "/tradesperson/leads", icon: "ClipboardDocumentListIcon" },
         { name: "My Profile", href: "/tradesperson/profile", icon: "UserIcon" },
         { name: "My Account", href: "/tradesperson/account", icon: "Cog6ToothIcon" },
-        
-        { name: "Settings", href: "/tradesperson/settings", icon: "Cog6ToothIcon" },
+
+
         { name: "Help", href: "/tradesperson/help", icon: "QuestionMarkCircleIcon" },
         { name: "Logout", href: "/auth/logout", icon: "ArrowRightOnRectangleIcon" }
     ];

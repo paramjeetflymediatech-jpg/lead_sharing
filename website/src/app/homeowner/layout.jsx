@@ -13,8 +13,8 @@ export default async function HomeownerLayout({ children }) {
         { name: "Dashboard", href: "/homeowner", icon: "HomeIcon" },
         { name: "My Posted Jobs", href: "/homeowner/jobs", icon: "BriefcaseIcon" },
         { name: "Post New Job", href: "/jobs", icon: "PlusCircleIcon" },
-        // { name: "Messages", href: "/homeowner/messages", icon: "ChatBubbleBottomCenterTextIcon" },
-        // { name: "Settings", href: "/homeowner/profile", icon: "UserIcon" },
+        { name: "Messages", href: "/homeowner/messages", icon: "ChatBubbleBottomCenterTextIcon" },
+        { name: "Settings", href: "/homeowner/profile", icon: "UserIcon" },
     ];
 
     return (

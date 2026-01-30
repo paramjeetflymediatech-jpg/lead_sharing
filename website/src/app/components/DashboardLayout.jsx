@@ -23,7 +23,8 @@ import {
     ListBulletIcon,
     MagnifyingGlassPlusIcon,
     CurrencyDollarIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    QuestionMarkCircleIcon
 } from "@heroicons/react/24/outline";
 
 const REQUESTED_ICONS = {
@@ -44,7 +45,8 @@ const REQUESTED_ICONS = {
     ListBulletIcon,
     MagnifyingGlassPlusIcon,
     CurrencyDollarIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    QuestionMarkCircleIcon
 };
 
 export default function DashboardLayout({ children, navItems, user }) {
@@ -85,6 +87,20 @@ export default function DashboardLayout({ children, navItems, user }) {
                         {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             const Icon = REQUESTED_ICONS[item.icon] || HomeIcon; // Fallback to HomeIcon
+                            if (item.href.includes("logout")) {
+                                return (
+                                    <form key={item.name} action={item.href} method="POST">
+                                        <button
+                                            type="submit"
+                                            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-bold transition-all text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                        >
+                                            <Icon className="w-5 h-5 shrink-0" />
+                                            {item.name}
+                                        </button>
+                                    </form>
+                                );
+                            }
+
                             return (
                                 <Link
                                     key={item.name}

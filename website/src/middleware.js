@@ -8,6 +8,8 @@ export async function middleware(req) {
   const token = req.cookies.get("auth_token")?.value;
   const pathname = req.nextUrl.pathname;
 
+
+
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!JWT_SECRET) {
     // Log error but don't crash build unless runtime
@@ -104,9 +106,11 @@ export const config = {
   matcher: [
     "/api/jobs/:path*",
     "/api/leads/:path*",
+    "/api/profile",
     "/api/profile/:path*",
     "/api/homeowner/:path*",
     "/api/tradesperson/:path*",
     "/api/admin/:path*",
+    "/api/auth/update-password",
   ],
 };

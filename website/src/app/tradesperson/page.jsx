@@ -314,7 +314,7 @@ export default async function TradespersonDashboard() {
   }
 
   await connectToDatabase();
-  
+
   // Fetch profile with all necessary fields
   const profile = await TradespersonProfile.findOne({ user: user.id })
     .populate("user", "name email")
@@ -404,7 +404,7 @@ export default async function TradespersonDashboard() {
     // Calculate profile completion with image consideration
     const calculateProfileCompletion = () => {
       let completion = 20; // Base score
-      
+
       // Field scoring
       if (profile.companyName?.trim()) completion += 15;
       if (profile.profileImage?.trim()) completion += 15; // Profile image weight
@@ -413,7 +413,7 @@ export default async function TradespersonDashboard() {
       if (profile.skills?.length > 0) completion += 10;
       if (profile.serviceAreas?.length > 0) completion += 10;
       if (profile.media?.length > 0) completion += 5;
-      
+
       return Math.min(completion, 100);
     };
 
@@ -455,10 +455,10 @@ export default async function TradespersonDashboard() {
                   </div>
                 )}
               </div>
-              
+
               {/* Image Upload/Edit Badge */}
               <Link
-                href="/tradesperson/profile/edit"
+                href="/tradesperson/profile"
                 className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#155DFC] rounded-full flex items-center justify-center shadow-lg hover:bg-[#1149C7] transition-all group-hover:scale-110"
                 title="Edit profile image"
               >
@@ -474,7 +474,7 @@ export default async function TradespersonDashboard() {
               <p className="text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
                 Hello, <span className="text-[#155DFC] font-bold">{profile.companyName || user.name || "Business"}</span>! Here are your latest opportunities.
               </p>
-              
+
               {/* Quick Profile Info */}
               <div className="flex flex-wrap items-center gap-4 mt-3">
                 {profile.phone && (
@@ -483,7 +483,7 @@ export default async function TradespersonDashboard() {
                     <span>{profile.phone}</span>
                   </div>
                 )}
-                
+
                 {profile.serviceAreas?.length > 0 && (
                   <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <MapPin className="w-4 h-4" />
@@ -495,7 +495,7 @@ export default async function TradespersonDashboard() {
                     )}
                   </div>
                 )}
-                
+
                 {profile.skills?.length > 0 && (
                   <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <Sparkles className="w-4 h-4" />
@@ -591,7 +591,7 @@ export default async function TradespersonDashboard() {
                   {profileCompletion}%
                 </span>
               </div>
-              
+
               {/* Progress Bar */}
               <div className="space-y-4">
                 <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden dark:bg-zinc-800">
@@ -600,7 +600,7 @@ export default async function TradespersonDashboard() {
                     style={{ width: `${profileCompletion}%` }}
                   />
                 </div>
-                
+
                 {/* Profile Checklist */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -624,9 +624,9 @@ export default async function TradespersonDashboard() {
                     <div className={`w-3 h-3 rounded-full ${profile.skills?.length > 0 ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                   </div>
                 </div>
-                
+
                 <Link
-                  href="/tradesperson/profile/edit"
+                  href="/tradesperson/profile"
                   className="block w-full rounded-xl bg-zinc-900 dark:bg-zinc-800 py-3 text-center text-sm font-bold text-white hover:bg-black dark:hover:bg-zinc-700 transition-all shadow-lg shadow-black/5"
                 >
                   {profileCompletion < 80 ? "Complete Profile" : "Update Profile"}
@@ -641,7 +641,7 @@ export default async function TradespersonDashboard() {
                 Pro Tip 💡
               </h3>
               <p className="text-sm text-zinc-400 font-medium leading-relaxed">
-                {!profile.profileImage 
+                {!profile.profileImage
                   ? "Add a professional profile image to increase trust by 65%."
                   : "Fast responses (within 30 mins) increase win rates by 40%. Keep your notification bell on!"
                 }
@@ -692,12 +692,15 @@ export default async function TradespersonDashboard() {
                     <h4 className="font-bold text-zinc-900 dark:text-white">
                       {profile.companyName || "Your Business"}
                     </h4>
+                    <p className="text-xs text-zinc-500 mb-1">
+                      {profile.user?.email || "No email"}
+                    </p>
                     <p className="text-xs text-zinc-500">
                       {profile.skills?.length || 0} services • {profile.serviceAreas?.length || 0} areas
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3">
                     <p className="text-xs text-zinc-500">Credits</p>
@@ -708,9 +711,9 @@ export default async function TradespersonDashboard() {
                     <p className="font-bold text-zinc-900 dark:text-white">{profileCompletion}%</p>
                   </div>
                 </div>
-                
+
                 <Link
-                  href="/tradesperson/profile/view"
+                  href="/tradesperson/profile"
                   className="block text-center text-sm font-medium text-[#155DFC] hover:underline"
                 >
                   View Full Profile →

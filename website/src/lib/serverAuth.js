@@ -53,6 +53,7 @@ export async function getCurrentUser() {
       id: user._id.toString(),
       role: user.role,
       email: user.email,
+      name: user.name,
     };
   } catch (err) {
     return null;
