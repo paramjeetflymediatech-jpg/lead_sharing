@@ -98,43 +98,7 @@ export default function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium text-gray-700 h-full cursor-pointer">
 
-          {/* Search Box */}
-          <div className="relative w-64 hidden xl:block">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search trades..."
-                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#1149C7] focus:ring-1 focus:ring-[#1149C7]"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchDropdown(true);
-                }}
-                onFocus={() => setShowSearchDropdown(true)}
-                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-              />
-              <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            </div>
 
-            {showSearchDropdown && searchQuery && (
-              <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-                {filteredHeaderTrades.length > 0 ? (
-                  filteredHeaderTrades.map((trade) => (
-                    <Link
-                      key={trade}
-                      href={`/auth/register?role=HOMEOWNER&trade=${trade.toLowerCase().replace(/ /g, '-')}`}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#1149C7]"
-                      onClick={() => setShowSearchDropdown(false)}
-                    >
-                      {trade}
-                    </Link>
-                  ))
-                ) : (
-                  <div className="px-4 py-2 text-sm text-gray-500">No matches found</div>
-                )}
-              </div>
-            )}
-          </div>
 
 
           {/* Find a Trade Dropdown */}

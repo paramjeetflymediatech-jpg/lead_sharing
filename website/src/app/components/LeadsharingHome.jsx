@@ -94,10 +94,10 @@ export default function LeadsharingHome() {
 
     const [showTradeDropdown, setShowTradeDropdown] = useState(false);
     const [showJobDropdown, setShowJobDropdown] = useState(false);
+    
 
-    const jobTypes = [
-        "Installation", "Repair", "Maintenance", "Replacement", "Safety Check", "Quote / Estimate", "Other"
-    ];
+    // Use subcategories for job types as requested (dynamic)
+    const jobTypes = allTrades;
 
     const filteredTrades = trade === ""
         ? displayAllTrades
