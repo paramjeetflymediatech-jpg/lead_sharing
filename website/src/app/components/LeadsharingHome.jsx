@@ -260,7 +260,8 @@ export default function LeadsharingHome() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {displayPopularTrades.map((item, idx) => (
                         <Link
-                            href={`/auth/register?role=HOMEOWNER&trade=${item.slug}`}
+                            // href={`/auth/register?role=HOMEOWNER&trade=${item.slug}`}
+                            href={`/jobs`}
                             key={idx}
                             className="group flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 h-full"
                         >

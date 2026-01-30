@@ -11,6 +11,8 @@ const UserSchema = new Schema(
       default: 'HOMEOWNER',
       required: true,
     },
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
   },
   { timestamps: true }
 );
