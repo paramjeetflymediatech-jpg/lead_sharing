@@ -255,30 +255,41 @@ export default function LeadsharingHome() {
 
             {/* --- POPULAR JOBS --- */}
             <section className="py-16 px-6 max-w-7xl mx-auto w-full">
-                <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Our most popular jobs</h2>
-                {/* Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {displayPopularTrades.map((item, idx) => (
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-extrabold text-gray-900 inline-block relative">
+                        Our most popular jobs
+                        <div className="h-1 w-1/2 bg-green-600 mx-auto mt-2 rounded"></div>
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[
+                        { name: "Internal painting and decorating", image: "/trades/painter.png", slug: "painter" },
+                        { name: "Electrical installation or testing", image: "/trades/electrician.png", slug: "electrician" },
+                        { name: "Plumbing repair and maintenance", image: "/trades/plumber.png", slug: "plumber" },
+                        { name: "Bathroom, kitchen and WC Plumbing", image: "/trades/plumber.png", slug: "plumber" },
+                        { name: "Gas boiler - installation", image: "/trades/heating.png", slug: "heating" },
+                        { name: "Plaster skimming", image: "/trades/plasterer.png", slug: "plasterer" }
+                    ].map((job, idx) => (
                         <Link
-                            // href={`/auth/register?role=HOMEOWNER&trade=${item.slug}`}
-                            href={`/jobs`}
+                            href={`/auth/register?role=HOMEOWNER&trade=${job.slug}`}
                             key={idx}
-                            className="group flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 h-full"
+                            className="group flex items-center bg-gray-50 hover:bg-white border border-gray-100 hover:border-gray-200 rounded-lg p-4 transition-all hover:shadow-lg cursor-pointer h-24"
                         >
-                            <div className="relative h-48 w-full overflow-hidden bg-gray-100">
-                                {/* Using img tag for simplicity, in a real Next.js app use next/image */}
+                            <div className="flex-shrink-0 mr-4">
                                 <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    src={job.image}
+                                    alt={job.name}
+                                    className="w-12 h-12 object-contain group-hover:animate-bounce transition-transform"
                                 />
                             </div>
-                            <div className="p-6 flex flex-col flex-grow">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-xl font-bold text-[#1149C7] group-hover:underline mb-2">{item.name}</h3>
-                                    <span className="text-2xl text-gray-300 group-hover:text-[#1149C7]">&rsaquo;</span>
-                                </div>
-                                <p className="text-gray-600 text-sm">{item.sub}</p>
+                            <div className="flex-grow">
+                                <h3 className="text-sm font-bold text-gray-800 leading-tight group-hover:text-[#1149C7] transition-colors">
+                                    {job.name}
+                                </h3>
+                            </div>
+                            <div className="flex-shrink-0 ml-2">
+                                <ChevronRightIcon className="w-5 h-5 text-gray-400 group-hover:text-[#1149C7]" />
                             </div>
                         </Link>
                     ))}
