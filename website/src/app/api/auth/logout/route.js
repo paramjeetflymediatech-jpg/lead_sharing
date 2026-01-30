@@ -3,6 +3,13 @@ import { clearAuthCookie } from '@/lib/serverAuth';
 
 export async function POST(req) {
   await clearAuthCookie();
-  // Redirect back to login page after logging out
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (baseUrl) {
+    return NextResponse.redirect(new URL('/auth/login', baseUrl));
+  }
+
+  // Fallback to request origin if env var not set (development)
   return NextResponse.redirect(new URL('/auth/login', req.url));
 }
