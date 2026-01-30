@@ -234,13 +234,15 @@ export default function Header() {
                   >
                     Dashboard
                   </Link>
-                  <Link
+
+                  {/* <Link
                     href="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#1149C7]"
                     onClick={() => setShowUserMenu(false)}
                   >
                     My Profile
-                  </Link>
+                  </Link> */}
+
                   <div className="border-t border-gray-100 my-1"></div>
                   <button
                     onClick={handleLogout}
