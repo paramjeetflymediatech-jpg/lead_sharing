@@ -79,9 +79,27 @@ const JobSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
+      enum: ["OPEN", "HIRED", "COMPLETED", "CANCELLED"],
       default: "OPEN",
     },
+
+
+
+    hiredTradesperson: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TradespersonProfile",
+      default: null,
+    },
+
+    hiredAt: {
+      type: Date,
+      default: null,
+    },
+
+
+
+
+
   },
   { timestamps: true }
 );
