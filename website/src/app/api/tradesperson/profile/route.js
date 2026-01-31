@@ -13,13 +13,14 @@ export async function PUT(req) {
         }
 
         const body = await req.json();
-        const { companyName, phone, bio, skills, serviceAreas, profileImage } = body; // ADDED profileImage
+        const { companyName, phone, postcode, bio, skills, serviceAreas, profileImage } = body; // ADDED postcode
 
         const updatedProfile = await TradespersonProfile.findOneAndUpdate(
             { user: userId },
             {
                 companyName,
                 phone,
+                postcode,
                 bio,
                 skills: Array.isArray(skills) ? skills : skills.split(",").map(s => s.trim()),
                 serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : serviceAreas.split(",").map(s => s.trim()),

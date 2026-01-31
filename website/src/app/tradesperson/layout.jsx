@@ -17,7 +17,6 @@ export default async function TradespersonLayout({ children }) {
 
 
         { name: "Help", href: "/tradesperson/help", icon: "QuestionMarkCircleIcon" },
-        { name: "Logout", href: "/auth/logout", icon: "ArrowRightOnRectangleIcon" }
     ];
 
     return (

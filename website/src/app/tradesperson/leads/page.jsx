@@ -69,7 +69,7 @@ export default async function MyLeadsPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#000000]">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-4 sm:px-6 py-4">
+      <header className="sticky top-0 z-[1] border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-4 sm:px-6 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <Link href="/tradesperson" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold shadow-lg shadow-[#155DFC]/20">
@@ -184,7 +184,7 @@ export default async function MyLeadsPage() {
                       {lead.job?.location?.postcode || "Not specified"}
                     </p>
                   </div>
-                  
+
                   <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl">
                     <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-2">
                       Budget
@@ -196,7 +196,7 @@ export default async function MyLeadsPage() {
                       {formatBudget(lead.job?.budgetMin, lead.job?.budgetMax)}
                     </p>
                   </div>
-                  
+
                   <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl">
                     <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-2">
                       Timeline
@@ -208,7 +208,7 @@ export default async function MyLeadsPage() {
                       {formatStartTime(lead.job?.startTime)}
                     </p>
                   </div>
-                  
+
                   <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl">
                     <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-2">
                       Your Estimate
@@ -258,7 +258,7 @@ export default async function MyLeadsPage() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-white/50 dark:bg-black/30 p-4 rounded-xl">
                       <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase mb-2">
@@ -268,7 +268,7 @@ export default async function MyLeadsPage() {
                         {lead.job?.contactName || "Not provided"}
                       </p>
                     </div>
-                    
+
                     <div className="bg-white/50 dark:bg-black/30 p-4 rounded-xl">
                       <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase mb-2">
                         Email
@@ -280,7 +280,7 @@ export default async function MyLeadsPage() {
                         {lead.job?.contactEmail || "Not provided"}
                       </a>
                     </div>
-                    
+
                     <div className="bg-white/50 dark:bg-black/30 p-4 rounded-xl">
                       <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase mb-2">
                         Phone
@@ -305,7 +305,7 @@ export default async function MyLeadsPage() {
                       </svg>
                       Call Homeowner
                     </a>
-                    
+
                     <a
                       href={`mailto:${lead.job?.contactEmail}?subject=Regarding your ${lead.job?.category?.name || "job"} request&body=Hi ${lead.job?.contactName || "there"},%0D%0A%0D%0AI saw your job posting for ${lead.job?.category?.name || ""} - ${lead.job?.subCategory?.name || ""} and would like to discuss it further.%0D%0A%0D%0AMy message: ${lead.message || ""}%0D%0A%0D%0ABest regards,%0D%0A${profile.companyName || user.name || "Tradesperson"}`}
                       className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-green-600 px-6 py-3 text-sm font-bold text-green-600 hover:bg-green-50 transition-all"
@@ -315,7 +315,7 @@ export default async function MyLeadsPage() {
                       </svg>
                       Send Email
                     </a>
-                    
+
                     <Link
                       href="/tradesperson"
                       className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 px-6 py-3 text-sm font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"

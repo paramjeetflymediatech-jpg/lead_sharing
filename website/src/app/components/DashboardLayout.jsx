@@ -163,11 +163,7 @@ export default function DashboardLayout({ children, navItems, user }) {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Notification Badge */}
-                        <button className="p-2.5 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-[#1149C7] rounded-xl transition-all border border-zinc-200 dark:border-zinc-800 relative">
-                            <BellIcon className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>
-                        </button>
+
 
                         {/* Desktop User Menu (Hidden on mobile) */}
                         <div className="hidden lg:flex items-center gap-3 pl-4 border-l border-zinc-200 dark:border-zinc-800">

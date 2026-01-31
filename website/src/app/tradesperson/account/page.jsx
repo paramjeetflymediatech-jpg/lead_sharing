@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Cog6ToothIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 export default function AccountPage() {
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [passwords, setPasswords] = useState({
         currentPassword: "",
@@ -42,6 +45,10 @@ export default function AccountPage() {
             if (res.ok) {
                 toast.success("Password updated successfully");
                 setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                // Redirect to login after successful password change
+                setTimeout(() => {
+                    router.push("/auth/login");
+                }, 2000);
             } else {
                 toast.error(data.message || "Failed to update password");
             }

@@ -403,14 +403,15 @@ export default async function TradespersonDashboard() {
 
     // Calculate profile completion with image consideration
     const calculateProfileCompletion = () => {
-      let completion = 20; // Base score
+      let completion = 10; // Base score
 
       // Field scoring
-      if (profile.companyName?.trim()) completion += 15;
+      if (profile.companyName?.trim()) completion += 10;
       if (profile.profileImage?.trim()) completion += 15; // Profile image weight
       if (profile.bio?.trim()) completion += 15;
       if (profile.phone?.trim()) completion += 10;
-      if (profile.skills?.length > 0) completion += 10;
+      if (profile.postcode?.trim()) completion += 10;
+      if (profile.skills?.length > 0) completion += 15;
       if (profile.serviceAreas?.length > 0) completion += 10;
       if (profile.media?.length > 0) completion += 5;
 
@@ -493,6 +494,13 @@ export default async function TradespersonDashboard() {
                         +{profile.serviceAreas.length - 1}
                       </span>
                     )}
+                  </div>
+                )}
+
+                {profile.postcode && (
+                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <MapPin className="w-4 h-4" />
+                    <span>{profile.postcode}</span>
                   </div>
                 )}
 
@@ -620,8 +628,20 @@ export default async function TradespersonDashboard() {
                     <div className={`w-3 h-3 rounded-full ${profile.phone?.trim() ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Skills & Services</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Postcode</span>
+                    <div className={`w-3 h-3 rounded-full ${profile.postcode?.trim() ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Skills</span>
                     <div className={`w-3 h-3 rounded-full ${profile.skills?.length > 0 ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Service Areas</span>
+                    <div className={`w-3 h-3 rounded-full ${profile.serviceAreas?.length > 0 ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Portfolio/Media</span>
+                    <div className={`w-3 h-3 rounded-full ${profile.media?.length > 0 ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                   </div>
                 </div>
 

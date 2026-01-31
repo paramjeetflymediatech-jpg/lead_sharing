@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 
 export default function ProfilePage() {
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -12,6 +14,7 @@ export default function ProfilePage() {
         companyName: "",
         email: "",
         phone: "",
+        postcode: "",
         bio: "",
         skills: "",
         serviceAreas: "",
@@ -92,6 +95,10 @@ export default function ProfilePage() {
             const data = await res.json();
             if (data.success) {
                 toast.success("Profile updated successfully!");
+                // Redirect to dashboard after successful profile update
+                setTimeout(() => {
+                    router.push("/tradesperson");
+                }, 1500);
             } else {
                 toast.error(data.message || "Failed to update profile");
             }
@@ -190,6 +197,18 @@ export default function ProfilePage() {
                                     className="w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:ring-2 focus:ring-[#1149C7] focus:border-transparent outline-none transition-all"
                                     placeholder="e.g. 07700 900000"
                                     required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 dark:text-zinc-300">Postcode</label>
+                                <input
+                                    type="text"
+                                    name="postcode"
+                                    value={profile.postcode}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:ring-2 focus:ring-[#1149C7] focus:border-transparent outline-none transition-all"
+                                    placeholder="e.g. SW1A 1AA"
                                 />
                             </div>
                         </div>
