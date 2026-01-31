@@ -460,7 +460,7 @@
 // //               {/* Category Dropdown */}
 // //               <div>
 // //                 <label className="block text-white text-sm font-medium mb-2">
-// //                   What type of tradesperson do you need?
+// //                   What service are you looking for?
 // //                 </label>
 // //                 <select
 // //                   name="category"
@@ -1417,7 +1417,7 @@
 //               {/* Category Dropdown */}
 //               <div>
 //                 <label className="block text-white text-sm font-medium mb-2">
-//                   What type of tradesperson do you need?
+//                   What service are you looking for?
 //                 </label>
 //                 <select
 //                   name="category"
@@ -2265,7 +2265,7 @@ export default function JobCreationForm() {
             {/* Category Dropdown */}
             <div className="flex-1">
               <label className="block text-sm font-bold text-white mb-2">
-                What type of tradesperson do you need?
+                What service are you looking for?
               </label>
               <select
                 name="category"

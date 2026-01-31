@@ -384,7 +384,7 @@
 //               </h2>
 //               <div>
 //                 <label className="block text-sm font-medium text-gray-700 mb-3">
-//                   What type of tradesperson do you need? Please select
+//                   What service are you looking for? Please select
 //                 </label>
 //                 <div className="grid grid-cols-2 gap-3">
 //                   {categories.map((cat) => (
