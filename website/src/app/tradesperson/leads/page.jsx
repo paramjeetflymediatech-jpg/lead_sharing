@@ -9,6 +9,7 @@ import { Lead } from "@/models/Lead";
 import "@/models/Category";
 import "@/models/SubCategory";
 import "@/models/User";
+import "@/models/Job";
 
 export default async function MyLeadsPage() {
   const user = await getCurrentUser();
@@ -70,27 +71,28 @@ export default async function MyLeadsPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-[#000000]">
       {/* Header */}
       <header className="sticky top-0 z-[1] border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-4 sm:px-6 py-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <Link href="/tradesperson" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold shadow-lg shadow-[#155DFC]/20">
-              L
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
+          <Link href="/tradesperson" className="flex items-center gap-2 shrink-0">
+            <div className="h-10 w-15 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold shadow-lg shadow-[#155DFC]/20">
+              Leads
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-black dark:text-white">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-black dark:text-white hidden xs:block">
               My Leads
             </h1>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-full bg-[#155DFC]/10 px-3 py-1.5 border border-[#155DFC]/20">
-              <span className="text-xs font-bold text-[#155DFC]">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 rounded-full bg-[#155DFC]/10 px-2 sm:px-3 py-1 sm:py-1.5 border border-[#155DFC]/20 whitespace-nowrap">
+              <span className="text-[10px] sm:text-xs font-bold text-[#155DFC]">
                 Credits: {profile.credits ?? 0}
               </span>
             </div>
             <Link
               href="/tradesperson"
-              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-black transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[10px] sm:text-xs font-bold text-black transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white whitespace-nowrap"
             >
-              Back to Dashboard
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           </div>
         </div>

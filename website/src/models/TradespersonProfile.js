@@ -44,15 +44,7 @@ const TradespersonProfileSchema = new Schema(
       default: 5,
       min: 0,
     },
-    media: [{
-      url: String,
-      publicId: String,
-      type: {
-        type: String,
-        enum: ['IMAGE', 'VIDEO'],
-        default: 'IMAGE'
-      }
-    }],
+
     updatedAt: {
       type: Date,
       default: Date.now,
