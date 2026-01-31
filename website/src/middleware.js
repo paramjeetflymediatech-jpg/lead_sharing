@@ -111,6 +111,7 @@ export const config = {
     "/api/homeowner/:path*",
     "/api/tradesperson/:path*",
     "/api/admin/:path*",
+    "/api/me/:path*",
     "/api/auth/update-password",
   ],
 };
