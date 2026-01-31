@@ -269,7 +269,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
 
       {/* Unlock Modal */}
       {showUnlockModal && selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-hidden p-4 ">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 w-full max-w-md mx-4 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-black dark:text-white">
