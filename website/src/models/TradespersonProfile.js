@@ -64,6 +64,14 @@ const TradespersonProfileSchema = new Schema(
       type: String,
       default: "",
     },
+
+     postcode: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true, // fast search
+    },
+
     skills: [{
       type: String,
       trim: true,
