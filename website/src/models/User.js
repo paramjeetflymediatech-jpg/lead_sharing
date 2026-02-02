@@ -21,17 +21,52 @@ export const User = {
     };
   },
 
-  async find(query = {}) {
+  async find(query = {}, options = {}) {
     let sql = 'SELECT * FROM users WHERE 1=1';
     const params = [];
 
+    // Role filtering
     if (query.role) {
-      sql += ' AND role = ?';
-      params.push(query.role);
+      if (typeof query.role === 'object' && query.role.$ne) {
+        sql += ' AND role != ?';
+        params.push(query.role.$ne);
+      } else {
+        sql += ' AND role = ?';
+        params.push(query.role);
+      }
+    }
+
+    // Search filtering (Name or Email) - using LIKE
+    if (query.$or) {
+      const orConditions = [];
+      query.$or.forEach(condition => {
+        if (condition.name && condition.name.$regex) {
+          orConditions.push('name LIKE ?');
+          params.push(`%${condition.name.$regex}%`);
+        }
+        if (condition.email && condition.email.$regex) {
+          orConditions.push('email LIKE ?');
+          params.push(`%${condition.email.$regex}%`);
+        }
+      });
+      if (orConditions.length > 0) {
+        sql += ` AND (${orConditions.join(' OR ')})`;
+      }
     }
 
     // Default sort by created_at DESC
     sql += ' ORDER BY created_at DESC';
+
+    // Pagination
+    if (options.limit) {
+      sql += ' LIMIT ?';
+      params.push(parseInt(options.limit));
+
+      if (options.skip) {
+        sql += ' OFFSET ?';
+        params.push(parseInt(options.skip));
+      }
+    }
 
     const [rows] = await pool.query(sql, params);
     return rows.map(userToMongoStyle);
@@ -106,12 +141,36 @@ export const User = {
     const params = [];
 
     if (query.role) {
-      sql += ' AND role = ?';
-      params.push(query.role);
+      if (typeof query.role === 'object' && query.role.$ne) {
+        sql += ' AND role != ?';
+        params.push(query.role.$ne);
+      } else {
+        sql += ' AND role = ?';
+        params.push(query.role);
+      }
     }
-    if (query.email) {
+
+    if (query.email && !query.$or) {
       sql += ' AND email = ?';
       params.push(query.email);
+    }
+
+    // Search filtering (Name or Email) - using LIKE
+    if (query.$or) {
+      const orConditions = [];
+      query.$or.forEach(condition => {
+        if (condition.name && condition.name.$regex) {
+          orConditions.push('name LIKE ?');
+          params.push(`%${condition.name.$regex}%`);
+        }
+        if (condition.email && condition.email.$regex) {
+          orConditions.push('email LIKE ?');
+          params.push(`%${condition.email.$regex}%`);
+        }
+      });
+      if (orConditions.length > 0) {
+        sql += ` AND (${orConditions.join(' OR ')})`;
+      }
     }
 
     const [rows] = await pool.query(sql, params);

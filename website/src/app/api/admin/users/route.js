@@ -3,14 +3,50 @@ import { NextResponse } from "next/server";
 import { User } from "@/models/User";
 import { hashPassword } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req) {
   try {
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 10;
+    const search = searchParams.get('search') || '';
+    const role = searchParams.get('role') || 'ALL';
 
+    const skip = (page - 1) * limit;
 
-    const users = await User.find()
-      ;
+    // Build query
+    const query = { role: { $ne: 'ADMIN' } };
 
-    return NextResponse.json(users, { status: 200 });
+    if (role !== 'ALL') {
+      query.role = role; // Override to specific role if selected
+    }
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search } },
+        { email: { $regex: search } }
+      ];
+    }
+
+    // Get Data & Count Parallel
+    const [users, total] = await Promise.all([
+      User.find(query, { limit, skip }),
+      User.countDocuments(query)
+    ]);
+
+    // Sanitize users to remove sensitive data
+    const sanitizedUsers = users.map(user => {
+      const { password, password_reset_token, password_reset_expires, ...rest } = user;
+      return rest;
+    });
+
+    return NextResponse.json({
+      users: sanitizedUsers,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }, { status: 200 });
+
   } catch (error) {
     console.error("ADMIN USERS ERROR:", error);
     return NextResponse.json(
