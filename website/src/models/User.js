@@ -12,10 +12,29 @@ const userToMongoStyle = (row) => {
 export const User = {
   async findById(id) {
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [id]);
+    const user = rows[0] ? userToMongoStyle(rows[0]) : null;
+    if (!user) return null;
+
     return {
-      lean: () => Promise.resolve(userToMongoStyle(rows[0])), // Mock lean() for compatibility
-      ...userToMongoStyle(rows[0])
+      lean: () => Promise.resolve(user),
+      ...user
     };
+  },
+
+  async find(query = {}) {
+    let sql = 'SELECT * FROM users WHERE 1=1';
+    const params = [];
+
+    if (query.role) {
+      sql += ' AND role = ?';
+      params.push(query.role);
+    }
+
+    // Default sort by created_at DESC
+    sql += ' ORDER BY created_at DESC';
+
+    const [rows] = await pool.query(sql, params);
+    return rows.map(userToMongoStyle);
   },
 
   async findOne(query) {

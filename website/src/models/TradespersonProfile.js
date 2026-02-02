@@ -108,5 +108,34 @@ export const TradespersonProfile = {
       return this.findOne({ user: profile.user }); // Re-fetch
     }
     return profile;
+  },
+
+  async findByIdAndUpdate(id, updateData, options = {}) {
+    const updates = [];
+    const values = [];
+
+    for (const [key, value] of Object.entries(updateData)) {
+      let column = null;
+      let val = value;
+
+      if (key === 'companyName') column = 'company_name';
+      else if (key === 'profileImage') column = 'profile_image';
+      else if (key === 'serviceAreas') { column = 'service_areas'; val = JSON.stringify(value); }
+      else if (key === 'skills') { column = 'skills'; val = JSON.stringify(value); }
+      else if (['bio', 'phone', 'postcode', 'credits'].includes(key)) column = key;
+
+      if (column) {
+        updates.push(`${column} = ?`);
+        values.push(val);
+      }
+    }
+
+    if (updates.length > 0) {
+      values.push(id);
+      await pool.query(`UPDATE tradesperson_profiles SET ${updates.join(', ')} WHERE id = ?`, values);
+    }
+
+    // Simplistic return, usually fine for this use case
+    return { _id: id, ...updateData };
   }
 };

@@ -5,7 +5,7 @@ import { hashPassword } from "@/lib/auth";
 
 export async function GET() {
   try {
-    await connectToDatabase();
+
 
     const users = await User.find()
       ;
@@ -22,7 +22,7 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    await connectToDatabase();
+
     const body = await req.json();
     const { name, email, password, role } = body;
 

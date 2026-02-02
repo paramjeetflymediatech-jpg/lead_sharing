@@ -821,7 +821,7 @@ export default function AdminJobCreationForm() {
         credentials: "include",
         cache: "no-store",
       });
-      
+
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
@@ -840,24 +840,39 @@ export default function AdminJobCreationForm() {
     fetchUser();
   }, [fetchUser]);
 
-  // Fetch categories and subcategories
+  // Fetch categories on mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        const [catRes, subRes] = await Promise.all([
-          fetch("/api/categories"),
-          fetch("/api/subcategories"),
-        ]);
-        const catData = await catRes.json();
-        const subData = await subRes.json();
+        const res = await fetch("/api/categories");
+        const catData = await res.json();
         setCategories(catData);
-        setSubCategories(subData);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching categories:", error);
       }
     };
-    fetchData();
+    fetchCategories();
   }, []);
+
+  // Fetch subcategories dynamically when category changes
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!form.category) {
+        setFilteredSubCategories([]);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/subcategories?categoryId=${form.category}`);
+        const subData = await res.json();
+        setFilteredSubCategories(subData);
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+        setFilteredSubCategories([]);
+      }
+    };
+    fetchSubCategories();
+  }, [form.category]);
 
   // Pre-fill contact info from user data
   useEffect(() => {
@@ -865,7 +880,7 @@ export default function AdminJobCreationForm() {
       const userName = user.name || user.user?.name || "";
       const userPhone = user.phone || user.user?.phone || "";
       const userEmail = user.email || user.user?.email || "";
-      
+
       if (userEmail) {
         setForm((prev) => ({
           ...prev,
@@ -876,18 +891,6 @@ export default function AdminJobCreationForm() {
       }
     }
   }, [user, isLoadingUser]);
-
-  // Filter subcategories based on selected category
-  useEffect(() => {
-    if (form.category) {
-      const filtered = subCategories.filter(
-        (sub) => sub.category._id === form.category || sub.category === form.category
-      );
-      setFilteredSubCategories(filtered);
-    } else {
-      setFilteredSubCategories([]);
-    }
-  }, [form.category, subCategories]);
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -1086,7 +1089,7 @@ export default function AdminJobCreationForm() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 space-y-8">
-              
+
               {/* Job Category Section */}
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">

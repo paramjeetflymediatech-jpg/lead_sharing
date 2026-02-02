@@ -83,9 +83,10 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    // Deduct credits and create lead
-    profile.credits -= LEAD_COST;
-    await profile.save();
+    // Deduct credits and update profile
+    await TradespersonProfile.findByIdAndUpdate(profile._id, {
+      credits: profile.credits - LEAD_COST
+    });
 
     const lead = await Lead.create({
       job: jobId,

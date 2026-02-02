@@ -38,9 +38,15 @@ export async function POST(req) {
             category: categoryId
         });
 
-        const populated = await subcategory.populate("category", "name");
+        // Manually fetch category details to simulate populate
+        const categoryData = await Category.findOne({ _id: categoryId });
 
-        return NextResponse.json(populated, { status: 201 });
+        const responseData = {
+            ...subcategory,
+            category: categoryData ? { _id: categoryData._id, name: categoryData.name } : null
+        };
+
+        return NextResponse.json(responseData, { status: 201 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }
