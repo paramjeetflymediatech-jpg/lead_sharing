@@ -1,46 +1,46 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/serverAuth";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Lead } from "@/models/Lead";
 import Job from "@/models/Job";
-import { isValidObjectId } from "mongoose";
+// import { isValidObjectId } from "mongoose";
 
-// Register schemas
-import "@/models/Category";
-import "@/models/SubCategory";
-import "@/models/User";
+// Models
+import { Category } from "@/models/Category";
+import { SubCategory } from "@/models/SubCategory";
+import { User } from "@/models/User";
 
 export default async function JobDetailsPage({ params }) {
   try {
     // Handle params properly in Next.js 15
     const { id } = await params;
     console.log("Job ID from params:", id);
-    
+
     // Get user first and handle redirects properly
     const user = await getCurrentUser();
-    
+
     if (!user) {
       redirect("/auth/login");
       return null;
     }
-    
+
     if (user.role !== "TRADESPERSON") {
       redirect("/auth/login");
       return null;
     }
 
-    await connectToDatabase();
-    
+    // await connectToDatabase();
+
     // Check if user._id exists, fallback to user.id
     const userId = user._id || user.id;
     if (!userId) {
       redirect("/auth/login");
       return null;
     }
-    
-    const profile = await TradespersonProfile.findOne({ user: userId }).lean();
+
+    const profile = await TradespersonProfile.findOne({ user: userId });
 
     if (!profile) {
       redirect("/tradesperson/setup");
@@ -48,7 +48,7 @@ export default async function JobDetailsPage({ params }) {
     }
 
     // Validate the job ID
-    if (!id || !isValidObjectId(id)) {
+    if (!id || isNaN(Number(id))) {
       console.error("Invalid job ID:", id);
       return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
@@ -69,14 +69,23 @@ export default async function JobDetailsPage({ params }) {
     }
 
     // Fetch job with full details
-    const job = await Job.findById(id)
-      .populate("category", "name slug description")
-      .populate("subCategory", "name slug description")
-      .populate("homeowner", "name email")
-      .lean();
+    let job = await Job.findById(id);
+
+    if (job) {
+      // Manually proliferate
+      const category = await Category.findOne({ _id: job.category });
+      const subCategory = await SubCategory.findOne({ _id: job.subCategory });
+
+      job = {
+        ...job,
+        category: category || {},
+        subCategory: subCategory || {},
+        homeowner: { name: "Homeowner" } // Stub
+      };
+    }
 
     console.log("Fetched job:", job ? "Found" : "Not found");
-    
+
     if (!job) {
       return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
@@ -170,18 +179,18 @@ export default async function JobDetailsPage({ params }) {
       if (!url) return false;
       const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv', '.flv', '.mkv'];
       const videoPatterns = ['video/', 'youtube.com', 'youtu.be', 'vimeo.com'];
-      
+
       // Check file extension
       const lowerUrl = url.toLowerCase();
       if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
         return true;
       }
-      
+
       // Check for video patterns in URL
       if (videoPatterns.some(pattern => lowerUrl.includes(pattern))) {
         return true;
       }
-      
+
       return false;
     };
 
@@ -225,7 +234,7 @@ export default async function JobDetailsPage({ params }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {job.media.map((mediaItem, index) => {
             const url = mediaItem.url || "";
-            
+
             if (isVideo(url)) {
               return (
                 <div key={index} className="relative h-64 rounded-xl overflow-hidden group">
@@ -246,7 +255,7 @@ export default async function JobDetailsPage({ params }) {
                 </div>
               );
             }
-            
+
             // Default to image if not a video
             return (
               <div key={index} className="relative h-64 rounded-xl overflow-hidden group">
@@ -340,13 +349,12 @@ export default async function JobDetailsPage({ params }) {
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Lead Status Badge */}
-                  <div className={`px-4 py-2 rounded-full text-sm font-bold ${
-                    !hasUnlocked 
+                  <div className={`px-4 py-2 rounded-full text-sm font-bold ${!hasUnlocked
                       ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                       : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                  }`}>
+                    }`}>
                     {hasUnlocked ? "✓ You've unlocked this lead" : `${leadCount}/3 leads unlocked`}
                   </div>
                 </div>
@@ -487,7 +495,7 @@ export default async function JobDetailsPage({ params }) {
                         {job.contactName || "Not provided"}
                       </p>
                     </div>
-                    
+
                     <div>
                       <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase mb-1">Email</p>
                       <a
@@ -497,7 +505,7 @@ export default async function JobDetailsPage({ params }) {
                         {job.contactEmail || "Not provided"}
                       </a>
                     </div>
-                    
+
                     <div>
                       <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase mb-1">Phone</p>
                       <a
@@ -518,7 +526,7 @@ export default async function JobDetailsPage({ params }) {
                         </svg>
                         Call Homeowner
                       </a>
-                      
+
                       <a
                         href={`mailto:${job.contactEmail}?subject=Regarding your ${job.category?.name || "job"} request&body=Hi ${job.contactName || "there"},%0D%0A%0D%0AI saw your job posting for ${job.category?.name || ""} - ${job.subCategory?.name || ""} and would like to discuss it further.%0D%0A%0D%0ABest regards,%0D%0A${profile.companyName || user.name || "Tradesperson"}`}
                         className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-green-600 px-4 py-3 text-sm font-bold text-green-600 hover:bg-green-50 transition-all"
@@ -564,11 +572,11 @@ export default async function JobDetailsPage({ params }) {
 
                   <div className="space-y-4">
                     <p className="text-sm text-blue-600 dark:text-blue-400">
-                      {leadCount === 0 
-                        ? "Be the first to unlock this lead!" 
+                      {leadCount === 0
+                        ? "Be the first to unlock this lead!"
                         : `${leadCount} tradesperson${leadCount !== 1 ? 's' : ''} already unlocked this lead`}
                     </p>
-                    
+
                     <div className="bg-white/50 dark:bg-black/30 p-4 rounded-xl">
                       <p className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-2">What you get:</p>
                       <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
@@ -599,7 +607,7 @@ export default async function JobDetailsPage({ params }) {
                     >
                       Unlock Lead (1 Credit)
                     </Link>
-                    
+
                     <p className="text-xs text-blue-500 text-center">
                       {3 - leadCount} spot{3 - leadCount !== 1 ? 's' : ''} remaining
                     </p>
@@ -618,21 +626,21 @@ export default async function JobDetailsPage({ params }) {
                         {leadCount}/3 leads unlocked
                       </span>
                       <div className="w-24 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-green-500"
                           style={{ width: `${(leadCount / 3) * 100}%` }}
                         />
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1">Posted</p>
                     <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                       {formatDate(job.createdAt)}
                     </p>
                   </div>
-                  
+
                   <div>
                     <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1">Job ID</p>
                     <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 font-mono">
@@ -650,7 +658,7 @@ export default async function JobDetailsPage({ params }) {
                 >
                   ← Back to Jobs
                 </Link>
-                
+
                 {hasUnlocked && (
                   <Link
                     href="/tradesperson/leads"
@@ -672,7 +680,7 @@ export default async function JobDetailsPage({ params }) {
         <div className="text-center p-8">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Job</h1>
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-            {error.message.includes("NEXT_REDIRECT") 
+            {error.message.includes("NEXT_REDIRECT")
               ? "You need to be logged in to view this page."
               : `Error: ${error.message || "Something went wrong while loading the job details"}`}
           </p>

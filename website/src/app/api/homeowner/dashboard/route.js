@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     // Get user info from cookies/session instead of headers
     // First, try to get from headers (for development)
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
-    
+
     // If headers are not available, try to get from query params or cookies
     const { searchParams } = new URL(req.url);
     const token = searchParams.get("token");
@@ -22,16 +22,16 @@ export async function GET(req) {
     if (!userId) {
       console.log("No userId found in headers");
       return NextResponse.json(
-        { 
+        {
           success: false,
           message: "Authentication required",
-          stats: { 
-            activeJobs: 0, 
-            quotesReceived: 0, 
-            totalSpent: 0, 
-            totalJobs: 0 
-          }, 
-          recentJobs: [] 
+          stats: {
+            activeJobs: 0,
+            quotesReceived: 0,
+            totalSpent: 0,
+            totalJobs: 0
+          },
+          recentJobs: []
         },
         { status: 401 }
       );
@@ -39,10 +39,7 @@ export async function GET(req) {
 
     // Get all jobs by this homeowner
     const jobs = await Job.find({ homeowner: userId })
-      .populate("category", "name")
-      .populate("subCategory", "name")
-      .sort({ createdAt: -1 })
-      .lean();
+      ;
 
     console.log("Found jobs for user:", userId, "Count:", jobs.length);
 
@@ -50,14 +47,7 @@ export async function GET(req) {
     const jobsWithLeads = await Promise.all(
       jobs.map(async (job) => {
         const leads = await Lead.find({ job: job._id })
-          .populate({
-            path: 'tradesperson',
-            populate: {
-              path: 'user',
-              select: 'name email'
-            }
-          })
-          .lean();
+          ;
 
         return {
           ...job,
@@ -89,16 +79,16 @@ export async function GET(req) {
   } catch (error) {
     console.error("DASHBOARD ERROR:", error);
     return NextResponse.json(
-      { 
+      {
         success: false,
         message: "Internal server error",
-        stats: { 
-          activeJobs: 0, 
-          quotesReceived: 0, 
-          totalSpent: 0, 
-          totalJobs: 0 
-        }, 
-        recentJobs: [] 
+        stats: {
+          activeJobs: 0,
+          quotesReceived: 0,
+          totalSpent: 0,
+          totalJobs: 0
+        },
+        recentJobs: []
       },
       { status: 500 }
     );

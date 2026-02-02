@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
 import { User } from '@/models/User';
 import { verifyPassword, signAuthToken } from '@/lib/auth';
 import { setAuthCookie } from '@/lib/serverAuth';
 
 export async function POST(req) {
-  await connectToDatabase();
-
   const body = await req.json();
   const { email, password } = body;
 

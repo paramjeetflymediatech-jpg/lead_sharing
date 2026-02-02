@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { hashPassword } from "@/lib/auth";
 
@@ -8,9 +8,7 @@ export async function GET() {
     await connectToDatabase();
 
     const users = await User.find()
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .lean();
+      ;
 
     return NextResponse.json(users, { status: 200 });
   } catch (error) {

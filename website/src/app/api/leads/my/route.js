@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { Lead } from "@/models/Lead";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
@@ -19,9 +19,7 @@ export async function GET(req) {
       return NextResponse.json({ message: "Profile not found" }, { status: 404 });
     }
 
-    const leads = await Lead.find({ tradesperson: profile._id })
-      .populate("job")
-      .sort({ createdAt: -1 });
+    const leads = await Lead.find({ tradesperson: profile._id });
 
     return NextResponse.json(leads);
   } catch (err) {

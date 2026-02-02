@@ -1,12 +1,12 @@
 
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 
 export async function GET(req) {
     try {
-        await connectToDatabase();
+        // await connectToDatabase();
 
         const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-user-role");
@@ -18,7 +18,12 @@ export async function GET(req) {
             );
         }
 
-        const user = await User.findById(userId).select("-password").lean();
+        const user = await User.findById(userId);
+        if (user) {
+            delete user.password;
+            // Removed  usage
+        }
+
         if (!user) {
             return NextResponse.json(
                 { success: false, message: "User not found" },
@@ -28,7 +33,7 @@ export async function GET(req) {
 
         let profile = null;
         if (role === "TRADESPERSON") {
-            profile = await TradespersonProfile.findOne({ user: userId }).lean();
+            profile = await TradespersonProfile.findOne({ user: userId });
         }
 
         return NextResponse.json({
@@ -48,7 +53,7 @@ export async function GET(req) {
 
 export async function PUT(req) {
     try {
-        await connectToDatabase();
+        // await connectToDatabase();
 
         const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-user-role");
@@ -71,6 +76,7 @@ export async function PUT(req) {
             );
         }
 
+        // findOneAndUpdate signature: (query, updateData, options)
         const profile = await TradespersonProfile.findOneAndUpdate(
             { user: userId },
             {
@@ -85,7 +91,7 @@ export async function PUT(req) {
             {
                 new: true,
                 upsert: true,
-                runValidators: true
+                // runValidators: true
             }
         );
 

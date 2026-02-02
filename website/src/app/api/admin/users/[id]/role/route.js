@@ -1,15 +1,18 @@
+
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
-import { isValidObjectId } from "mongoose";
+// import { isValidObjectId } from "mongoose";
 
 export async function PATCH(req, { params }) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
+    // In Next.js 15+, params is a promise
+    const { id } = await params;
     const { role } = await req.json();
 
-    if (!isValidObjectId(params.id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json(
         { message: "Invalid user id" },
         { status: 400 }
@@ -24,10 +27,16 @@ export async function PATCH(req, { params }) {
     }
 
     const user = await User.findByIdAndUpdate(
-      params.id,
+      id,
       { role },
       { new: true }
-    ).select("-password");
+    );
+    //; // Not supported
+
+    if (user) {
+      delete user.password;
+      delete user.lean;
+    }
 
     if (!user) {
       return NextResponse.json(

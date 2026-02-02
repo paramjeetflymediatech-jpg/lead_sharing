@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import Job from "@/models/Job";
 
 export async function GET() {
   try {
-    await connectToDatabase();
-
     const totalUsers = await User.countDocuments();
     const homeowners = await User.countDocuments({ role: "HOMEOWNER" });
     const tradespersons = await User.countDocuments({ role: "TRADESPERSON" });

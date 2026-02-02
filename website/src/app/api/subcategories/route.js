@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import SubCategory from "@/models/SubCategory";
 import Category from "@/models/Category";
 
 export async function POST(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { name, categoryId } = await req.json();
 
@@ -56,11 +56,11 @@ export async function POST(req) {
 }
 
 export async function GET() {
-  await connectToDatabase();
+  // await connectToDatabase();
 
-  const subcategories = await SubCategory.find()
-    .populate("category", "name slug")
-    .sort({ name: 1 });
+  const subcategories = await SubCategory.find();
+  // .populate("category", "name slug")
+  //;
 
   return NextResponse.json(subcategories);
 }

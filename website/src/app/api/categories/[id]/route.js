@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Category from "@/models/Category";
 
 export async function GET(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { id } = await context.params; // ✅ FIX
 
@@ -29,7 +29,7 @@ export async function GET(req, context) {
 
 export async function PUT(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { id } = await context.params; // ✅ FIX
     const { name } = await req.json();
@@ -67,7 +67,7 @@ export async function PUT(req, context) {
 
 export async function DELETE(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { id } = await context.params; // ✅ FIX
 

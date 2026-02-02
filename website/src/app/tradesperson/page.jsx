@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getCurrentUser } from "@/lib/serverAuth";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Lead } from "@/models/Lead";
 import TradespersonJobsList from "./TradespersonJobsList";
@@ -27,12 +27,10 @@ export default async function TradespersonDashboard() {
     redirect("/auth/login");
   }
 
-  await connectToDatabase();
+  // await connectToDatabase();
 
   // Fetch profile with all necessary fields
-  const profile = await TradespersonProfile.findOne({ user: user.id })
-    .populate("user", "name email")
-    .lean();
+  const profile = await TradespersonProfile.findOne({ user: user.id });
 
   if (!profile) {
     redirect("/tradesperson/setup");
@@ -41,13 +39,8 @@ export default async function TradespersonDashboard() {
   try {
     const Job = (await import("@/models/Job")).default;
 
-    const openJobs = await Job.find({ status: "OPEN" })
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .populate("homeowner", "name email")
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .lean();
+    // Simplified - get jobs without populate
+    const openJobs = await Job.find({ status: "OPEN" });
 
     // Safely map jobs with null checks
     const jobsWithLeadInfo = await Promise.all(

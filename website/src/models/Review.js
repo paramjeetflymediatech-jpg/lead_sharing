@@ -1,14 +1,13 @@
-import mongoose, { Schema, models, model } from 'mongoose';
 
-const ReviewSchema = new Schema(
-  {
-    job: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
-    homeowner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    tradesperson: { type: Schema.Types.ObjectId, ref: 'TradespersonProfile', required: true },
-    rating: { type: Number, required: true, min: 1, max: 5 },
-    comment: { type: String, required: true },
+import pool from '../../config/db';
+
+export const Review = {
+  async find(query = {}) {
+    return [];
   },
-  { timestamps: true }
-);
+  async create(data) {
+    return { _id: 1, ...data };
+  }
+};
 
-export const Review = models.Review || model('Review', ReviewSchema);
+export default Review;

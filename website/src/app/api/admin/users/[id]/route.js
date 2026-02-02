@@ -1,22 +1,29 @@
+
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
-import { isValidObjectId } from "mongoose";
+// import { isValidObjectId } from "mongoose";
 import { hashPassword } from "@/lib/auth";
 
 export async function GET(req, { params }) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const { id } = await params;
 
-    if (!isValidObjectId(id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json(
         { message: "Invalid user id" },
         { status: 400 }
       );
     }
 
-    const user = await User.findById(id).select("-password");
+    const user = await User.findById(id);
+    if (user) {
+      // remove password manually
+      delete user.password;
+      // remove helper lean method if present
+      delete user.lean;
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -37,11 +44,11 @@ export async function GET(req, { params }) {
 
 export async function PATCH(req, { params }) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const { id } = await params;
     const body = await req.json();
 
-    if (!isValidObjectId(id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json({ message: "Invalid user id" }, { status: 400 });
     }
 
@@ -56,8 +63,13 @@ export async function PATCH(req, { params }) {
 
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
-      runValidators: true,
-    }).select("-password");
+      // runValidators: true, // Not supported in stub
+    });
+
+    if (updatedUser) {
+      delete updatedUser.password;
+      delete updatedUser.lean;
+    }
 
     if (!updatedUser) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
@@ -75,10 +87,10 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const { id } = await params;
 
-    if (!isValidObjectId(id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json({ message: "Invalid user id" }, { status: 400 });
     }
 

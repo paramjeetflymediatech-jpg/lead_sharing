@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 
 export async function POST(req) {
   try {
-    await connectToDatabase();
     const { email } = await req.json();
 
     if (!email) {

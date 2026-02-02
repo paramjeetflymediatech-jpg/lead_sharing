@@ -1,26 +1,26 @@
+
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
 import SubCategory from "@/models/SubCategory";
-import { isValidObjectId } from "mongoose";
 
 export async function PATCH(req, { params }) {
     try {
-        await connectToDatabase();
         const { id } = await params;
         const { name, categoryId } = await req.json();
 
-        if (!isValidObjectId(id)) {
+        if (isNaN(Number(id))) {
             return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
         }
 
         const updateData = {};
         if (name) {
             updateData.name = name;
-            updateData.slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
+            // updateData.slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
+            // Assuming slug logic if needed or just name
         }
         if (categoryId) updateData.category = categoryId;
 
-        const subcategory = await SubCategory.findByIdAndUpdate(id, updateData, { new: true }).populate('category', 'name');
+        const subcategory = await SubCategory.findByIdAndUpdate(id, updateData, { new: true });
+        //; // Removed
 
         if (!subcategory) {
             return NextResponse.json({ message: "SubCategory not found" }, { status: 404 });
@@ -34,16 +34,15 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(req, { params }) {
     try {
-        await connectToDatabase();
         const { id } = await params;
 
-        if (!isValidObjectId(id)) {
+        if (isNaN(Number(id))) {
             return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
         }
 
-        const subcategory = await SubCategory.findByIdAndDelete(id);
+        const success = await SubCategory.findByIdAndDelete(id);
 
-        if (!subcategory) {
+        if (!success) {
             return NextResponse.json({ message: "SubCategory not found" }, { status: 404 });
         }
 

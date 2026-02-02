@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { Lead } from "@/models/Lead";
 import Job from "@/models/Job";
 
 export async function GET(req, { params }) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
@@ -19,9 +19,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ message: "Access denied" }, { status: 403 });
     }
 
-    const leads = await Lead.find({ job: params.jobId })
-      .populate("tradesperson")
-      .sort({ createdAt: -1 });
+    const leads = await Lead.find({ job: params.jobId });
 
     return NextResponse.json(leads);
   } catch (err) {

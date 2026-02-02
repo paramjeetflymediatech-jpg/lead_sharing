@@ -1,28 +1,26 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import SubCategory from "@/models/SubCategory";
-import mongoose from "mongoose";
+// import mongoose from "mongoose";
 
 /* =========================
    GET SUBCATEGORY BY ID
 ========================= */
 export async function GET(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { id } = await context.params; // ✅ FIX
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json(
         { message: "Invalid subcategory id" },
         { status: 400 }
       );
     }
 
-    const subCategory = await SubCategory.findById(id).populate(
-      "category",
-      "name slug"
-    );
+    const subCategory = await SubCategory.findById(id);
+    //; // Removed for MySQL compatibility
 
     if (!subCategory) {
       return NextResponse.json(
@@ -46,12 +44,12 @@ export async function GET(req, context) {
 ========================= */
 export async function PUT(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { id } = await context.params; // ✅ FIX
     const { name } = await req.json();
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json(
         { message: "Invalid subcategory id" },
         { status: 400 }
@@ -65,7 +63,7 @@ export async function PUT(req, context) {
       { name, slug },
       { new: true }
     );
-
+    // ... existing code continues ...
     if (!subCategory) {
       return NextResponse.json(
         { message: "SubCategory not found" },
@@ -88,16 +86,17 @@ export async function PUT(req, context) {
 ========================= */
 export async function DELETE(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { id } = await context.params; // ✅ FIX
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (isNaN(Number(id))) {
       return NextResponse.json(
         { message: "Invalid subcategory id" },
         { status: 400 }
       );
     }
+
 
     const deleted = await SubCategory.findByIdAndDelete(id);
 

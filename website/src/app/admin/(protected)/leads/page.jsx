@@ -10,6 +10,7 @@ import {
     CheckBadgeIcon,
     UserGroupIcon
 } from "@heroicons/react/24/outline";
+import Pagination from "../../../../components/Pagination";
 
 export default function AdminLeadsPage() {
     const [leads, setLeads] = useState([]);
@@ -17,9 +18,18 @@ export default function AdminLeadsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("ALL");
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
     useEffect(() => {
         fetchLeads();
     }, []);
+
+    // Reset pagination when filter/search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filter]);
 
     const fetchLeads = async () => {
         try {
@@ -37,10 +47,10 @@ export default function AdminLeadsPage() {
 
     const filteredLeads = leads.filter((lead) => {
         const matchesSearch =
-            lead.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lead.tradesperson?.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lead.tradesperson?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lead.job?.location?.city?.toLowerCase().includes(searchTerm.toLowerCase());
+            (lead.message?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (lead.tradesperson?.companyName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (lead.tradesperson?.user?.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (lead.job?.location?.city?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
         // Example filter: Unlocked vs Locked (though admin sees all)
         const matchesFilter = filter === "ALL" || (filter === "UNLOCKED" && lead.isUnlocked);
@@ -48,8 +58,13 @@ export default function AdminLeadsPage() {
         return matchesSearch && matchesFilter;
     });
 
+    // Pagination Slicing
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentLeads = filteredLeads.slice(indexOfFirstItem, indexOfLastItem);
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-zinc-900">Leads Management</h1>
@@ -86,8 +101,8 @@ export default function AdminLeadsPage() {
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center text-gray-500">Loading leads...</div>
                 ) : filteredLeads.length === 0 ? (
@@ -105,7 +120,7 @@ export default function AdminLeadsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
-                                {filteredLeads.map((lead) => (
+                                {currentLeads.map((lead) => (
                                     <tr key={lead._id} className="hover:bg-zinc-50/50 transition-colors">
                                         <td className="px-6 py-4 max-w-xs">
                                             {lead.job ? (
@@ -157,6 +172,68 @@ export default function AdminLeadsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {loading ? (
+                    <div className="p-8 text-center text-gray-500 bg-white rounded-xl shadow-sm border border-zinc-200">Loading leads...</div>
+                ) : filteredLeads.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 bg-white rounded-xl shadow-sm border border-zinc-200">No leads found.</div>
+                ) : (
+                    currentLeads.map((lead) => (
+                        <div key={lead._id} className="bg-white rounded-xl p-4 shadow-sm border border-zinc-200 flex flex-col gap-3">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    {lead.job ? (
+                                        <div className="font-bold text-zinc-900 line-clamp-1">{lead.job.description}</div>
+                                    ) : (
+                                        <span className="text-red-500 text-xs italic">Job Deleted</span>
+                                    )}
+                                    <div className="text-zinc-500 text-xs mt-0.5">
+                                        {new Date(lead.createdAt).toLocaleDateString()}
+                                    </div>
+                                </div>
+                                {lead.isUnlocked ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">
+                                        Unlocked
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800">
+                                        Locked
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="text-sm text-zinc-600 flex flex-col gap-1">
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-400">Tradesperson:</span>
+                                    <span className="font-medium text-right">{lead.tradesperson?.companyName || "Unknown Co."}</span>
+                                </div>
+                                <div className="flex justify-between flex-wrap gap-1">
+                                    <span className="text-zinc-400">Message:</span>
+                                    <div className="text-right text-xs bg-zinc-50 p-1 rounded max-w-full break-words">
+                                        {lead.message}
+                                    </div>
+                                </div>
+                                {lead.priceEstimate && (
+                                    <div className="flex justify-between">
+                                        <span className="text-zinc-400">Estimate:</span>
+                                        <span className="font-bold text-green-600">£{lead.priceEstimate}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+                currentPage={currentPage}
+                totalItems={filteredLeads.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 }

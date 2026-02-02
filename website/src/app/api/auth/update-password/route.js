@@ -1,12 +1,11 @@
-
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { getCurrentUser } from "@/lib/serverAuth";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 
 export async function POST(req) {
     try {
-        await connectToDatabase();
         const userId = req.headers.get("x-user-id");
 
         if (!userId) {
@@ -45,8 +44,9 @@ export async function POST(req) {
         }
 
         const hashedPassword = await hashPassword(newPassword);
-        user.password = hashedPassword;
-        await user.save();
+
+        // Update password using findByIdAndUpdate
+        await User.findByIdAndUpdate(userId, { password: hashedPassword });
 
         return NextResponse.json({ message: "Password updated successfully" });
     } catch (error) {

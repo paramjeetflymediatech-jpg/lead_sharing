@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 
 // ✅ REGISTER ALL MODELS USED IN POPULATE
 import "@/models/Category";
@@ -10,7 +10,7 @@ import { Lead } from "@/models/Lead";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
@@ -27,19 +27,11 @@ export async function GET(req) {
       job => job.status === "OPEN" || job.status === "IN_PROGRESS"
     );
 
-    // Get total quotes
-    const jobIds = allJobs.map(job => job._id);
-    const totalQuotes = await Lead.countDocuments({
-      job: { $in: jobIds }
-    });
+    // Get total quotes - simplified for MySQL stubs
+    const totalQuotes = 0; // TODO: Implement when Lead.countDocuments is ready
 
-    // Get recent jobs
-    const recentJobs = await Job.find({ homeowner: userId })
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
+    // Get recent jobs - simplified without populate
+    const recentJobs = allJobs.slice(0, 5);
 
     return NextResponse.json({
       success: true,

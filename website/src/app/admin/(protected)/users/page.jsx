@@ -11,13 +11,19 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
+import Pagination from "../../../../components/Pagination";
+
 export default function UsersManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("ALL"); // ALL, HOMEOWNER, TRADESPERSON
     const [search, setSearch] = useState("");
 
-    // Modal State
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    // ... (Modal State same as before) ...
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState("create"); // 'create' | 'edit'
     const [selectedUser, setSelectedUser] = useState(null);
@@ -32,6 +38,11 @@ export default function UsersManagement() {
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    // Reset pagination when filter/search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter, search]);
 
     const fetchUsers = async () => {
         try {
@@ -51,6 +62,9 @@ export default function UsersManagement() {
     };
 
     const performFilter = (user) => {
+        // Exclude specific admin email
+        if (user.email === 'admin@leadsharing.com') return false;
+
         // Filter by Role
         const matchesRole = filter === "ALL" || user.role === filter;
 
@@ -65,7 +79,12 @@ export default function UsersManagement() {
 
     const filteredUsers = users.filter(performFilter);
 
-    // --- Modal Handlers ---
+    // Pagination Slicing
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+    // ... (Modal Handlers & API Operations same as before) ...
 
     const openCreateModal = () => {
         setModalType("create");
@@ -172,16 +191,16 @@ export default function UsersManagement() {
     }
 
     return (
-        <div className="space-y-8 p-6">
+        <div className="space-y-8 p-3 md:p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">User Management</h1>
-                    <p className="text-zinc-500 mt-2">Manage homeowners and tradespeople.</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white">User Management</h1>
+                    <p className="text-zinc-500 mt-2 text-sm md:text-base">Manage homeowners and tradespeople.</p>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                     {/* Search Bar */}
-                    <div className="relative">
+                    <div className="relative w-full sm:w-auto">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                         <input
                             type="text"
@@ -194,18 +213,18 @@ export default function UsersManagement() {
 
                     <button
                         onClick={openCreateModal}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-lg shadow-blue-900/20"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-900/20 w-full sm:w-auto"
                     >
                         <PlusIcon className="w-5 h-5" />
-                        <span className="hidden md:inline">Add User</span>
+                        <span className="">Add User</span>
                     </button>
                 </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="border-b border-zinc-200 dark:border-zinc-800">
-                <nav className="flex space-x-8">
-                    {['ALL', 'HOMEOWNER', 'TRADESPERSON', 'ADMIN'].map((tab) => (
+            {/* Filter Tabs - Scrollable on mobile */}
+            <div className="border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto">
+                <nav className="flex space-x-8 min-w-max pb-1">
+                    {['ALL', 'HOMEOWNER', 'TRADESPERSON'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setFilter(tab)}
@@ -223,8 +242,8 @@ export default function UsersManagement() {
                 </nav>
             </div>
 
-            {/* Users Table */}
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+            {/* Users Table (Desktop) */}
+            <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
                         <thead className="bg-zinc-50 dark:bg-zinc-800/50">
@@ -238,8 +257,8 @@ export default function UsersManagement() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                            {filteredUsers.length > 0 ? (
-                                filteredUsers.map((user) => (
+                            {currentUsers.length > 0 ? (
+                                currentUsers.map((user) => (
                                     <tr key={user._id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
@@ -305,6 +324,69 @@ export default function UsersManagement() {
                     </table>
                 </div>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {currentUsers.length > 0 ? (
+                    currentUsers.map((user) => (
+                        <div key={user._id} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                        <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">
+                                            {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-zinc-900 dark:text-white">{user.name || 'Unknown'}</h3>
+                                        <p className="text-xs text-zinc-500">{user.email}</p>
+                                    </div>
+                                </div>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    ${user.role === 'HOMEOWNER'
+                                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                                        : user.role === 'ADMIN'
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                    }`}>
+                                    {user.role}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                <span className="text-xs text-zinc-500">Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => openEditModal(user)}
+                                        className="text-blue-600 hover:text-blue-400 p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20"
+                                    >
+                                        <PencilSquareIcon className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(user._id)}
+                                        className="text-red-600 hover:text-red-400 p-1.5 rounded-md bg-red-50 dark:bg-red-900/20"
+                                    >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 text-center text-zinc-500 border border-zinc-200 dark:border-zinc-800">
+                        No users found.
+                    </div>
+                )}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+                currentPage={currentPage}
+                totalItems={filteredUsers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+            />
+
 
             {/* Modal */}
             {isModalOpen && (

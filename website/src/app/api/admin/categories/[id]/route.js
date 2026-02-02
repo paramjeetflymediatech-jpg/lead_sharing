@@ -1,16 +1,14 @@
+
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
 import Category from "@/models/Category";
 import SubCategory from "@/models/SubCategory";
-import { isValidObjectId } from "mongoose";
 
 export async function PATCH(req, { params }) {
     try {
-        await connectToDatabase();
         const { id } = await params;
         const { name } = await req.json();
 
-        if (!isValidObjectId(id)) {
+        if (isNaN(Number(id))) {
             return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
         }
 
@@ -32,22 +30,21 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(req, { params }) {
     try {
-        await connectToDatabase();
         const { id } = await params;
 
-        if (!isValidObjectId(id)) {
+        if (isNaN(Number(id))) {
             return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
         }
 
-        // Optional: Check if used in subcategories
+        // Check if used in subcategories
         const hasSubs = await SubCategory.findOne({ category: id });
         if (hasSubs) {
             return NextResponse.json({ message: "Cannot delete category with existing subcategories" }, { status: 400 });
         }
 
-        const category = await Category.findByIdAndDelete(id);
+        const success = await Category.findByIdAndDelete(id);
 
-        if (!category) {
+        if (!success) {
             return NextResponse.json({ message: "Category not found" }, { status: 404 });
         }
 

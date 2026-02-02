@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
@@ -26,10 +26,7 @@ export async function GET(req) {
 
     // Get jobs
     const jobs = await Job.find(query)
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .sort({ createdAt: -1 })
-      .lean();
+      ;
 
     // Add lead count to each job
     const jobsWithLeadCount = await Promise.all(

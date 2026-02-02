@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/serverAuth";
 import { redirect } from "next/navigation";
 import DashboardLayout from "../../components/DashboardLayout";
-import { HomeIcon, UsersIcon, Squares2X2Icon, ListBulletIcon, BriefcaseIcon, MagnifyingGlassPlusIcon, CurrencyDollarIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, UsersIcon, Squares2X2Icon, ListBulletIcon, BriefcaseIcon, MagnifyingGlassPlusIcon, CurrencyDollarIcon, Cog6ToothIcon, ChartBarIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 
 export default async function AdminLayout({ children }) {
     const user = await getCurrentUser();
@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }) {
         { name: "Jobs", href: "/admin/jobs", icon: "BriefcaseIcon" },
         { name: "Leads", href: "/admin/leads", icon: "MagnifyingGlassPlusIcon" },
         { name: "Revenue", href: "/admin/revenue", icon: "CurrencyDollarIcon" },
+        { name: "SEO Management", href: "/admin/seo", icon: "ArrowTrendingUpIcon" },
         { name: "Settings", href: "/admin/settings", icon: "Cog6ToothIcon" },
     ];
 

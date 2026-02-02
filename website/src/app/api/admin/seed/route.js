@@ -1,12 +1,12 @@
 
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { hashPassword } from "@/lib/auth";
 
 export async function GET() {
     try {
-        await connectToDatabase();
+        // await connectToDatabase();
 
         // Check if admin exists
         const adminEmail = "admin@leadsharing.com";

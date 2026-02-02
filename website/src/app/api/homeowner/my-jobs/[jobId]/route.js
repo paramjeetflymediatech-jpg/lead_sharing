@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
@@ -10,7 +10,7 @@ import "@/models/SubCategory";
 
 export async function GET(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
@@ -34,9 +34,7 @@ export async function GET(req, context) {
       _id: jobId,
       homeowner: userId
     })
-      .populate("category", "name")
-      .populate("subCategory", "name")
-      .lean();
+      ;
 
     if (!job) {
       return NextResponse.json(
@@ -47,15 +45,7 @@ export async function GET(req, context) {
 
     // 📩 Leads
     const leads = await Lead.find({ job: jobId })
-      .populate({
-        path: "tradesperson",
-        populate: {
-          path: "user",
-          select: "name email phone"
-        }
-      })
-      .sort({ createdAt: -1 })
-      .lean();
+      ;
 
     return NextResponse.json({
       success: true,

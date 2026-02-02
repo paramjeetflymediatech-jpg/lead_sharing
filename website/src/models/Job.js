@@ -1,107 +1,171 @@
-import mongoose from "mongoose";
 
-const JobSchema = new mongoose.Schema(
-  {
-    homeowner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+import pool from '../../config/db';
 
-    // 🔐 Contact info (used for lead unlock)
-    contactName: {
-      type: String,
-      required: true,
-    },
+const simpleJobMapper = (row) => ({
+  _id: row.id,
+  description: row.description,
+  status: row.status,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  budgetMin: row.budget_min,
+  budgetMax: row.budget_max,
+  homeowner: row.homeowner_id,
+  category: row.category_id,
+  subCategory: row.sub_category_id,
+  location: { city: row.city || '', postcode: row.postcode || '' },
+  contactName: row.contact_name,
+  contactEmail: row.contact_email,
+  contactPhone: row.contact_phone,
+  jobStage: row.job_stage,
+  ownership: row.ownership,
+  startTime: row.start_time,
+});
 
-    contactPhone: {
-      type: String,
-      required: true,
-    },
+export const Job = {
+  async find(query = {}) {
+    let sql = 'SELECT * FROM jobs WHERE 1=1';
+    const params = [];
 
-    contactEmail: {
-      type: String,
-      required: true,
-    },
+    if (query.status) {
+      sql += ' AND status = ?';
+      params.push(query.status);
+    }
+    if (query.homeowner) {
+      sql += ' AND homeowner_id = ?';
+      params.push(query.homeowner);
+    }
+    if (query._id) {
+      sql += ' AND id = ?';
+      params.push(query._id);
+    }
 
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
-
-    subCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SubCategory",
-      required: true,
-    },
-
-    description: { type: String, required: true },
-
-    location: {
-      postcode: { type: String, required: true },
-      city: String,
-    },
-
-    startTime: {
-      type: String,
-      enum: [
-        "URGENT",
-        "WITHIN_2_DAYS",
-        "WITHIN_2_WEEKS",
-        "WITHIN_2_MONTHS",
-        "FLEXIBLE",
-      ],
-      required: true,
-    },
-
-    jobStage: {
-      type: String,
-      enum: ["READY_TO_HIRE", "PLANNING", "INSURANCE"],
-      required: true,
-    },
-
-    ownership: {
-      type: String,
-      enum: ["OWNER", "LANDLORD", "AUTHORIZED", "BUYING"],
-      required: true,
-    },
-
-    budgetMin: Number,
-    budgetMax: Number,
-
-    media: [
-      {
-        url: String,
-        type: { type: String, enum: ["IMAGE", "VIDEO"] },
-      },
-    ],
-
-    status: {
-      type: String,
-      enum: ["OPEN", "HIRED", "COMPLETED", "CANCELLED"],
-      default: "OPEN",
-    },
-
-
-
-    hiredTradesperson: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "TradespersonProfile",
-      default: null,
-    },
-
-    hiredAt: {
-      type: Date,
-      default: null,
-    },
-
-
-
-
-
+    sql += ' ORDER BY created_at DESC';
+    const [rows] = await pool.query(sql, params);
+    return rows.map(simpleJobMapper);
   },
-  { timestamps: true }
-);
 
-export default mongoose.models.Job || mongoose.model("Job", JobSchema);
+  async findById(id) {
+    const [rows] = await pool.query('SELECT * FROM jobs WHERE id = ?', [id]);
+    return rows[0] ? simpleJobMapper(rows[0]) : null;
+  },
+
+  async findOne(query) {
+    let sql = 'SELECT * FROM jobs WHERE 1=1';
+    const params = [];
+
+    if (query._id) {
+      sql += ' AND id = ?';
+      params.push(query._id);
+    }
+    if (query.homeowner) {
+      sql += ' AND homeowner_id = ?';
+      params.push(query.homeowner);
+    }
+    if (query.status) {
+      sql += ' AND status = ?';
+      params.push(query.status);
+    }
+
+    sql += ' LIMIT 1';
+    const [rows] = await pool.query(sql, params);
+    return rows[0] ? simpleJobMapper(rows[0]) : null;
+  },
+
+  async countDocuments(query = {}) {
+    let sql = 'SELECT COUNT(*) as count FROM jobs WHERE 1=1';
+    const params = [];
+
+    if (query.status) {
+      sql += ' AND status = ?';
+      params.push(query.status);
+    }
+    if (query.homeowner) {
+      sql += ' AND homeowner_id = ?';
+      params.push(query.homeowner);
+    }
+
+    const [rows] = await pool.query(sql, params);
+    return rows[0].count;
+  },
+
+  async create(data) {
+    const {
+      description,
+      homeowner,
+      category,
+      subCategory,
+      budgetMin,
+      budgetMax,
+      city,
+      postcode,
+      contactName,
+      contactEmail,
+      contactPhone,
+      jobStage,
+      ownership,
+      startTime,
+      status = 'OPEN'
+    } = data;
+
+    const [result] = await pool.query(
+      `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        description,
+        homeowner,
+        category,
+        subCategory,
+        budgetMin || 0,
+        budgetMax || 0,
+        city || '',
+        postcode || '',
+        contactName || '',
+        contactEmail || '',
+        contactPhone || '',
+        jobStage || 'PLANNING',
+        ownership || 'OWN',
+        startTime || 'FLEXIBLE',
+        status
+      ]
+    );
+
+    return {
+      _id: result.insertId,
+      ...data,
+      status
+    };
+  },
+
+  async findByIdAndUpdate(id, updateData, options = {}) {
+    const updates = [];
+    const values = [];
+
+    if (updateData.status) {
+      updates.push('status = ?');
+      values.push(updateData.status);
+    }
+    if (updateData.description) {
+      updates.push('description = ?');
+      values.push(updateData.description);
+    }
+    if (updateData.budgetMin !== undefined) {
+      updates.push('budget_min = ?');
+      values.push(updateData.budgetMin);
+    }
+    if (updateData.budgetMax !== undefined) {
+      updates.push('budget_max = ?');
+      values.push(updateData.budgetMax);
+    }
+
+    if (updates.length > 0) {
+      values.push(id);
+      await pool.query(`UPDATE jobs SET ${updates.join(', ')} WHERE id = ?`, values);
+    }
+
+    if (options.new) {
+      return this.findById(id);
+    }
+  }
+};
+
+export default Job;

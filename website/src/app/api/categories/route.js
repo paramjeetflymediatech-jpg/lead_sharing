@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Category from "@/models/Category";
 
 export async function POST(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const { name } = await req.json();
 
@@ -38,7 +38,7 @@ export async function POST(req) {
 }
 
 export async function GET() {
-  await connectToDatabase();
-  const categories = await Category.find().sort({ name: 1 });
+  // await connectToDatabase();
+  const categories = await Category.find();
   return NextResponse.json(categories);
 }

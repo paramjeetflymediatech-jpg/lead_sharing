@@ -12,15 +12,26 @@ import {
     BriefcaseIcon
 } from "@heroicons/react/24/outline";
 
+import Pagination from "../../../../components/Pagination";
+
 export default function AdminJobsPage() {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     useEffect(() => {
         fetchJobs();
     }, []);
+
+    // Reset pagination when filter/search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
 
     const fetchJobs = async () => {
         try {
@@ -38,15 +49,20 @@ export default function AdminJobsPage() {
 
     const filteredJobs = jobs.filter((job) => {
         const matchesSearch =
-            job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.homeowner?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.homeowner?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.location?.city?.toLowerCase().includes(searchTerm.toLowerCase());
+            (job.description?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (job.homeowner?.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (job.homeowner?.email?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (job.location?.city?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === "ALL" || job.status === statusFilter;
 
         return matchesSearch && matchesStatus;
     });
+
+    // Pagination Slicing
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentJobs = filteredJobs.slice(indexOfFirstItem, indexOfLastItem);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -59,7 +75,7 @@ export default function AdminJobsPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-zinc-900">Jobs Management</h1>
@@ -99,8 +115,8 @@ export default function AdminJobsPage() {
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center text-gray-500">Loading jobs...</div>
                 ) : filteredJobs.length === 0 ? (
@@ -120,7 +136,7 @@ export default function AdminJobsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
-                                {filteredJobs.map((job) => (
+                                {currentJobs.map((job) => (
                                     <tr key={job._id} className="hover:bg-zinc-50/50 transition-colors">
                                         <td className="px-6 py-4 max-w-xs">
                                             <div className="font-medium text-zinc-900 line-clamp-1" title={job.description}>
@@ -168,6 +184,71 @@ export default function AdminJobsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {loading ? (
+                    <div className="p-8 text-center text-gray-500 bg-white rounded-xl shadow-sm border border-zinc-200">Loading jobs...</div>
+                ) : filteredJobs.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 bg-white rounded-xl shadow-sm border border-zinc-200">No jobs found matching filters.</div>
+                ) : (
+                    currentJobs.map((job) => (
+                        <div key={job._id} className="bg-white rounded-xl p-4 shadow-sm border border-zinc-200 flex flex-col gap-3">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="font-bold text-zinc-900 line-clamp-1">{job.description}</div>
+                                    <div className="text-zinc-500 text-xs mt-0.5 flex items-center gap-1">
+                                        <ClockIcon className="w-3 h-3" />
+                                        {new Date(job.createdAt).toLocaleDateString()}
+                                    </div>
+                                </div>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium border border-transparent ${getStatusColor(job.status)}`}>
+                                    {job.status}
+                                </span>
+                            </div>
+
+                            <div className="text-sm text-zinc-600 flex flex-col gap-1">
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-400">Category:</span>
+                                    <span className="font-medium text-right">{job.category?.name} / {job.subCategory?.name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-400">Homeowner:</span>
+                                    <span className="font-medium">{job.homeowner?.name || "Unknown"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-400">Budget:</span>
+                                    <div className="flex items-center font-medium gap-1">
+                                        <CurrencyPoundIcon className="w-3 h-3 text-zinc-400" />
+                                        {job.budgetMin} - {job.budgetMax}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-400">Location:</span>
+                                    <div className="flex items-center font-medium gap-1">
+                                        <MapPinIcon className="w-3 h-3 text-zinc-400" />
+                                        {job.location?.city || job.location?.postcode}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-zinc-100 flex justify-end">
+                                <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+                currentPage={currentPage}
+                totalItems={filteredJobs.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 }

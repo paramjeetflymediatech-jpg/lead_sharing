@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/serverAuth";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Lead } from "@/models/Lead";
 
@@ -17,27 +17,18 @@ export default async function MyLeadsPage() {
     redirect("/auth/login");
   }
 
-  await connectToDatabase();
-  const profile = await TradespersonProfile.findOne({ user: user.id }).lean();
+  // await connectToDatabase();
+  const profile = await TradespersonProfile.findOne({ user: user.id });
 
   if (!profile) {
     redirect("/tradesperson/setup");
   }
 
-  // Fetch all unlocked leads with detailed job information
+  // Fetch all unlocked leads (simplified - no populate)
   const leads = await Lead.find({
     tradesperson: profile._id,
     isUnlocked: true,
-  })
-    .populate({
-      path: "job",
-      populate: [
-        { path: "category", select: "name slug" },
-        { path: "subCategory", select: "name slug" },
-      ],
-    })
-    .sort({ createdAt: -1 })
-    .lean();
+  });
 
   const formatBudget = (min, max) => {
     if (!min && !max) return "Budget not specified";

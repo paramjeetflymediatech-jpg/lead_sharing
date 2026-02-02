@@ -1,12 +1,13 @@
+
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import "@/models/User";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     // 🔐 Middleware se aaya data
     const userId = req.headers.get("x-user-id");
@@ -20,9 +21,13 @@ export async function GET(req) {
     }
 
     // 👤 User
-    const user = await User.findById(userId)
-      .select("-password")
-      .lean();
+    const user = await User.findById(userId);
+    //
+    // ;
+
+    if (user) {
+      delete user.password;
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -37,7 +42,7 @@ export async function GET(req) {
     if (role === "TRADESPERSON") {
       tradespersonProfile = await TradespersonProfile.findOne({
         user: userId,
-      }).lean();
+      });
     }
 
     return NextResponse.json({

@@ -11,11 +11,17 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
+import Pagination from "../../../../components/Pagination";
+
 export default function SubcategoriesManagement() {
     const [subcategories, setSubcategories] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,12 +53,22 @@ export default function SubcategoriesManagement() {
         fetchData();
     }, []);
 
+    // Reset pagination on search
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search]);
+
     const filtered = subcategories.filter(sc =>
         sc.name.toLowerCase().includes(search.toLowerCase()) ||
         sc.category?.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    // --- Modal Handlers ---
+    // Pagination Slicing
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentSubcategories = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
+    // ... (Modal Handlers & API Operations same as before) ...
 
     const openCreateModal = () => {
         setModalType("create");
@@ -129,15 +145,15 @@ export default function SubcategoriesManagement() {
     if (loading) return <div className="p-8 text-center">Loading...</div>;
 
     return (
-        <div className="space-y-8 p-6">
+        <div className="space-y-8 p-3 md:p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Subcategories</h1>
-                    <p className="text-zinc-500 mt-2">Manage specific trade services.</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white">Subcategories</h1>
+                    <p className="text-zinc-500 mt-2 text-sm md:text-base">Manage specific trade services.</p>
                 </div>
 
-                <div className="flex gap-4">
-                    <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative w-full sm:w-auto">
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                         <input
                             type="text"
@@ -150,15 +166,16 @@ export default function SubcategoriesManagement() {
 
                     <button
                         onClick={openCreateModal}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-lg shadow-blue-900/20"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-900/20 w-full sm:w-auto"
                     >
                         <PlusIcon className="w-5 h-5" />
-                        <span className="hidden md:inline">Add Subcategory</span>
+                        <span className="">Add Subcategory</span>
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
                 <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
                     <thead className="bg-zinc-50 dark:bg-zinc-800/50">
                         <tr>
@@ -169,8 +186,8 @@ export default function SubcategoriesManagement() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                        {filtered.length > 0 ? (
-                            filtered.map((sub) => (
+                        {currentSubcategories.length > 0 ? (
+                            currentSubcategories.map((sub) => (
                                 <tr key={sub._id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
@@ -200,6 +217,48 @@ export default function SubcategoriesManagement() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {currentSubcategories.length > 0 ? (
+                    currentSubcategories.map((sub) => (
+                        <div key={sub._id} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                        <ListBulletIcon className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-zinc-900 dark:text-white">{sub.name}</h3>
+                                        <p className="text-xs text-zinc-500 font-mono">{sub.slug}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
+                                    {sub.category?.name || "Uncategorized"}
+                                </span>
+                                <div className="flex gap-2">
+                                    <button onClick={() => openEditModal(sub)} className="text-blue-600 hover:text-blue-400 p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20"><PencilSquareIcon className="w-5 h-5" /></button>
+                                    <button onClick={() => handleDelete(sub._id)} className="text-red-600 hover:text-red-400 p-1.5 rounded-md bg-red-50 dark:bg-red-900/20"><TrashIcon className="w-5 h-5" /></button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 text-center text-zinc-500 border border-zinc-200 dark:border-zinc-800">
+                        No subcategories found.
+                    </div>
+                )}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+                currentPage={currentPage}
+                totalItems={filtered.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+            />
 
             {/* Modal */}
             {isModalOpen && (

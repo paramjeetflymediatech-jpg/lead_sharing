@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Job from "@/models/Job"; // ✅ IMPORTANT: Import Job model first
 import { Lead } from "@/models/Lead";
 
 export async function GET(req, context) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     // ✅ Await params in Next.js 15+
     const params = await context.params;
@@ -37,17 +37,7 @@ export async function GET(req, context) {
       _id: jobId,
       homeowner: userId,
     })
-      .populate("category", "name")
-      .populate("subCategory", "name")
-      .populate({
-        path: "hiredTradesperson",
-        select: "companyName phone user",
-        populate: {
-          path: "user",
-          select: "name email",
-        },
-      })
-      .lean();
+      ;
 
     if (!job) {
       return NextResponse.json(

@@ -10,7 +10,7 @@
 //     const job = await Job.findById(id)
 //       .populate("category", "name")
 //       .populate("subCategory", "name")
-//       .select("-contactEmail -contactPhone -contactName"); // 🔒 hide
+//; // 🔒 hide
 
 //     if (!job) {
 //       return NextResponse.json({ message: "Job not found" }, { status: 404 });
@@ -35,24 +35,21 @@
 
 
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 
 export async function GET(req, { params }) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const { id } = params;
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
     const job = await Job.findById(id)
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .populate("homeowner", "name")
-      .lean();
+      ;
 
     if (!job) {
       return NextResponse.json({ message: "Job not found" }, { status: 404 });

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 
 export async function PUT(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const userId = req.headers.get("x-user-id");
 
     if (!userId) {
@@ -41,15 +41,14 @@ import { User } from "@/models/User";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const userId = req.headers.get("x-user-id");
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const tradespersonProfile = await TradespersonProfile.findOne({ user: userId })
-      .populate('user', 'email');
+    const tradespersonProfile = await TradespersonProfile.findOne({ user: userId });
 
     if (!tradespersonProfile) {
       const user = await User.findById(userId);
@@ -63,17 +62,23 @@ export async function GET(req) {
           serviceAreas: [],
           profileImage: ""
         });
-        // Attach email manually for the response since we just created it and have the user object
-        const responseData = newProfile.toObject();
-        responseData.user = { email: user.email };
+        // Manually attach user email
+        const responseData = { ...newProfile, user: { email: user.email } };
         return NextResponse.json({ success: true, data: responseData });
       }
       return NextResponse.json({ message: "Profile not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: tradespersonProfile });
+    // Manually fetch user email for existing profile
+    const user = await User.findById(userId);
+    const responseData = {
+      ...tradespersonProfile,
+      user: user ? { email: user.email } : null
+    };
+
+    return NextResponse.json({ success: true, data: responseData });
   } catch (error) {
     console.error("Tradesperson Profile Fetch Error:", error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
   }
 }

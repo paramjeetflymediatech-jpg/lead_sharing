@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
 import { User } from '@/models/User';
 import { TradespersonProfile } from '@/models/TradespersonProfile';
 import { hashPassword, signAuthToken } from '@/lib/auth';
 import { setAuthCookie } from '@/lib/serverAuth';
 
 export async function POST(req) {
-  await connectToDatabase();
-
   const body = await req.json();
   const { name, email, password, role, companyName } = body;
 
@@ -15,7 +12,7 @@ export async function POST(req) {
     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
   }
 
-  const existing = await User.findOne({ email }).lean();
+  const existing = await User.findOne({ email });
   if (existing) {
     return NextResponse.json({ message: 'Email already in use' }, { status: 400 });
   }

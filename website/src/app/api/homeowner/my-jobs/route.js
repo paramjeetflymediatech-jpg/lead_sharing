@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 
 import Job from "@/models/Job";
 import { Lead } from "@/models/Lead";
@@ -10,7 +10,7 @@ import "@/models/SubCategory";
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     // Get user ID from headers (authentication से)
     const userId = req.headers.get("x-user-id");
@@ -38,20 +38,15 @@ export async function GET(req) {
 
     // Build query - सिर्फ इस homeowner के jobs
     const query = { homeowner: userId };
-    
+
     // Status filter (अगर दिया गया हो)
     if (status && ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(status)) {
       query.status = status;
     }
 
     // Get jobs with pagination
-    const jobs = await Job.find(query)
-      .populate("category", "name")
-      .populate("subCategory", "name")
-      .sort({ createdAt: -1 }) // नए jobs पहले
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const jobs = await Job.find(query) // नए jobs पहले
+      ;
 
     // Get total count for pagination
     const totalJobs = await Job.countDocuments(query);
@@ -59,16 +54,8 @@ export async function GET(req) {
     // हर job के leads की जानकारी लें
     const jobsWithLeads = await Promise.all(
       jobs.map(async (job) => {
-        const leads = await Lead.find({ job: job._id })
-          .populate({
-            path: 'tradesperson',
-            populate: {
-              path: 'user',
-              select: 'name email phone'
-            }
-          })
-          .sort({ createdAt: -1 }) // नए leads पहले
-          .lean();
+        const leads = await Lead.find({ job: job._id }) // नए leads पहले
+          ;
 
         return {
           _id: job._id,

@@ -2,11 +2,11 @@ import "server-only";
 
 import { cookies, headers } from "next/headers";
 import { User } from "@/models/User";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb"; // Removed
 import jwt from "jsonwebtoken";
 
 const AUTH_COOKIE_NAME = "auth_token";
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET; // Ensure this is set
 
 // Helper to validate secret lazily
 function getJwtSecret() {
@@ -46,11 +46,25 @@ export async function getCurrentUser() {
 
   try {
     const decoded = jwt.verify(token, getJwtSecret());
-    await connectToDatabase();
-    const user = await User.findById(decoded.userId).lean();
+    // await connectToDatabase(); // Removed
+
+    // User.findById now returns a promise that resolves to user object (or mock lean)
+    // My new implementation returns an object with a lean() method for compatibility if awaited
+    // strictly speaking, my implementation: findById returns { lean: ..., ...data }
+    // BUT await User.findById(id) returns the object. 
+    // And if the code does await User.findById(id), it will fail because findById(id) returns a Promise, not a Mongoose Query object.
+    // The existing code: const user = await User.findById(decoded.userId);
+    // This implies User.findById returns a Query object, which has .
+    // My implementation needs to support this chain.
+
+    // Let's adjust usage here to match my new implementation or update implementation.
+    // Simpler to update this usage since I control both.
+
+    const user = await User.findById(decoded.userId);
+
     if (!user) return null;
     return {
-      id: user._id.toString(),
+      id: user.id, // User model returns id as well
       role: user.role,
       email: user.email,
       name: user.name,
@@ -59,3 +73,4 @@ export async function getCurrentUser() {
     return null;
   }
 }
+

@@ -1,58 +1,50 @@
 
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); // commonjs requires simple require
-
-// Check both local and root .env
+const mysql = require('mysql2/promise');
+const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: '.env' });
-require('dotenv').config({ path: '../.env' });
-
-const UserSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true },
-    name: { type: String, required: true },
-    role: { type: String, enum: ['HOMEOWNER', 'TRADESPERSON', 'ADMIN'], default: 'HOMEOWNER', required: true }
-}, { timestamps: true });
-
-// Prevent overwrite model error
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
+require('dotenv').config({ path: '../../.env' }); // Adjust for script location
 
 async function createAdmin() {
-    const MONGODB_URI = process.env.MONGODB_URI;
-    if (!MONGODB_URI) {
-        console.error("MONGODB_URI missing in .env");
+    const { MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } = process.env;
+
+    if (!MYSQL_HOST || !MYSQL_USER || !MYSQL_DATABASE) {
+        console.error("MySQL credentials missing in .env");
         process.exit(1);
     }
 
     try {
-        // Force the same dbName as the app uses
-        await mongoose.connect(MONGODB_URI, { dbName: 'lead_sharing' });
-        console.log("Connected to MongoDB (lead_sharing)");
+        const pool = await mysql.createConnection({
+            host: MYSQL_HOST,
+            user: MYSQL_USER,
+            password: MYSQL_PASSWORD,
+            database: MYSQL_DATABASE
+        });
+
+        console.log(`Connected to MySQL (${MYSQL_DATABASE})`);
 
         const adminEmail = "admin@leadsharing.com";
         const password = "adminpassword123";
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        let user = await User.findOne({ email: adminEmail });
+        // Check if exists
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
 
-        if (user) {
+        if (rows.length > 0) {
             console.log(`Updating existing admin: ${adminEmail}`);
-            user.password = await bcrypt.hash(password, 10);
-            user.role = "ADMIN";
-            await user.save();
+            await pool.query('UPDATE users SET password = ?, role = "ADMIN" WHERE email = ?', [hashedPassword, adminEmail]);
         } else {
             console.log(`Creating new admin: ${adminEmail}`);
-            const hashedPassword = await bcrypt.hash(password, 10);
-            user = await User.create({
-                email: adminEmail,
-                password: hashedPassword,
-                name: "Super Admin",
-                role: "ADMIN"
-            });
+            await pool.query(
+                'INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)',
+                [adminEmail, hashedPassword, "Super Admin", "ADMIN"]
+            );
         }
 
         console.log("Admin user ready.");
         console.log(`Email: ${adminEmail}`);
         console.log(`Password: ${password}`);
 
+        await pool.end();
         process.exit(0);
     } catch (e) {
         console.error("Error:", e);

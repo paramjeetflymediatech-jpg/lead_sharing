@@ -1,13 +1,13 @@
 
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { hashPassword } from "@/lib/auth";
 
 export async function POST(req) {
     try {
-        await connectToDatabase();
+        // await connectToDatabase();
         const { token, password } = await req.json();
 
         if (!token || !password) {

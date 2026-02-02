@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+// import { connectToDatabase } from "@/lib/mongodb";
 import Job from "@/models/Job";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Lead } from "@/models/Lead";
@@ -10,7 +10,7 @@ const MAX_LEADS_PER_JOB = 3;
 
 export async function POST(req) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
