@@ -19,6 +19,8 @@ export default function UsersManagement() {
     const [filter, setFilter] = useState("ALL"); // ALL, HOMEOWNER, TRADESPERSON
     const [search, setSearch] = useState("");
 
+    const [totalUsers, setTotalUsers] = useState(0);
+
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -35,9 +37,13 @@ export default function UsersManagement() {
     });
     const [submitting, setSubmitting] = useState(false);
 
+    // Initial Fetch & Filter/Search Changes
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        const timer = setTimeout(() => {
+            fetchUsers();
+        }, 300); // Debounce search
+        return () => clearTimeout(timer);
+    }, [currentPage, filter, search]);
 
     // Reset pagination when filter/search changes
     useEffect(() => {
@@ -45,11 +51,20 @@ export default function UsersManagement() {
     }, [filter, search]);
 
     const fetchUsers = async () => {
+        setLoading(true);
         try {
-            const res = await fetch("/api/admin/users");
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: itemsPerPage,
+                role: filter,
+                search: search
+            });
+
+            const res = await fetch(`/api/admin/users?${params.toString()}`);
             if (res.ok) {
                 const data = await res.json();
-                setUsers(data);
+                setUsers(data.users);
+                setTotalUsers(data.total);
             } else {
                 toast.error("Failed to fetch users");
             }
@@ -61,28 +76,10 @@ export default function UsersManagement() {
         }
     };
 
-    const performFilter = (user) => {
-        // Exclude specific admin email
-        if (user.email === 'admin@leadsharing.com') return false;
-
-        // Filter by Role
-        const matchesRole = filter === "ALL" || user.role === filter;
-
-        // Filter by Search (Name or Email)
-        const searchLower = search.toLowerCase();
-        const matchesSearch =
-            (user.name?.toLowerCase() || "").includes(searchLower) ||
-            (user.email?.toLowerCase() || "").includes(searchLower);
-
-        return matchesRole && matchesSearch;
-    };
-
-    const filteredUsers = users.filter(performFilter);
-
-    // Pagination Slicing
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+    // Client-side filtering removed as it is now server-side
+    const currentUsers = users;
+    // filteredUsers no longer needed for slicing, but we used filterUsers.length for TotalItems in pagination. 
+    // Now we use totalUsers state.
 
     // ... (Modal Handlers & API Operations same as before) ...
 
@@ -382,7 +379,7 @@ export default function UsersManagement() {
             {/* Pagination */}
             <Pagination
                 currentPage={currentPage}
-                totalItems={filteredUsers.length}
+                totalItems={totalUsers}
                 itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
             />

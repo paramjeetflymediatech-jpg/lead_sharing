@@ -1,7 +1,7 @@
 
 import pool from '../../config/db';
 
-const simpleJobMapper = (row) => ({
+const detailedJobMapper = (row) => ({
   _id: row.id,
   description: row.description,
   status: row.status,
@@ -9,9 +9,11 @@ const simpleJobMapper = (row) => ({
   updatedAt: row.updated_at,
   budgetMin: row.budget_min,
   budgetMax: row.budget_max,
-  homeowner: row.homeowner_id,
-  category: row.category_id,
-  subCategory: row.sub_category_id,
+  // Populate objects if names exist, otherwise fall back to ID
+  homeowner: row.homeowner_name ? { _id: row.homeowner_id, name: row.homeowner_name, email: row.homeowner_email } : row.homeowner_id,
+  category: row.category_name ? { _id: row.category_id, name: row.category_name } : row.category_id,
+  subCategory: row.sub_category_name ? { _id: row.sub_category_id, name: row.sub_category_name } : row.sub_category_id,
+
   location: { city: row.city || '', postcode: row.postcode || '' },
   contactName: row.contact_name,
   contactEmail: row.contact_email,
@@ -23,52 +25,47 @@ const simpleJobMapper = (row) => ({
 
 export const Job = {
   async find(query = {}) {
-    let sql = 'SELECT * FROM jobs WHERE 1=1';
+    let sql = `
+      SELECT 
+        j.*,
+        c.name as category_name,
+        sc.name as sub_category_name,
+        u.name as homeowner_name,
+        u.email as homeowner_email
+      FROM jobs j
+      LEFT JOIN categories c ON j.category_id = c.id
+      LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
+      LEFT JOIN users u ON j.homeowner_id = u.id
+      WHERE 1=1
+    `;
     const params = [];
 
     if (query.status) {
-      sql += ' AND status = ?';
+      sql += ' AND j.status = ?';
       params.push(query.status);
     }
     if (query.homeowner) {
-      sql += ' AND homeowner_id = ?';
+      sql += ' AND j.homeowner_id = ?';
       params.push(query.homeowner);
     }
     if (query._id) {
-      sql += ' AND id = ?';
+      sql += ' AND j.id = ?';
       params.push(query._id);
     }
 
-    sql += ' ORDER BY created_at DESC';
+    sql += ' ORDER BY j.created_at DESC';
     const [rows] = await pool.query(sql, params);
-    return rows.map(simpleJobMapper);
+    return rows.map(detailedJobMapper);
   },
 
   async findById(id) {
-    const [rows] = await pool.query('SELECT * FROM jobs WHERE id = ?', [id]);
-    return rows[0] ? simpleJobMapper(rows[0]) : null;
+    const results = await this.find({ _id: id });
+    return results[0] || null;
   },
 
   async findOne(query) {
-    let sql = 'SELECT * FROM jobs WHERE 1=1';
-    const params = [];
-
-    if (query._id) {
-      sql += ' AND id = ?';
-      params.push(query._id);
-    }
-    if (query.homeowner) {
-      sql += ' AND homeowner_id = ?';
-      params.push(query.homeowner);
-    }
-    if (query.status) {
-      sql += ' AND status = ?';
-      params.push(query.status);
-    }
-
-    sql += ' LIMIT 1';
-    const [rows] = await pool.query(sql, params);
-    return rows[0] ? simpleJobMapper(rows[0]) : null;
+    const results = await this.find(query);
+    return results[0] || null;
   },
 
   async countDocuments(query = {}) {
@@ -129,11 +126,8 @@ export const Job = {
       ]
     );
 
-    return {
-      _id: result.insertId,
-      ...data,
-      status
-    };
+    // Return the created job, ideally fetching it to get all fields including defaults
+    return this.findById(result.insertId);
   },
 
   async findByIdAndUpdate(id, updateData, options = {}) {
@@ -156,6 +150,8 @@ export const Job = {
       updates.push('budget_max = ?');
       values.push(updateData.budgetMax);
     }
+
+    // Add other fields updates as necessary...
 
     if (updates.length > 0) {
       values.push(id);
