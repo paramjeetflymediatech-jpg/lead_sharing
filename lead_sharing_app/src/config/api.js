@@ -1,1 +1,9 @@
-export const API_BASE_URL = "http://192.168.1.7:3000"; // TODO: change to your LAN IP
+// API Configuration
+// For development: use your local IP (run ipconfig on Windows to find it)
+// For production: use your live server URL
+
+// Development (local testing)
+// export const API_BASE_URL = "http://192.168.1.7:3000";
+
+// Production
+export const API_BASE_URL = "https://leadsharings.socialflymediatech.com";
