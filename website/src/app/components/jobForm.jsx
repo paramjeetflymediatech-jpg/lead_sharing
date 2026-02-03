@@ -1,5 +1,4 @@
 
-
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -339,7 +338,6 @@ export default function JobCreationForm() {
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [subCategories, setSubCategories] = useState([]);
   const [filteredSubCategories, setFilteredSubCategories] = useState([]);
   const [uploadedMedia, setUploadedMedia] = useState([]);
   const [user, setUser] = useState(null);
@@ -389,24 +387,39 @@ export default function JobCreationForm() {
     fetchUser();
   }, [fetchUser]);
 
-  // Fetch categories and subcategories
+  // Fetch categories on mount (like ref code)
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        const [catRes, subRes] = await Promise.all([
-          fetch("/api/categories"),
-          fetch("/api/subcategories"),
-        ]);
-        const catData = await catRes.json();
-        const subData = await subRes.json();
+        const res = await fetch("/api/categories");
+        const catData = await res.json();
         setCategories(catData);
-        setSubCategories(subData);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching categories:", error);
       }
     };
-    fetchData();
+    fetchCategories();
   }, []);
+
+  // Fetch subcategories dynamically when category changes (like ref code)
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!form.category) {
+        setFilteredSubCategories([]);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/subcategories?categoryId=${form.category}`);
+        const subData = await res.json();
+        setFilteredSubCategories(subData);
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+        setFilteredSubCategories([]);
+      }
+    };
+    fetchSubCategories();
+  }, [form.category]);
 
   // Pre-fill contact info from user data
   useEffect(() => {
@@ -425,18 +438,6 @@ export default function JobCreationForm() {
       }
     }
   }, [user, isLoadingUser]);
-
-  // Filter subcategories based on selected category
-  useEffect(() => {
-    if (form.category) {
-      const filtered = subCategories.filter(
-        (sub) => sub.category._id === form.category || sub.category === form.category
-      );
-      setFilteredSubCategories(filtered);
-    } else {
-      setFilteredSubCategories([]);
-    }
-  }, [form.category, subCategories]);
 
   // File validation function
   const validateFile = (file) => {
@@ -1469,3 +1470,19 @@ export default function JobCreationForm() {
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

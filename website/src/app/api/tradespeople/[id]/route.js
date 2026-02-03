@@ -1,28 +1,60 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { TradespersonProfile } from "@/models/TradespersonProfile";
+import pool from "../../../../../config/db";
 
 export async function GET(req, { params }) {
   try {
-    await connectToDatabase();
-
+    // ✅ FIX: await params
     const { id } = await params;
 
-    const tradesperson = await TradespersonProfile.findById(id)
-      .select(
-        "companyName profileImage bio phone postcode skills serviceAreas createdAt updatedAt"
+    if (!id) {
+      return NextResponse.json(
+        { message: "Tradesperson ID is required" },
+        { status: 400 }
       );
+    }
 
-    if (!tradesperson) {
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        user_id,
+        company_name,
+        profile_image,
+        bio,
+        phone,
+        postcode,
+        skills,
+        service_areas,
+        created_at,
+        updated_at
+       FROM tradesperson_profiles
+       WHERE id = ?
+       LIMIT 1`,
+      [id]
+    );
+
+    if (rows.length === 0) {
       return NextResponse.json(
         { message: "Tradesperson not found" },
         { status: 404 }
       );
     }
 
-    // Add mock data for demo
+    const row = rows[0];
+
     const tradespersonWithMockData = {
-      ...tradesperson.toObject(),
+      _id: row.id,
+      user: row.user_id,
+      companyName: row.company_name,
+      profileImage: row.profile_image,
+      bio: row.bio,
+      phone: row.phone,
+      postcode: row.postcode,
+      skills: row.skills ? JSON.parse(row.skills) : [],
+      serviceAreas: row.service_areas ? JSON.parse(row.service_areas) : [],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+
+      // ⭐ mock demo data
       rating: 5.0,
       ratingCount: 27,
       reviews: [
@@ -34,8 +66,9 @@ export async function GET(req, { params }) {
 
     return NextResponse.json({
       success: true,
-      data: tradespersonWithMockData,
+      data: tradespersonWithMockData
     });
+
   } catch (error) {
     console.error("Tradesperson Profile Error:", error);
     return NextResponse.json(
