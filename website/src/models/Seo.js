@@ -17,28 +17,45 @@ const seoToMongoStyle = (row) => {
 
 export const Seo = {
     async findById(id) {
-        const [rows] = await pool.query('SELECT * FROM seo_pages WHERE id = ?', [id]);
-        return seoToMongoStyle(rows[0]);
+        try {
+            const [rows] = await pool.query('SELECT * FROM seo_pages WHERE id = ?', [id]);
+            return seoToMongoStyle(rows[0]);
+        } catch (error) {
+            console.warn('Database query failed in Seo.findById:', error.message);
+            return null;
+        }
     },
 
     async find(query) {
-        // Mock find all or filtered
-        let sql = 'SELECT * FROM seo_pages WHERE 1=1';
-        const params = [];
-        const [rows] = await pool.query(sql, params);
-        return rows.map(seoToMongoStyle);
+        try {
+            // Mock find all or filtered
+            let sql = 'SELECT * FROM seo_pages WHERE 1=1';
+            const params = [];
+            const [rows] = await pool.query(sql, params);
+            return rows.map(seoToMongoStyle);
+        } catch (error) {
+            console.warn('Database query failed in Seo.find:', error.message);
+            return [];
+        }
     },
 
     async findOne(query) {
-        let sql = 'SELECT * FROM seo_pages WHERE 1=1';
-        const params = [];
-        if (query.pageName) {
-            sql += ' AND page_name = ?';
-            params.push(query.pageName);
+        try {
+            let sql = 'SELECT * FROM seo_pages WHERE 1=1';
+            const params = [];
+            if (query.pageName) {
+                sql += ' AND page_name = ?';
+                params.push(query.pageName);
+            }
+            sql += ' LIMIT 1';
+            const [rows] = await pool.query(sql, params);
+            return seoToMongoStyle(rows[0]);
+        } catch (error) {
+            // During build time or if DB is unavailable, return null
+            // The seo-helper will provide default values
+            console.warn('Database query failed in Seo.findOne:', error.message);
+            return null;
         }
-        sql += ' LIMIT 1';
-        const [rows] = await pool.query(sql, params);
-        return seoToMongoStyle(rows[0]);
     },
 
     async create(data) {
