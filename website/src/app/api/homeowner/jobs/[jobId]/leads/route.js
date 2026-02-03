@@ -34,7 +34,12 @@ export async function GET(req, context) {
 
     // 🔎 Verify the job belongs to this homeowner
     const job = await Job.findById(jobId);
-    if (!job || job.homeowner.toString() !== userId) {
+
+    // Handle both populated object and direct ID
+    const ownerId = job?.homeowner?._id || job?.homeowner;
+
+    // Use String comparison for IDs to be safe
+    if (!job || String(ownerId) !== String(userId)) {
       return NextResponse.json(
         { success: false, message: "Access denied" },
         { status: 403 }
