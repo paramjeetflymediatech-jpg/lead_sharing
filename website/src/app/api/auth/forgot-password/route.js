@@ -26,9 +26,11 @@ export async function POST(req) {
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-    user.passwordResetToken = hashedToken;
-    user.passwordResetExpires = new Date(Date.now() + 3600000); // 1 hour
-    await user.save();
+    // user.save() is not available on the custom MySQL adapter object
+    await User.findByIdAndUpdate(user.id, {
+      passwordResetToken: hashedToken,
+      passwordResetExpires: new Date(Date.now() + 3600000), // 1 hour
+    });
 
     // 🔗 Construct URL
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";

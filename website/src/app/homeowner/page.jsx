@@ -493,16 +493,15 @@ export default function HomeownerJobsPage() {
                           <p className="text-xs font-bold text-[#1149C7] uppercase tracking-widest">
                             {job.category?.name}
                           </p>
-                          <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                            job.status === 'OPEN' 
-                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
-                              : job.status === 'HIRED' 
-                              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' 
-                              : job.status === 'COMPLETED' 
-                              ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400' 
-                              : job.status === 'CANCELLED'
-                              ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'
+                          <span className={`px-2 py-1 text-xs font-bold rounded-full ${job.status === 'OPEN'
+                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                              : job.status === 'HIRED'
+                                ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
+                                : job.status === 'COMPLETED'
+                                  ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400'
+                                  : job.status === 'CANCELLED'
+                                    ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'
                             }`}>
                             {formatStatus(job.status)}
                           </span>
