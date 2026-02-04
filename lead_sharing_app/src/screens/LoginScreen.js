@@ -5,14 +5,17 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
+  Dimensions,
 } from "react-native";
 import { authAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+
+const { height } = Dimensions.get("window");
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -63,25 +66,23 @@ export default function LoginScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo/Illustration Section */}
-        <View style={styles.logoContainer}>
-          {/* <View style={styles.logoCircle}>
-            <Image
-              source={require("../../assets/login-illustration.png")}
-              style={styles.illustration}
-              resizeMode="contain"
-            />
-          </View> */}
-          <Text style={styles.title}>Lead Sharing</Text>
-          <Text style={styles.subtitle}>Connect. Hire. Grow.</Text>
+        {/* Illustration Section */}
+        <View style={styles.illustrationContainer}>
+          <Image
+            source={require("../../assets/login-illustration.jpg")}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
         </View>
 
-        {/* Form Section */}
-        <View style={styles.formContainer}>
-          <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.instructionText}>
-            Sign in to continue to your account
-          </Text>
+        {/* Form Card */}
+        <View style={styles.formCard}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Login</Text>
+            <Text style={styles.subtitle}>
+              Sign in to continue to your account
+            </Text>
+          </View>
 
           {error ? (
             <View style={styles.errorContainer}>
@@ -91,35 +92,42 @@ export default function LoginScreen({ navigation }) {
 
           {/* Email Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-              editable={!loading}
-            />
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputIcon}></Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Email ID"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                editable={!loading}
+              />
+            </View>
           </View>
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              editable={!loading}
-            />
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputIcon}></Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+              />
+            </View>
           </View>
 
           {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotPassword}>
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
 
@@ -132,15 +140,22 @@ export default function LoginScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.loginButtonText}>Sign In</Text>
+              <Text style={styles.loginButtonText}>Login</Text>
             )}
           </TouchableOpacity>
 
+          {/* OR Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.divider} />
+          </View>
+
           {/* Sign Up Link */}
           <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation?.navigate?.("Signup")}>
-              <Text style={styles.signupLink}>Sign Up</Text>
+            <Text style={styles.signupText}>New to LeadSharing? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+              <Text style={styles.signupLink}>Signup</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -152,66 +167,50 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F5F7FA",
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
   },
-  logoContainer: {
+  illustrationContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 40,
     alignItems: "center",
-    marginBottom: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  logoCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-    shadowColor: "#1149C7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+  illustration: {
+    width: 280,
+    height: 240,
+  },
+  formCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 28,
+    marginTop: -20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 8,
   },
-  illustration: {
-    width: 100,
-    height: 100,
+  header: {
+    marginBottom: 24,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#1149C7",
-    marginBottom: 4,
+    color: "#1F2937",
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     color: "#6B7280",
-    fontWeight: "500",
-  },
-  formContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  instructionText: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 24,
+    fontWeight: "400",
   },
   errorContainer: {
     backgroundColor: "#FEE2E2",
@@ -227,39 +226,45 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#F9FAFB",
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    fontSize: 18,
+    marginRight: 12,
+    color: "#9CA3AF",
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 16,
+    fontSize: 15,
     color: "#1F2937",
   },
   forgotPassword: {
     alignSelf: "flex-end",
     marginBottom: 24,
+    marginTop: 4,
   },
   forgotPasswordText: {
-    color: "#1149C7",
+    color: "#2563EB",
     fontSize: 14,
     fontWeight: "600",
   },
   loginButton: {
-    backgroundColor: "#1149C7",
+    backgroundColor: "#2563EB",
     borderRadius: 12,
-    padding: 16,
+    padding: 18,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#1149C7",
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -268,24 +273,41 @@ const styles = StyleSheet.create({
   },
   loginButtonDisabled: {
     backgroundColor: "#93C5FD",
+    shadowOpacity: 0.1,
   },
   loginButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "#FFFFFF",
+    fontSize: 17,
     fontWeight: "700",
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E5E7EB",
+  },
+  dividerText: {
+    color: "#9CA3AF",
+    fontSize: 13,
+    fontWeight: "500",
+    marginHorizontal: 12,
   },
   signupContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 24,
+    alignItems: "center",
   },
   signupText: {
     color: "#6B7280",
-    fontSize: 14,
+    fontSize: 15,
   },
   signupLink: {
-    color: "#1149C7",
-    fontSize: 14,
+    color: "#2563EB",
+    fontSize: 15,
     fontWeight: "700",
   },
 });
