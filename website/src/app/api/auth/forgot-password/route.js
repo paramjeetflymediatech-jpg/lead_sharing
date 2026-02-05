@@ -117,13 +117,13 @@ export async function POST(req) {
       .update(resetToken)
       .digest("hex");
 
-<<<<<<< HEAD
+
     // user.save() is not available on the custom MySQL adapter object
     await User.findByIdAndUpdate(user.id, {
       passwordResetToken: hashedToken,
       passwordResetExpires: new Date(Date.now() + 3600000), // 1 hour
     });
-=======
+
     // 💾 Save token + expiry (MySQL-safe)
     await User.findByIdAndUpdate(
       user._id,
@@ -139,7 +139,6 @@ export async function POST(req) {
       process.env.NEXTAUTH_URL ||
       process.env.NEXT_PUBLIC_APP_URL ||
       "http://localhost:3000";
->>>>>>> b8e8e53d270100c6a33d204518f648bab9670c4e
 
     const resetUrl = `${baseUrl}/auth/reset-password/${resetToken}`;
 
