@@ -113,5 +113,6 @@ export const config = {
     "/api/admin/:path*",
     "/api/me/:path*",
     "/api/auth/update-password",
+     "/api/topup", // Add this line
   ],
 };
