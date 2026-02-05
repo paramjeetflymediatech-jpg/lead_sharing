@@ -1,0 +1,246 @@
+/**
+ * MySQL Migration Script
+ * Creates initial tables for the roof_service_app
+ *
+ * Tables: users, services, leads, seo_metas, sessions
+ *
+ * Run with: node src/database/migrations/001_create_initial_tables.js
+ */
+const dotenv = require("dotenv");
+dotenv.config();
+const mysql = require("mysql2/promise"); // use promise API
+
+async function runMigration() {
+  // Database connection configuration
+  const connection = await mysql.createConnection({
+    host: process.env.MYSQL_HOST || "localhost",
+    port: process.env.MYSQL_PORT || 3306,
+    database: process.env.MYSQL_DATABASE || "lead_sharing",
+    user: process.env.MYSQL_USER || "root",
+    password: process.env.MYSQL_PASSWORD || "root",
+  });
+
+  console.log("Connected to MySQL database");
+
+  try {
+    // Drop existing tables in reverse order due to foreign key constraints
+    console.log("Dropping existing tables (if any)...");
+    await connection.query("DROP TABLE IF EXISTS job_logs");
+    await connection.query("DROP TABLE IF EXISTS jobs");
+    await connection.query("DROP TABLE IF EXISTS lead_images");
+    await connection.query("DROP TABLE IF EXISTS leads");
+    await connection.query("DROP TABLE IF EXISTS seo_metas");
+    await connection.query("DROP TABLE IF EXISTS sessions");
+    await connection.query("DROP TABLE IF EXISTS services");
+    await connection.query("DROP TABLE IF EXISTS users");
+
+    // Create users table
+    console.log("Creating users table...");
+    // -- Create users table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    role ENUM('ADMIN', 'HOMEOWNER', 'TRADESPERSON') NOT NULL DEFAULT 'HOMEOWNER',
+    password_reset_token VARCHAR(255),
+    password_reset_expires DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+);`);
+
+    // -- Create categories table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_slug (slug)
+);
+`);
+    // -- Create sub_categories table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS sub_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    category_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    INDEX idx_category_id (category_id),
+    INDEX idx_slug (slug)
+);
+`);
+    // -- Create jobs table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    description TEXT NOT NULL,
+    homeowner_id INT NOT NULL,
+    category_id INT NOT NULL,
+    sub_category_id INT,
+    budget_min DECIMAL(10, 2) DEFAULT 0,
+    budget_max DECIMAL(10, 2) DEFAULT 0,
+    city VARCHAR(255),
+    postcode VARCHAR(50),
+    contact_name VARCHAR(255),
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(50),
+    job_stage ENUM('PLANNING', 'READY_TO_HIRE', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED') DEFAULT 'PLANNING',
+    ownership ENUM('OWN', 'RENTED') DEFAULT 'OWN',
+    start_time ENUM('IMMEDIATELY', 'WITHIN_1_MONTH', 'FLEXIBLE') DEFAULT 'FLEXIBLE',
+    status ENUM('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED') DEFAULT 'OPEN',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (homeowner_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id) ON DELETE SET NULL,
+    INDEX idx_homeowner_id (homeowner_id),
+    INDEX idx_category_id (category_id),
+    INDEX idx_status (status)
+);`);
+
+    // -- Create leads table
+
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS leads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL,
+    tradesperson_id INT NOT NULL,
+    message TEXT,
+    price_estimate DECIMAL(10, 2),
+    is_unlocked BOOLEAN DEFAULT FALSE,
+    status ENUM('PENDING', 'ACCEPTED', 'REJECTED', 'HIRED') DEFAULT 'PENDING',
+    unlocked_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (tradesperson_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_job_id (job_id),
+    INDEX idx_tradesperson_id (tradesperson_id),
+    INDEX idx_status (status)
+);`);
+
+    // -- Create messages table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT NOT NULL,
+    receiver_id INT NOT NULL,
+    job_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_read BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    INDEX idx_sender_id (sender_id),
+    INDEX idx_receiver_id (receiver_id),
+    INDEX idx_job_id (job_id)
+);`);
+
+    // -- Create payments table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tradesperson_id INT NOT NULL,
+    user_id INT NOT NULL,
+    stripe_session_id VARCHAR(255),
+    stripe_payment_intent_id VARCHAR(255),
+    plan VARCHAR(100),
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'GBP',
+    credits INT DEFAULT 0,
+    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (tradesperson_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_tradesperson_id (tradesperson_id),
+    INDEX idx_stripe_session_id (stripe_session_id)
+);`);
+
+    // -- Create seo_pages table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS seo_pages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    page_name VARCHAR(255) NOT NULL UNIQUE,
+    title VARCHAR(500),
+    meta_description TEXT,
+    keywords TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_page_name (page_name)
+);`);
+
+    // -- Create tradesperson_profiles table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS tradesperson_profiles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    company_name VARCHAR(255),
+    profile_image VARCHAR(500),
+    bio TEXT,
+    phone VARCHAR(50),
+    postcode VARCHAR(50),
+    skills JSON,
+    service_areas JSON,
+    credits INT DEFAULT 5,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id)
+);`);
+
+    // -- Create reviews table
+    await connection.query(`
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL,
+    reviewer_id INT NOT NULL,
+    tradesperson_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (tradesperson_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_job_id (job_id),
+    INDEX idx_tradesperson_id (tradesperson_id)
+);`);
+
+    await connection.query(`
+ CREATE TABLE IF NOT EXISTS  payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tradesperson_id INT NOT NULL,  -- 改为 INT 类型
+    user_id INT NOT NULL,
+    stripe_session_id VARCHAR(255) NOT NULL,
+    stripe_payment_intent_id VARCHAR(255),
+    plan VARCHAR(50) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'GBP',
+    credits INT NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (tradesperson_id) REFERENCES tradesperson_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_tradesperson_id (tradesperson_id),
+    INDEX idx_stripe_session (stripe_session_id)
+);`);
+  } catch (error) {
+    console.error("Error running migration:", error);
+  } finally {
+    await connection.end();
+    console.log("Migration completed and database connection closed");
+  }
+}
+
+runMigration();
