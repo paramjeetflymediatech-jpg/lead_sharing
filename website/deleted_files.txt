@@ -1,0 +1,109 @@
+commit 51b4b628d9db50df0f86319ca24ebf08dc373e14
+Author: amandeepkumarflymediatech-star <amandeepkumar.flymediatech@gmail.com>
+Date:   Thu Feb 5 16:30:11 2026 +0530
+
+    aman
+
+website/add_slug_column.js
+website/check-admin-user.ps1
+website/check-db.bat
+website/check-env.js
+website/check_ids.js
+website/complete-mysql-setup.ps1
+website/create-admin-user.js
+website/create-tables-force.js
+website/create-test-users.js
+website/database-viewer.html
+website/deploy-schema-production.js
+website/execute_user_sql.js
+website/fix-admin-login.ps1
+website/fix-mongodb-imports.js
+website/generate-db-report.js
+website/remove-mongoose-methods.js
+website/reset-mysql-password.ps1
+website/run-schema.js
+website/schema.sql
+website/setup-database-simple.ps1
+website/setup-database.bat
+website/setup-database.ps1
+website/setup-mysql.ps1
+website/test-db-and-create-tables.js
+website/test-mysql-connection.ps1
+
+commit 5768b2dd2201aa82f16ead2f59b8c8d51bf5b6b7
+Author: amandeepkumarflymediatech-star <amandeepkumar.flymediatech@gmail.com>
+Date:   Thu Feb 5 15:30:03 2026 +0530
+
+    d
+
+website/CHECK_DATABASE_NO_CLI.md
+website/COPY_PASTE_COMMANDS.md
+website/FIX_GUIDE.md
+website/HOW_TO_CHECK_DATABASE.md
+website/MIGRATION_COMPLETE.md
+website/MONGOOSE_TO_MYSQL_COMPLETE.md
+website/MYSQL_SETUP_GUIDE.md
+website/MYSQL_WORKBENCH_SETUP.md
+website/QUICK_FIX.md
+website/README.md
+website/RESET_PASSWORD_INSTRUCTIONS.md
+website/VIEW_DATABASE.md
+website/WORKBENCH_QUICK_START.md
+
+commit b441ad509f11f59ef1d1b156bc2fdc9a27c1444d
+Author: amandeepkumarflymediatech-star <amandeepkumar.flymediatech@gmail.com>
+Date:   Thu Feb 5 11:24:04 2026 +0530
+
+    aman
+
+website/update_db.js
+
+commit 1b2e13effa138fb95902fa09b1a6d9dd1c59494d
+Author: amandeepkumarflymediatech-star <amandeepkumar.flymediatech@gmail.com>
+Date:   Wed Feb 4 18:29:44 2026 +0530
+
+    d
+
+lead_sharing_app/assets/login-illustration.png
+
+commit 2f8ea991054938a67f34ad06cd82f3516e5329bf
+Author: amandeepkumarflymediatech-star <amandeepkumar.flymediatech@gmail.com>
+Date:   Mon Feb 2 15:27:46 2026 +0530
+
+    Migration to MySQL complete and verified
+
+website/src/lib/mongodb.js
+
+commit 73cc189195e779d87ec088366df25f88c13d7c79
+Author: flymedia <imran.flymediatech@gmail.com>
+Date:   Thu Jan 29 14:19:40 2026 +0530
+
+    new changes
+
+website/src/app/homeowner/jobs/new/page.jsx
+
+commit 9e0003d5ecf04e3165ae3e5f373db1efe82d363a
+Author: amandeepkumarflymediatech-star <amandeepkumar.flymediatech@gmail.com>
+Date:   Thu Jan 29 10:33:49 2026 +0530
+
+    aman
+
+README.md
+website/src/middleware.js
+
+commit 035f6f71dc080664a456478f307af23a9fb8466c
+Author: flymedia <imran.flymediatech@gmail.com>
+Date:   Wed Jan 28 18:00:19 2026 +0530
+
+    new changes
+
+website/src/app/api/jobs/[id]/leads/route.js
+website/src/app/api/leads/route.js
+
+commit 96f949558cb5537f4b7626fef6a9d3a20a1775f6
+Author: flymedia <imran.flymediatech@gmail.com>
+Date:   Tue Jan 27 14:30:04 2026 +0530
+
+    first commit
+
+website/src/app/api/leads/unlock/route.js
