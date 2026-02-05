@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-// import { connectToDatabase } from "@/lib/mongodb";
-import Job from "@/models/Job";
-import { Lead } from "@/models/Lead";
+import db from "../../../../../../../config/db"
 
 export async function POST(req, context) {
   try {
-    // await connectToDatabase();
-
     // ✅ Await params in Next.js 15+
     const params = await context.params;
     const jobId = params.jobId;
@@ -43,17 +39,19 @@ export async function POST(req, context) {
     console.log("Hiring for jobId:", jobId, "leadId:", leadId, "userId:", userId);
 
     // 🔎 Check if job exists and belongs to this homeowner
-    const job = await Job.findOne({
-      _id: jobId,
-      homeowner: userId,
-    });
+    const [jobs] = await db.query(
+      `SELECT * FROM jobs WHERE id = ? AND homeowner_id = ? LIMIT 1`,
+      [jobId, userId]
+    );
 
-    if (!job) {
+    if (!jobs || jobs.length === 0) {
       return NextResponse.json(
         { success: false, message: "Job not found or access denied" },
         { status: 404 }
       );
     }
+
+    const job = jobs[0];
 
     // 🔎 Check if job is already hired
     if (job.status === "HIRED") {
@@ -63,50 +61,146 @@ export async function POST(req, context) {
       );
     }
 
-    // 🔎 Verify lead exists for this job (simplified - no populate)
-    const lead = await Lead.findOne({
-      _id: leadId,
-      job: jobId,
-    });
+    // 🔎 Verify lead exists for this job
+    const [leads] = await db.query(
+      `SELECT * FROM leads WHERE id = ? AND job_id = ? LIMIT 1`,
+      [leadId, jobId]
+    );
 
-    if (!lead) {
+    if (!leads || leads.length === 0) {
       return NextResponse.json(
         { success: false, message: "Lead not found for this job" },
         { status: 404 }
       );
     }
 
-    // ✅ UPDATE JOB STATUS TO HIRED (using MySQL-compatible update method)
-    // TODO: Implement job.save() in Job model when ready
-    job.status = "HIRED";
-    job.hiredTradesperson = lead.tradesperson;
-    job.hiredAt = new Date();
-    // await job.save(); // Comment out until Job model supports save()
+    const lead = leads[0];
 
-    // ✅ UPDATE ALL LEADS FOR THIS JOB
-    // TODO: Implement Lead.updateMany when ready
-    // await Lead.updateMany({ job: jobId }, { status: "REJECTED" });
-    // await Lead.updateOne({ _id: leadId }, { status: "HIRED" });
+    // ✅ Start transaction for atomic updates
+    const connection = await db.getConnection();
+    
+    try {
+      await connection.beginTransaction();
 
-    console.log("Successfully hired tradesperson for job:", jobId);
+      // ✅ UPDATE JOB STATUS TO HIRED
+      await connection.query(
+        `UPDATE jobs 
+         SET status = 'HIRED', 
+             hired_tradesperson_id = ?,
+             hired_at = NOW(),
+             updated_at = NOW()
+         WHERE id = ?`,
+        [lead.tradesperson_id, jobId]
+      );
 
-    return NextResponse.json({
-      success: true,
-      message: "Tradesperson hired successfully",
-      data: {
-        job: {
-          _id: job._id,
-          status: job.status,
-          hiredTradesperson: job.hiredTradesperson,
-          hiredAt: job.hiredAt,
+      // ✅ Check if leads table has a status column
+      const [statusColumns] = await connection.query(
+        `SHOW COLUMNS FROM leads LIKE '%status%'`
+      );
+      
+      // Determine if we should update status in leads table
+      let shouldUpdateLeadsStatus = false;
+      let statusColumnName = null;
+      
+      if (statusColumns.length > 0) {
+        shouldUpdateLeadsStatus = true;
+        statusColumnName = statusColumns[0].Field;
+      } else {
+        // Check for common alternative column names
+        const [allColumns] = await connection.query(`SHOW COLUMNS FROM leads`);
+        const columnNames = allColumns.map(col => col.Field.toLowerCase());
+        
+        // Look for any column that might be used for status
+        const possibleStatusColumns = ['lead_status', 'state', 'status_code', 'lead_state', 'current_status'];
+        for (const possibleCol of possibleStatusColumns) {
+          if (columnNames.includes(possibleCol.toLowerCase())) {
+            // Find the exact case-sensitive column name
+            const exactColumn = allColumns.find(col => 
+              col.Field.toLowerCase() === possibleCol.toLowerCase()
+            );
+            if (exactColumn) {
+              shouldUpdateLeadsStatus = true;
+              statusColumnName = exactColumn.Field;
+              break;
+            }
+          }
+        }
+        
+        if (!shouldUpdateLeadsStatus) {
+          console.warn("No status column found in leads table. Status updates will be skipped.");
+        }
+      }
+
+      // ✅ UPDATE LEADS STATUS ONLY IF COLUMN EXISTS
+      if (shouldUpdateLeadsStatus && statusColumnName) {
+        console.log(`Updating leads status using column: ${statusColumnName}`);
+        
+        // Update all other leads to REJECTED
+        await connection.query(
+          `UPDATE leads 
+           SET ?? = 'REJECTED', 
+               updated_at = NOW()
+           WHERE job_id = ? AND id != ?`,
+          [statusColumnName, jobId, leadId]
+        );
+
+        // Update the hired lead to HIRED
+        await connection.query(
+          `UPDATE leads 
+           SET ?? = 'HIRED', 
+               updated_at = NOW()
+           WHERE id = ?`,
+          [statusColumnName, leadId]
+        );
+      } else {
+        console.log("Skipping leads status update - no status column found");
+      }
+
+      // Commit transaction
+      await connection.commit();
+      connection.release();
+
+      console.log("Successfully hired tradesperson for job:", jobId);
+
+      // Fetch updated job details
+      const [updatedJob] = await db.query(
+        `SELECT 
+          j.*,
+          tp.company_name as hired_tradesperson_name
+         FROM jobs j
+         LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
+         WHERE j.id = ?
+         LIMIT 1`,
+        [jobId]
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: "Tradesperson hired successfully",
+        data: {
+          job: updatedJob[0],
         },
-      },
-    });
+      });
+    } catch (error) {
+      // Rollback on error
+      await connection.rollback();
+      connection.release();
+      throw error;
+    }
   } catch (error) {
     console.error("HIRE API ERROR:", error);
     return NextResponse.json(
-      { success: false, message: "Internal server error", error: error.message },
+      { 
+        success: false, 
+        message: "Internal server error", 
+        error: error.message,
+        sqlMessage: error.sqlMessage
+      },
       { status: 500 }
     );
   }
 }
+
+
+
+
