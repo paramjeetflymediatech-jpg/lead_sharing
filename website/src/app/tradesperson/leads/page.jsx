@@ -363,6 +363,8 @@ export default function MyLeadsPage() {
       }
       
       const userData = await userRes.json();
+
+      console.log("UserData",userData)
       
       // Check if user is a tradesperson (your API returns tradespersonProfile)
       if (!userData?.tradespersonProfile) {
