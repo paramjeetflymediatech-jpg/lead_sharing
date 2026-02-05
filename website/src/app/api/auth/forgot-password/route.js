@@ -117,6 +117,13 @@ export async function POST(req) {
       .update(resetToken)
       .digest("hex");
 
+
+    // user.save() is not available on the custom MySQL adapter object
+    await User.findByIdAndUpdate(user.id, {
+      passwordResetToken: hashedToken,
+      passwordResetExpires: new Date(Date.now() + 3600000), // 1 hour
+    });
+
     // 💾 Save token + expiry (MySQL-safe)
     await User.findByIdAndUpdate(
       user._id,

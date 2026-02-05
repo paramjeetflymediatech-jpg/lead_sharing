@@ -8,6 +8,7 @@ import {
     ScrollView,
     Alert,
     SafeAreaView,
+    Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 
@@ -81,13 +82,15 @@ export default function AdminLayout({
             </View>
 
             {/* Content */}
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.content}
-                refreshControl={refreshControl}
-            >
-                {children}
-            </ScrollView>
+            <View style={{ flex: 1 }}>
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.content}
+                    refreshControl={refreshControl}
+                >
+                    {children}
+                </ScrollView>
+            </View>
 
             {/* Bottom Navigation */}
             <View style={styles.bottomNav}>
@@ -258,12 +261,12 @@ export default function AdminLayout({
                                 active={activeScreen === "Revenue"}
                                 onPress={() => handleMenuPress("Revenue")}
                             />
-                            <MenuItem
+                            {/* <MenuItem
                                 icon="🔍"
                                 label="SEO Management"
                                 active={activeScreen === "SEO Management"}
                                 onPress={() => handleMenuPress("SEO Management")}
-                            />
+                            /> */}
                             <MenuItem
                                 icon="⚙️"
                                 label="Settings"
@@ -382,19 +385,15 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 16,
-        paddingBottom: 100,
+        paddingBottom: 20,
     },
     bottomNav: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
         flexDirection: "row",
         backgroundColor: "#FFFFFF",
         borderTopWidth: 1,
         borderTopColor: "#E2E8F0",
         paddingVertical: 8,
-        paddingBottom: 20,
+        paddingBottom: Platform.OS === 'android' ? 20 : 20,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,
