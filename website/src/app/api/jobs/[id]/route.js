@@ -1,32 +1,4 @@
-// import { NextResponse } from "next/server";
-// import { connectToDatabase } from "@/lib/mongodb";
-// import Job from "@/models/Job";
-
-// export async function GET(req, { params }) {
-//   try {
-//     await connectToDatabase();
-//     const { id } = params;
-
-//     const job = await Job.findById(id)
-//       .populate("category", "name")
-//       .populate("subCategory", "name")
-//; // 🔒 hide
-
-//     if (!job) {
-//       return NextResponse.json({ message: "Job not found" }, { status: 404 });
-//     }
-
-//     return NextResponse.json(job);
-//   } catch (err) {
-//     return NextResponse.json({ message: "Invalid job id" }, { status: 400 });
-//   }
-// }
-
-
-
-
-
-
+// cle
 
 
 
