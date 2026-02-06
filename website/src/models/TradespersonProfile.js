@@ -5,13 +5,14 @@
 //   if (!row) return null;
 //   return {
 //     ...row,
-//     _id: row.id,
+//     _id: row.id.toString(), // Convert to string for consistency
+//     id: row.id,
 //     user: row.user_id,
 //     companyName: row.company_name,
 //     profileImage: row.profile_image,
 //     serviceAreas: row.service_areas ? JSON.parse(row.service_areas) : [],
 //     skills: row.skills ? JSON.parse(row.skills) : [],
-//     credits: row.credits,
+//     credits: row.credits || 0,
 //     createdAt: row.created_at,
 //     updatedAt: row.updated_at
 //   };
@@ -26,11 +27,25 @@
 //       sql += ' AND user_id = ?';
 //       params.push(query.user);
 //     }
-//     // Add other query fields if needed
+    
+//     if (query._id) {
+//       sql += ' AND id = ?';
+//       params.push(query._id);
+//     }
+    
+//     if (query.id) {
+//       sql += ' AND id = ?';
+//       params.push(query.id);
+//     }
 
 //     sql += ' LIMIT 1';
-//     const [rows] = await pool.query(sql, params);
-//     return profileToMongoStyle(rows[0]);
+//     try {
+//       const [rows] = await pool.query(sql, params);
+//       return profileToMongoStyle(rows[0]);
+//     } catch (error) {
+//       console.error('Error in findOne:', error);
+//       return null;
+//     }
 //   },
 
 //   async create(data) {
@@ -40,19 +55,19 @@
 //     const skillsJson = JSON.stringify(skills || []);
 //     const areasJson = JSON.stringify(serviceAreas || []);
 
-//     const [result] = await pool.query(
-//       `INSERT INTO tradesperson_profiles 
-//       (user_id, company_name, profile_image, bio, phone, postcode, skills, service_areas, credits)
-//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-//       [user, companyName, profileImage || '', bio || '', phone || '', postcode || '', skillsJson, areasJson, credits || 5]
-//     );
+//     try {
+//       const [result] = await pool.query(
+//         `INSERT INTO tradesperson_profiles 
+//         (user_id, company_name, profile_image, bio, phone, postcode, skills, service_areas, credits, created_at, updated_at)
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+//         [user, companyName || '', profileImage || '', bio || '', phone || '', postcode || '', skillsJson, areasJson, credits || 5]
+//       );
 
-//     return {
-//       _id: result.insertId,
-//       user,
-//       companyName,
-//       // ... return other fields as needed
-//     };
+//       return this.findOne({ id: result.insertId });
+//     } catch (error) {
+//       console.error('Error creating profile:', error);
+//       throw error;
+//     }
 //   },
 
 //   async findOneAndUpdate(query, updateData, options = {}) {
@@ -63,12 +78,12 @@
 //       if (options.upsert) {
 //         // Create new
 //         const createData = { ...query, ...updateData };
-//         // Default credits 5 if not set
-//         if (createData.credits === undefined) createData.credits = 5;
-//         // Remove $inc or other operators if present (simplified)
-//         if (createData.$inc) delete createData.$inc;
-
-//         return this.create(createData);
+//         // Remove $inc or other operators if present
+//         const cleanData = { ...createData };
+//         delete cleanData.$inc;
+//         delete cleanData.$set;
+        
+//         return this.create(cleanData);
 //       }
 //       return null;
 //     }
@@ -76,83 +91,76 @@
 //     const updates = [];
 //     const values = [];
 
-//     for (const [key, value] of Object.entries(updateData)) {
-//       let column = null;
-//       let val = value;
+//     // Handle $inc operator for credits
+//     if (updateData.$inc && updateData.$inc.credits) {
+//       updates.push(`credits = credits + ?`);
+//       values.push(updateData.$inc.credits);
+//     }
 
-//       if (key === 'companyName') column = 'company_name';
-//       else if (key === 'profileImage') column = 'profile_image';
-//       else if (key === 'serviceAreas') { column = 'service_areas'; val = JSON.stringify(value); }
-//       else if (key === 'skills') { column = 'skills'; val = JSON.stringify(value); }
-//       else if (['bio', 'phone', 'postcode', 'credits'].includes(key)) column = key;
-
-//       // Handle nested updates like $inc for credits
-//       if (key === '$inc' && value.credits) {
-//         updates.push(`credits = credits + ?`);
-//         values.push(value.credits);
-//         continue;
-//       }
-
-//       if (column) {
-//         updates.push(`${column} = ?`);
-//         values.push(val);
+//     // Handle $set operator
+//     if (updateData.$set) {
+//       for (const [key, value] of Object.entries(updateData.$set)) {
+//         this.addUpdateField(key, value, updates, values);
 //       }
 //     }
+
+//     // Handle direct updates (for backward compatibility)
+//     for (const [key, value] of Object.entries(updateData)) {
+//       if (!key.startsWith('$')) {
+//         this.addUpdateField(key, value, updates, values);
+//       }
+//     }
+
+//     // Always update timestamp
+//     updates.push('updated_at = NOW()');
 
 //     if (updates.length > 0) {
 //       values.push(profile.id); // Use the internal MySQL ID
-//       await pool.query(`UPDATE tradesperson_profiles SET ${updates.join(', ')} WHERE id = ?`, values);
+//       try {
+//         await pool.query(
+//           `UPDATE tradesperson_profiles SET ${updates.join(', ')} WHERE id = ?`, 
+//           values
+//         );
+//       } catch (error) {
+//         console.error('Error updating profile:', error);
+//         throw error;
+//       }
 //     }
 
 //     if (options.new) {
-//       return this.findOne({ user: profile.user }); // Re-fetch
+//       return this.findOne({ id: profile.id });
 //     }
 //     return profile;
 //   },
 
+//   // Helper method to add update fields
+//   addUpdateField(key, value, updates, values) {
+//     let column = null;
+//     let val = value;
+
+//     if (key === 'companyName') column = 'company_name';
+//     else if (key === 'profileImage') column = 'profile_image';
+//     else if (key === 'serviceAreas') { 
+//       column = 'service_areas'; 
+//       val = JSON.stringify(value || []); 
+//     }
+//     else if (key === 'skills') { 
+//       column = 'skills'; 
+//       val = JSON.stringify(value || []); 
+//     }
+//     else if (['bio', 'phone', 'postcode', 'credits'].includes(key)) column = key;
+
+//     if (column) {
+//       updates.push(`${column} = ?`);
+//       values.push(val);
+//     }
+//   },
+
 //   async findByIdAndUpdate(id, updateData, options = {}) {
-//     const updates = [];
-//     const values = [];
-
-//     for (const [key, value] of Object.entries(updateData)) {
-//       let column = null;
-//       let val = value;
-
-//       if (key === 'companyName') column = 'company_name';
-//       else if (key === 'profileImage') column = 'profile_image';
-//       else if (key === 'serviceAreas') { column = 'service_areas'; val = JSON.stringify(value); }
-//       else if (key === 'skills') { column = 'skills'; val = JSON.stringify(value); }
-//       else if (['bio', 'phone', 'postcode', 'credits'].includes(key)) column = key;
-
-//       if (column) {
-//         updates.push(`${column} = ?`);
-//         values.push(val);
-//       }
-//     }
-
-//     if (updates.length > 0) {
-//       values.push(id);
-//       await pool.query(`UPDATE tradesperson_profiles SET ${updates.join(', ')} WHERE id = ?`, values);
-//     }
-
-//     // Simplistic return, usually fine for this use case
-//     return { _id: id, ...updateData };
+//     return this.findOneAndUpdate({ _id: id }, updateData, options);
 //   }
+
 // };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -172,7 +180,9 @@ const profileToMongoStyle = (row) => {
     skills: row.skills ? JSON.parse(row.skills) : [],
     credits: row.credits || 0,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    average_rating: row.average_rating || 0,
+    total_ratings: row.total_ratings || 0
   };
 };
 
@@ -306,7 +316,7 @@ export const TradespersonProfile = {
       column = 'skills'; 
       val = JSON.stringify(value || []); 
     }
-    else if (['bio', 'phone', 'postcode', 'credits'].includes(key)) column = key;
+    else if (['bio', 'phone', 'postcode', 'credits', 'average_rating', 'total_ratings'].includes(key)) column = key;
 
     if (column) {
       updates.push(`${column} = ?`);
@@ -316,5 +326,22 @@ export const TradespersonProfile = {
 
   async findByIdAndUpdate(id, updateData, options = {}) {
     return this.findOneAndUpdate({ _id: id }, updateData, options);
+  },
+
+  async updateRatingStats(userId, averageRating, totalRatings) {
+    try {
+      await pool.query(
+        `UPDATE tradesperson_profiles 
+         SET average_rating = ?, total_ratings = ?, updated_at = NOW()
+         WHERE user_id = ?`,
+        [averageRating, totalRatings, userId]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error updating rating stats:', error);
+      throw error;
+    }
   }
+
 };
+
