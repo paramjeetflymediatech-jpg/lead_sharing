@@ -6,4 +6,4 @@
 // export const API_BASE_URL = "http://192.168.1.7:3000";
 
 // Production
-export const API_BASE_URL = "https://leadsharings.socialflymediatech.com";
+export const API_BASE_URL = "https://allcarepros.ca";
