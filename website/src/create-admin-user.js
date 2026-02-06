@@ -1,4 +1,5 @@
 ﻿// Create Admin User with Hashed Password
+
 require('dotenv').config();
 
 const pool = require('./config/db');

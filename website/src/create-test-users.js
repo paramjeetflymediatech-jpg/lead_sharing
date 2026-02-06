@@ -6,12 +6,13 @@ async function createTestUsers() {
     const { MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } = process.env;
 
     try {
-        const connection = await mysql.createConnection({
-            host: MYSQL_HOST,
-            user: MYSQL_USER,
-            password: MYSQL_PASSWORD,
-            database: MYSQL_DATABASE
-        });
+         const connection = await mysql.createConnection({
+            host: process.env.MYSQL_HOST || "localhost",
+            port: process.env.MYSQL_PORT || 3306,
+            database: process.env.MYSQL_DATABASE || "lead_sharing",
+            user: process.env.MYSQL_USER || "root",
+            password: process.env.MYSQL_PASSWORD || "root",
+          });
 
         console.log('Connected to MySQL database');
         console.log('Creating test users...\n');
