@@ -571,3 +571,9 @@ runMigration().catch(console.error);
 // ADD COLUMN total_ratings INT DEFAULT 0;
 
 
+
+
+
+// ALTER TABLE jobs ADD COLUMN has_rated BOOLEAN DEFAULT FALSE AFTER hired_at;
+
+

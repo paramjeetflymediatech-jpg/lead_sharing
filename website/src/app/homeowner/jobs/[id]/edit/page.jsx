@@ -33,11 +33,14 @@ export default function EditJobPage() {
     media: [],
     contactName: '',
     contactPhone: '',
-    contactEmail: ''
+    contactEmail: '',
+    status: 'OPEN'
   });
 
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [jobDetails, setJobDetails] = useState(null);
+  const [originalStatus, setOriginalStatus] = useState('');
 
   // Load user and job details
   useEffect(() => {
@@ -72,7 +75,17 @@ export default function EditJobPage() {
         const catRes = await fetch("/api/categories");
         if (catRes.ok) {
           const catData = await catRes.json();
-          setCategories(catData.data || catData || []);
+          console.log("Categories API Response:", catData);
+          
+          if (Array.isArray(catData)) {
+            setCategories(catData);
+          } else if (catData.data && Array.isArray(catData.data)) {
+            setCategories(catData.data);
+          } else if (catData.categories && Array.isArray(catData.categories)) {
+            setCategories(catData.categories);
+          } else {
+            setCategories([]);
+          }
         }
 
         // Fetch job details
@@ -94,34 +107,62 @@ export default function EditJobPage() {
 
           if (jobRes.ok) {
             const jobData = await jobRes.json();
-            console.log("Job data received:", jobData);
+            console.log("Job API Response (Full):", jobData);
+            setJobDetails(jobData);
+            setOriginalStatus(jobData.status); // Save original status
+
+            // Check if job can be edited
+            const editableStatuses = ['OPEN', 'PENDING', 'HIRED'];
+            if (!editableStatuses.includes(jobData.status)) {
+              toast.error(`Cannot edit jobs with status: ${jobData.status}. Only OPEN, PENDING, and HIRED jobs can be edited.`);
+              setTimeout(() => router.push(`/homeowner/jobs/${jobId}`), 2000);
+              return;
+            }
+
+            // Extract category and subCategory IDs correctly
+            const categoryId = jobData.category?._id || jobData.category || '';
+            const subCategoryId = jobData.subCategory?._id || jobData.subCategory || '';
 
             // Map the response to form data
-            setFormData({
-              category: jobData.category || '',
-              subCategory: jobData.subCategory || '',
+            const updatedFormData = {
+              category: categoryId,
+              subCategory: subCategoryId,
               description: jobData.description || '',
               location: {
-                postcode: jobData.location?.postcode || '',
-                city: jobData.location?.city || ''
+                postcode: jobData.location?.postcode || jobData.postcode || '',
+                city: jobData.location?.city || jobData.city || ''
               },
-              startTime: jobData.startTime || '',
-              jobStage: jobData.jobStage || '',
+              startTime: jobData.startTime || jobData.start_time || '',
+              jobStage: jobData.jobStage || jobData.job_stage || '',
               ownership: jobData.ownership || '',
-              budgetMin: jobData.budgetMin || '',
-              budgetMax: jobData.budgetMax || '',
-              media: jobData.media || [],
-              contactName: jobData.contactName || jobData.contact?.name || '',
-              contactPhone: jobData.contactPhone || jobData.contact?.phone || '',
-              contactEmail: jobData.contactEmail || jobData.contact?.email || ''
-            });
+              budgetMin: jobData.budgetMin || jobData.budget_min || '',
+              budgetMax: jobData.budgetMax || jobData.budget_max || '',
+              media: Array.isArray(jobData.media) ? jobData.media : [],
+              contactName: jobData.contactName || jobData.contact_name || '',
+              contactPhone: jobData.contactPhone || jobData.contact_phone || '',
+              contactEmail: jobData.contactEmail || jobData.contact_email || '',
+              status: jobData.status || 'OPEN'
+            };
+
+            console.log("Mapped Form Data:", updatedFormData);
+            setFormData(updatedFormData);
 
             // Fetch subcategories if category exists
-            if (jobData.category) {
-              const subRes = await fetch(`/api/subcategories?categoryId=${jobData.category}`);
+            if (categoryId) {
+              const subRes = await fetch(`/api/subcategories?categoryId=${categoryId}`);
               if (subRes.ok) {
                 const subData = await subRes.json();
-                setSubCategories(subData.data || subData || []);
+                console.log("Subcategories API Response:", subData);
+                
+                if (Array.isArray(subData)) {
+                  setSubCategories(subData);
+                } else if (subData.data && Array.isArray(subData.data)) {
+                  setSubCategories(subData.data);
+                } else if (subData.subCategories && Array.isArray(subData.subCategories)) {
+                  setSubCategories(subData.subCategories);
+                } else {
+                  setSubCategories([]);
+                }
               }
             }
           } else {
@@ -144,13 +185,31 @@ export default function EditJobPage() {
 
   const fetchSubCategories = async (categoryId) => {
     try {
+      if (!categoryId) {
+        setSubCategories([]);
+        return;
+      }
+      
       const res = await fetch(`/api/subcategories?categoryId=${categoryId}`);
       if (res.ok) {
         const data = await res.json();
-        setSubCategories(data.data || data || []);
+        console.log("Fetch Subcategories Response:", data);
+        
+        if (Array.isArray(data)) {
+          setSubCategories(data);
+        } else if (data.data && Array.isArray(data.data)) {
+          setSubCategories(data.data);
+        } else if (data.subCategories && Array.isArray(data.subCategories)) {
+          setSubCategories(data.subCategories);
+        } else {
+          setSubCategories([]);
+        }
+      } else {
+        setSubCategories([]);
       }
     } catch (error) {
       console.error("Error fetching subcategories:", error);
+      setSubCategories([]);
     }
   };
 
@@ -238,6 +297,69 @@ export default function EditJobPage() {
     }
   };
 
+  // Media upload and remove functions
+  const handleMediaUpload = async (e) => {
+    const files = e.target.files;
+    if (!files.length) return;
+
+    const formDataObj = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formDataObj.append('files', files[i]);
+    }
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataObj,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setFormData(prev => ({
+          ...prev,
+          media: [...prev.media, ...data.files]
+        }));
+        toast.success('Media uploaded successfully');
+      } else {
+        toast.error(data.message || 'Failed to upload media');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload media');
+    }
+  };
+
+  const removeMedia = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      media: prev.media.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Get available status options based on current status
+  const getAvailableStatusOptions = () => {
+    if (originalStatus === 'OPEN') {
+      return [
+        { value: 'OPEN', label: 'Open' },
+        { value: 'PENDING', label: 'Pending' },
+        { value: 'CANCELLED', label: 'Cancelled' }
+      ];
+    } else if (originalStatus === 'PENDING') {
+      return [
+        { value: 'PENDING', label: 'Pending' },
+        { value: 'OPEN', label: 'Open' },
+        { value: 'CANCELLED', label: 'Cancelled' }
+      ];
+    } else if (originalStatus === 'HIRED') {
+      return [
+        { value: 'HIRED', label: 'Hired' },
+        { value: 'COMPLETED', label: 'Completed' },
+        { value: 'CANCELLED', label: 'Cancelled' }
+      ];
+    }
+    return [{ value: originalStatus, label: originalStatus }];
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-zinc-900">
@@ -271,6 +393,13 @@ export default function EditJobPage() {
             <p className="mt-2 text-gray-600 dark:text-zinc-400">
               Update your job details
             </p>
+            {jobDetails && (
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Job ID: {jobId} | Status: <span className="font-semibold">{formData.status}</span> | Created: {new Date(jobDetails.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Success Message */}
@@ -290,6 +419,31 @@ export default function EditJobPage() {
           {/* Edit Form */}
           <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg p-6 space-y-6">
             
+            {/* Job Status */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
+                Job Status *
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                {getAvailableStatusOptions().map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {originalStatus === 'HIRED' && (
+                <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
+                  💡 You can mark this job as "Completed" when the work is finished
+                </p>
+              )}
+            </div>
+
             {/* Category */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
@@ -321,7 +475,7 @@ export default function EditJobPage() {
                 value={formData.subCategory}
                 onChange={handleChange}
                 required
-                disabled={!formData.category}
+                disabled={!formData.category || subCategories.length === 0}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <option value="">Select a subcategory</option>
@@ -331,6 +485,11 @@ export default function EditJobPage() {
                   </option>
                 ))}
               </select>
+              {formData.category && subCategories.length === 0 && (
+                <p className="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
+                  Loading subcategories...
+                </p>
+              )}
             </div>
 
             {/* Description */}
@@ -473,6 +632,53 @@ export default function EditJobPage() {
               </div>
             </div>
 
+            {/* Media Upload */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
+                Media (Photos/Documents)
+              </label>
+              <div className="border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-xl p-6">
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleMediaUpload}
+                  className="w-full"
+                  accept="image/*,.pdf,.doc,.docx"
+                />
+                <p className="text-sm text-gray-500 dark:text-zinc-400 mt-2">
+                  Upload photos or documents related to the job
+                </p>
+              </div>
+              
+              {/* Media Preview */}
+              {formData.media.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {formData.media.map((media, index) => (
+                    <div key={index} className="relative border rounded-lg overflow-hidden">
+                      {media.type === 'IMAGE' || media.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        <img 
+                          src={media.url} 
+                          alt={`Media ${index + 1}`}
+                          className="w-full h-32 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-32 bg-gray-100 dark:bg-zinc-700 flex items-center justify-center">
+                          <span className="text-gray-500 dark:text-zinc-400">Document</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeMedia(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Contact Information */}
             <div className="border-t border-gray-200 dark:border-zinc-700 pt-6">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
@@ -526,6 +732,31 @@ export default function EditJobPage() {
                 </div>
               </div>
             </div>
+
+            {/* Additional Info (Read-only) */}
+            {jobDetails && (
+              <div className="border-t border-gray-200 dark:border-zinc-700 pt-6">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                  Additional Information (Read-only)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-600 dark:text-zinc-400">Created Date</p>
+                    <p className="font-medium">{new Date(jobDetails.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 dark:text-zinc-400">Job ID</p>
+                    <p className="font-medium">{jobId}</p>
+                  </div>
+                  {jobDetails.leadCount !== undefined && (
+                    <div>
+                      <p className="text-gray-600 dark:text-zinc-400">Leads Received</p>
+                      <p className="font-medium">{jobDetails.leadCount} / {jobDetails.maxLeads || 3}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Submit Buttons */}
             <div className="flex gap-4 pt-6">

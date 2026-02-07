@@ -24,10 +24,12 @@ import {
     MagnifyingGlassPlusIcon,
     CurrencyDollarIcon,
     Cog6ToothIcon,
-    QuestionMarkCircleIcon
+    QuestionMarkCircleIcon,
+    StarIcon
 } from "@heroicons/react/24/outline";
 
 const REQUESTED_ICONS = {
+     StarIcon,
     HomeIcon,
     BriefcaseIcon,
     PlusIcon,

@@ -1295,7 +1295,7 @@ export default async function JobDetailsPage({ params }) {
                     </div>
 
                     <Link
-                      href={`/tradesperson/unlock/${id}`}
+                      href={`/tradesperson`}
                       className="block w-full text-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-all"
                     >
                       Unlock Lead (1 Credit)

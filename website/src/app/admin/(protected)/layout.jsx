@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }) {
         { name: "Jobs", href: "/admin/jobs", icon: "BriefcaseIcon" },
         { name: "Leads", href: "/admin/leads", icon: "MagnifyingGlassPlusIcon" },
         { name: "Revenue", href: "/admin/payments", icon: "CurrencyDollarIcon" },
+        { name: "Ratings", href: "/admin/ratings", icon: "StarIcon" },
         { name: "SEO Management", href: "/admin/seo", icon: "ArrowTrendingUpIcon" },
         { name: "Settings", href: "/admin/settings", icon: "Cog6ToothIcon" },
     ];

@@ -12,6 +12,7 @@ export default function RateJobPage() {
   const jobId = params.id;
 
   const [job, setJob] = useState(null);
+  const [user, setUser] = useState(null);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [review, setReview] = useState("");
@@ -19,34 +20,83 @@ export default function RateJobPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchJobDetails();
+    fetchUserAndJobDetails();
   }, [jobId]);
 
-  const fetchJobDetails = async () => {
+  const fetchUserAndJobDetails = async () => {
     try {
-      const res = await fetch(`/api/homeowner/jobs/${jobId}`, {
-        credentials: "include"
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setJob(data.data);
-        
-        // Check if job is completed and has a tradesperson
-        if (data.data.status !== 'COMPLETED') {
-          toast.error("You can only rate completed jobs");
-          router.push('/homeowner/jobs');
-        }
+      setLoading(true);
 
-        // Check if already rated
-        if (data.data.hasRated) {
-          toast.error("You have already rated this job");
-          router.push('/homeowner/jobs');
-        }
+      // 1. Fetch user first
+      const userRes = await fetch("/api/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!userRes.ok) {
+        toast.error("Please login to continue");
+        setTimeout(() => router.push("/auth/login"), 2000);
+        return;
       }
+
+      const userData = await userRes.json();
+      setUser(userData);
+
+      const userId = userData?._id || userData?.id || userData?.user?._id;
+      
+      if (!userId) {
+        toast.error("Please login to continue");
+        setTimeout(() => router.push("/auth/login"), 2000);
+        return;
+      }
+
+      // 2. Fetch job details - CHANGED TO NEW ENDPOINT
+      const jobRes = await fetch(`/api/jobs/details/${jobId}`, {
+        credentials: "include",
+        headers: {
+          'x-user-id': userId.toString(),
+          'x-user-role': 'HOMEOWNER'
+        }
+      });
+
+      if (!jobRes.ok) {
+        const errorData = await jobRes.json();
+        toast.error(errorData.message || "Failed to load job");
+        router.push('/homeowner/jobs');
+        return;
+      }
+
+      const jobData = await jobRes.json();
+      console.log("Job data:", jobData);
+      setJob(jobData);
+
+      // 3. Check if job has a tradesperson hired
+      if (!jobData.hiredTradesperson) {
+        console.warn("No tradesperson hired for this job");
+        toast.error("No tradesperson was hired for this job");
+      }
+
+      // 4. Check if already rated
+      try {
+        const ratingsRes = await fetch(`/api/ratings?jobId=${jobId}`, {
+          credentials: "include"
+        });
+        
+        if (ratingsRes.ok) {
+          const ratingsData = await ratingsRes.json();
+          if (ratingsData.success && ratingsData.rating) {
+            toast.error("You have already rated this job");
+            setTimeout(() => router.push('/homeowner/jobs'), 2000);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking existing ratings:", error);
+      }
+
     } catch (error) {
-      console.error("Error fetching job:", error);
+      console.error("Error loading data:", error);
       toast.error("Failed to load job details");
+      setTimeout(() => router.push('/homeowner/jobs'), 2000);
     } finally {
       setLoading(false);
     }
@@ -60,28 +110,56 @@ export default function RateJobPage() {
       return;
     }
 
+    if (!user) {
+      toast.error("Please login to submit rating");
+      return;
+    }
+
+    const userId = user?._id || user?.id || user?.user?._id;
+    const userRole = user?.role || user?.user?.role;
+
+    if (userRole !== "HOMEOWNER") {
+      toast.error("Only homeowners can submit ratings");
+      return;
+    }
+
+    // Get tradesperson ID from job
+    const tradespersonId = job.hiredTradesperson?._id || job.hiredTradesperson?.id;
+    
+    if (!tradespersonId) {
+      toast.error("Cannot submit rating: No tradesperson was hired for this job.");
+      return;
+    }
+
     setSubmitting(true);
     const loadingToast = toast.loading("Submitting your rating...");
 
     try {
+      const requestBody = {
+        jobId: job._id,
+        tradespersonId: tradespersonId,
+        rating,
+        review: review.trim() || null,
+        homeownerId: userId
+      };
+
+      console.log("Submitting rating:", requestBody);
+
       const res = await fetch("/api/ratings", {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          'x-user-id': userId.toString(),
+          'x-user-role': userRole
         },
-        body: JSON.stringify({
-          jobId: job._id,
-          tradespersonId: job.hiredTradesperson?.user || job.hiredTradesperson?._id,
-          rating,
-          review
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await res.json();
       toast.dismiss(loadingToast);
 
-      if (data.success) {
+      if (res.ok && data.success) {
         toast.success("✅ Rating submitted successfully!");
         setTimeout(() => {
           router.push('/homeowner/jobs');
@@ -92,7 +170,7 @@ export default function RateJobPage() {
     } catch (error) {
       console.error("Error submitting rating:", error);
       toast.dismiss(loadingToast);
-      toast.error("An error occurred");
+      toast.error("An error occurred while submitting rating");
     } finally {
       setSubmitting(false);
     }
@@ -109,10 +187,23 @@ export default function RateJobPage() {
     return labels[rating] || "";
   };
 
+  const getTradespersonName = () => {
+    if (!job?.hiredTradesperson) return 'Unknown Tradesperson';
+    return job.hiredTradesperson.companyName || job.hiredTradesperson.name || 'Tradesperson';
+  };
+
+  const getJobIdString = () => {
+    if (!job?._id) return '';
+    return String(job._id).substring(0, 8);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading job details...</p>
+        </div>
       </div>
     );
   }
@@ -132,6 +223,9 @@ export default function RateJobPage() {
       </div>
     );
   }
+
+  const tradespersonName = getTradespersonName();
+  const shortJobId = getJobIdString();
 
   return (
     <>
@@ -154,16 +248,25 @@ export default function RateJobPage() {
               Rate Your Experience
             </h1>
             <p className="text-gray-600 dark:text-zinc-400">
-              How was your experience with {job.hiredTradesperson?.companyName || 'this tradesperson'}?
+              How was your experience with {tradespersonName}?
             </p>
           </div>
+
+          {/* Warning if no tradesperson */}
+          {tradespersonName === 'Unknown Tradesperson' && (
+            <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                ⚠️ <span className="font-semibold">Note:</span> No specific tradesperson is assigned to this job.
+              </p>
+            </div>
+          )}
 
           {/* Job Info Card */}
           <div className="bg-white dark:bg-zinc-800 rounded-2xl p-6 mb-6 border border-gray-200 dark:border-zinc-700 shadow-md">
             <div className="flex items-start gap-4">
               <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-2xl font-bold text-white">
-                  {job.hiredTradesperson?.companyName?.[0] || 'T'}
+                  {tradespersonName[0]?.toUpperCase() || 'T'}
                 </span>
               </div>
               <div className="flex-1">
@@ -171,11 +274,19 @@ export default function RateJobPage() {
                   {job.subCategory?.name || 'Job'}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
-                  {job.hiredTradesperson?.companyName || 'Tradesperson'}
+                  {tradespersonName}
                 </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-600 text-xs font-semibold rounded-full">
-                    ✓ Completed
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-600 text-xs font-semibold rounded-full">
+                    ✓ {job.status}
+                  </span>
+                  {job.location?.postcode && (
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-600 text-xs font-semibold rounded-full">
+                      📍 {job.location.postcode}
+                    </span>
+                  )}
+                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-900/20 text-gray-600 text-xs font-semibold rounded-full">
+                    ID: {shortJobId}...
                   </span>
                 </div>
               </div>
@@ -198,6 +309,7 @@ export default function RateJobPage() {
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
                     className="transition-transform hover:scale-110 focus:outline-none"
+                    disabled={submitting}
                   >
                     {star <= (hoverRating || rating) ? (
                       <StarIconSolid className="h-12 w-12 text-yellow-400" />
@@ -222,22 +334,26 @@ export default function RateJobPage() {
               <textarea
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
-                placeholder="Share your experience with this tradesperson..."
-                rows={6}
-                className="w-full border border-gray-300 dark:border-zinc-600 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500"
-                maxLength={500}
+                placeholder="Share your experience with this job..."
+                rows={8}
+                className="w-full border border-gray-300 dark:border-zinc-600 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 resize-none"
+                maxLength={1000}
+                disabled={submitting}
               />
-              <p className="text-xs text-gray-500 dark:text-zinc-500 mt-2">
-                {review.length}/500 characters
-              </p>
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500 dark:text-zinc-500">
+                  {review.length}/1000 characters
+                </p>
+              </div>
             </div>
 
             {/* Submit Buttons */}
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => router.back()}
-                className="flex-1 px-6 py-4 border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all"
+                onClick={() => router.push('/homeowner/jobs')}
+                disabled={submitting}
+                className="flex-1 px-6 py-4 border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all disabled:opacity-50"
               >
                 Cancel
               </button>
