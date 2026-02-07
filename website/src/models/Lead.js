@@ -160,7 +160,30 @@ const simpleLeadMapper = (row) => ({
   updatedAt: row.updated_at
 });
 
+const detailedLeadMapper = (row) => ({
+  _id: row.id,
+  job: row.job_id ? {
+    _id: row.job_id,
+    description: row.job_description,
+    location: { city: row.job_city },
+    category: { name: row.category_name }
+  } : null,
+  tradesperson: row.tradesperson_id ? {
+    _id: row.tradesperson_id,
+    companyName: row.company_name,
+    user: { name: row.tradesperson_name }
+  } : null,
+  message: row.message,
+  priceEstimate: row.price_estimate,
+  isUnlocked: row.is_unlocked,
+  status: row.status,
+  unlockedAt: row.unlocked_at,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
+
 export const Lead = {
+  // Existing methods ...
   async find(query = {}) {
     let sql = 'SELECT * FROM leads WHERE 1=1';
     const params = [];
@@ -188,10 +211,51 @@ export const Lead = {
     return rows.map(simpleLeadMapper);
   },
 
+  async findDetailed(query = {}) {
+    let sql = `
+      SELECT 
+        l.*,
+        j.description as job_description,
+        j.city as job_city,
+        c.name as category_name,
+        tp.company_name,
+        u.name as tradesperson_name
+      FROM leads l
+      LEFT JOIN jobs j ON l.job_id = j.id
+      LEFT JOIN categories c ON j.category_id = c.id
+      LEFT JOIN tradesperson_profiles tp ON l.tradesperson_id = tp.id
+      LEFT JOIN users u ON tp.user_id = u.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (query.job) {
+      sql += ' AND l.job_id = ?';
+      params.push(query.job);
+    }
+    if (query.tradesperson) {
+      sql += ' AND l.tradesperson_id = ?';
+      params.push(query.tradesperson);
+    }
+    if (query.isUnlocked !== undefined) {
+      sql += ' AND l.is_unlocked = ?';
+      params.push(query.isUnlocked);
+    }
+    if (query.status) {
+      sql += ' AND l.status = ?';
+      params.push(query.status);
+    }
+
+    sql += ' ORDER BY l.created_at DESC';
+    const [rows] = await pool.query(sql, params);
+    return rows.map(detailedLeadMapper);
+  },
+
   async findById(id) {
     const [rows] = await pool.query('SELECT * FROM leads WHERE id = ?', [id]);
     return rows[0] ? simpleLeadMapper(rows[0]) : null;
   },
+  // ... rest of the methods
 
   async findOne(query) {
     let sql = 'SELECT * FROM leads WHERE 1=1';

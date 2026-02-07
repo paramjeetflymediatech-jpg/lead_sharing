@@ -1,3 +1,5 @@
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-zinc-200">
@@ -54,10 +56,18 @@ export default function Footer() {
             <div className="mt-8">
               <h3 className="font-bold text-gray-900 mb-4">Follow us</h3>
               <div className="flex space-x-4">
-                {/* Social Icons Placeholders */}
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                <a href="#" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#1149C7] hover:text-white transition-all">
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#1149C7] hover:text-white transition-all">
+                  <Twitter className="w-4 h-4" />
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#1149C7] hover:text-white transition-all">
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#1149C7] hover:text-white transition-all">
+                  <Instagram className="w-4 h-4" />
+                </a>
               </div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDownIcon, Bars3Icon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/solid";
+import { LOCATION_DATA } from "@/constants/locations";
 
 export default function Header() {
   const router = useRouter();
@@ -16,6 +17,8 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [trades, setTrades] = useState([]);
+  const [groupedTrades, setGroupedTrades] = useState({});
+  const [activeTradeCategory, setActiveTradeCategory] = useState(null);
 
   // User state
   const [user, setUser] = useState(null);
@@ -25,7 +28,23 @@ export default function Header() {
     // Fetch trades
     fetch('/api/subcategories')
       .then(res => res.json())
-      .then(data => setTrades(data.map(t => t.name)))
+      .then(data => {
+        setTrades(data.map(t => t.name));
+
+        // Group trades by category
+        const grouped = data.reduce((acc, trade) => {
+          const catName = trade.category?.name || "Other";
+          if (!acc[catName]) acc[catName] = [];
+          acc[catName].push(trade);
+          return acc;
+        }, {});
+
+        setGroupedTrades(grouped);
+        const categories = Object.keys(grouped);
+        if (categories.length > 0) {
+          setActiveTradeCategory(categories[0]);
+        }
+      })
       .catch(err => console.error(err));
 
     // Fetch user
@@ -62,18 +81,18 @@ export default function Header() {
     ? []
     : trades.filter((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const adviceItems = [
-    "Ask a tradesperson", "Cost guides", "Homeowner advice centre",
-    "Inspiration centre", "Trade advice centre", "Trends report"
-  ];
+  const [groupedAdvice, setGroupedAdvice] = useState({
+    "Homeowner Advice": ["Ask a tradesperson", "Cost guides", "Homeowner advice centre", "Inspiration centre"],
+    "Trade Advice": ["Trade advice centre", "Trends report"]
+  });
+  const [activeAdviceCategory, setActiveAdviceCategory] = useState("Homeowner Advice");
 
-  const locations = [
-    "Greater London", "South East", "South West", "East of England",
-    "West Midlands", "East Midlands", "Yorkshire & the Humber",
-    "North West", "North East", "North Wales", "South Wales",
-    "West Wales", "Southern Scotland", "Central Scotland",
-    "Highlands and Islands (Scotland)", "Northern Ireland"
-  ];
+  const [activeRegion, setActiveRegion] = useState("Greater London");
+
+  /* const LOCATION_DATA moved to constants */
+
+
+  const locations = Object.keys(LOCATION_DATA);
 
   const toggleMobileSection = (section) => {
     setMobileExpanded(prev => ({ ...prev, [section]: !prev[section] }));
@@ -90,9 +109,15 @@ export default function Header() {
     <header className="w-full bg-white border-b border-zinc-200 sticky top-0 z-50 font-sans">
       <div className="mx-auto max-w-7xl px-6 h-20 flex justify-between items-center bg-white relative z-50">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold tracking-tight text-[#1149C7]">
-          Leadsharing
-        </Link>
+        {/* Logo */}
+        <a href="/" className="flex items-center gap-2 group flex-shrink-0">
+          <div className="w-8 h-8 rounded bg-[#1149C7] flex items-center justify-center text-white font-bold text-lg">
+            L
+          </div>
+          <span className="text-xl font-bold text-[#1a1a1a] tracking-tight group-hover:text-[#1149C7] transition-colors">
+            Leadsharing
+          </span>
+        </a>
 
 
         {/* Desktop Navigation */}
@@ -117,19 +142,41 @@ export default function Header() {
                 className="fixed left-0 top-20 w-full bg-white border-t border-gray-100 shadow-xl z-40 animate-in fade-in slide-in-from-top-2 duration-200 cursor-default"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="max-w-7xl mx-auto p-8">
-                  <h3 className="text-[#1149C7] font-bold text-lg mb-4 border-b pb-2">All Trades</h3>
-                  <div className="grid grid-cols-4 gap-x-8 gap-y-3">
-                    {trades.map((trade) => (
-                      <Link
-                        key={trade}
-                        href={`/auth/register?role=HOMEOWNER&trade=${trade.toLowerCase().replace(/ /g, '-')}`}
-                        className="text-gray-600 hover:text-[#1149C7] text-sm hover:underline block"
-                        onClick={() => setActiveDropdown(null)}
+                <div className="max-w-7xl mx-auto flex min-h-[600px] max-h-[80vh]">
+                  {/* Left Column: Categories */}
+                  <div className="w-1/3 border-r border-gray-100 overflow-y-auto py-6 scrollbar-hide">
+                    {Object.keys(groupedTrades).map((category) => (
+                      <div
+                        key={category}
+                        className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeTradeCategory === category
+                          ? "text-[#1149C7]"
+                          : "text-gray-600 hover:text-[#1149C7]"
+                          }`}
+                        onClick={() => setActiveTradeCategory(category)}
                       >
-                        {trade}
-                      </Link>
+                        {category}
+                        {activeTradeCategory === category && <span className="text-[#1149C7]">›</span>}
+                      </div>
                     ))}
+                  </div>
+
+                  {/* Right Column: Subcategories for Selected Category */}
+                  <div className="w-2/3 bg-white p-8 overflow-y-auto scrollbar-hide">
+                    <h3 className="text-[#1149C7] font-bold text-xl mb-6 border-b border-gray-100 pb-4">
+                      {activeTradeCategory}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+                      {activeTradeCategory && groupedTrades[activeTradeCategory] && groupedTrades[activeTradeCategory].map((trade) => (
+                        <Link
+                          key={trade._id}
+                          href={user?.role === 'HOMEOWNER' ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${trade.name.toLowerCase().replace(/ /g, '-')}`}
+                          className="text-gray-600 hover:text-[#1149C7] text-sm font-medium transition-colors hover:underline"
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          {trade.name}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -151,19 +198,41 @@ export default function Header() {
                 className="fixed left-0 top-20 w-full bg-white border-t border-gray-100 shadow-xl z-40 animate-in fade-in slide-in-from-top-2 duration-200 cursor-default"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="max-w-7xl mx-auto p-8">
-                  <h3 className="text-[#1149C7] font-bold text-lg mb-4 border-b pb-2">Advice & Guides</h3>
-                  <div className="grid grid-cols-3 gap-x-8 gap-y-3">
-                    {adviceItems.map((item) => (
-                      <Link
-                        key={item}
-                        href="#"
-                        className="text-gray-600 hover:text-[#1149C7] text-sm hover:underline block"
-                        onClick={() => setActiveDropdown(null)}
+                <div className="max-w-7xl mx-auto flex min-h-[600px] max-h-[80vh]">
+                  {/* Left Column: Categories */}
+                  <div className="w-1/3 border-r border-gray-100 overflow-y-auto py-6 scrollbar-hide">
+                    {Object.keys(groupedAdvice).map((category) => (
+                      <div
+                        key={category}
+                        className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeAdviceCategory === category
+                          ? "text-[#1149C7]"
+                          : "text-gray-600 hover:text-[#1149C7]"
+                          }`}
+                        onClick={() => setActiveAdviceCategory(category)}
                       >
-                        {item}
-                      </Link>
+                        {category}
+                        {activeAdviceCategory === category && <span className="text-[#1149C7]">›</span>}
+                      </div>
                     ))}
+                  </div>
+
+                  {/* Right Column: Items for Selected Category */}
+                  <div className="w-2/3 bg-white p-8 overflow-y-auto scrollbar-hide">
+                    <h3 className="text-[#1149C7] font-bold text-xl mb-6 border-b border-gray-100 pb-4">
+                      {activeAdviceCategory}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+                      {activeAdviceCategory && groupedAdvice[activeAdviceCategory] && groupedAdvice[activeAdviceCategory].map((item) => (
+                        <Link
+                          key={item}
+                          href="#"
+                          className="text-gray-600 hover:text-[#1149C7] text-sm font-medium transition-colors hover:underline"
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -185,25 +254,59 @@ export default function Header() {
                 className="fixed left-0 top-20 w-full bg-white border-t border-gray-100 shadow-xl z-40 animate-in fade-in slide-in-from-top-2 duration-200 cursor-default"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="max-w-7xl mx-auto p-8">
-                  <h3 className="text-[#1149C7] font-bold text-lg mb-4 border-b pb-2">Browse by Location</h3>
-                  <div className="grid grid-cols-4 gap-x-8 gap-y-3">
-                    {locations.map((loc) => (
-                      <Link
-                        key={loc}
-                        href="#"
-                        className="text-gray-600 hover:text-[#1149C7] text-sm hover:underline block"
-                        onClick={() => setActiveDropdown(null)}
+                <style jsx global>{`
+                  .scrollbar-hide::-webkit-scrollbar {
+                      display: none;
+                  }
+                  .scrollbar-hide {
+                      -ms-overflow-style: none;
+                      scrollbar-width: none;
+                  }
+                `}</style>
+                <div className="max-w-7xl mx-auto flex min-h-[600px] max-h-[80vh]">
+                  {/* Left Column: Regions */}
+                  <div className="w-1/3 border-r border-gray-100 overflow-y-auto py-6 scrollbar-hide">
+                    {locations.map((region) => (
+                      <div
+                        key={region}
+                        className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeRegion === region
+                          ? "text-[#1149C7]"
+                          : "text-gray-600 hover:text-[#1149C7]"
+                          }`}
+                        onClick={() => setActiveRegion(region)}
                       >
-                        {loc}
-                      </Link>
+                        {region}
+                        {activeRegion === region && <span className="text-[#1149C7]">›</span>}
+                      </div>
                     ))}
+                  </div>
+
+                  {/* Right Column: Areas for Selected Region */}
+                  <div className="w-2/3 bg-white p-8 overflow-y-auto scrollbar-hide">
+                    <h3 className="text-[#1149C7] font-bold text-xl mb-6 border-b border-gray-100 pb-4">
+                      {activeRegion}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+                      {activeRegion && LOCATION_DATA[activeRegion] && LOCATION_DATA[activeRegion].map((area) => (
+                        <Link
+                          key={area}
+                          href={`/local-tradespeople/${area.toLowerCase().replace(/ /g, '-')}`}
+                          className="text-gray-600 hover:text-[#1149C7] text-sm font-medium transition-colors hover:underline"
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          {area}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
+          <Link href="/blog" className="hover:text-[#1149C7] py-2">
+            Blog
+          </Link>
         </nav>
 
         {/* Right Side Actions */}
@@ -278,7 +381,7 @@ export default function Header() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-20 bg-white z-40 overflow-y-auto pb-20">
+        <div className="lg:hidden fixed inset-0 top-20 bg-white z-[999] overflow-y-auto pb-20 border-t border-gray-100 shadow-xl">
           <div className="flex flex-col p-4 space-y-2">
 
             {/* Mobile User Section */}
@@ -319,16 +422,35 @@ export default function Header() {
                 <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.trades ? 'rotate-180' : ''}`} />
               </button>
               {mobileExpanded.trades && (
-                <div className="pl-4 grid grid-cols-1 gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                  {trades.map((trade) => (
-                    <Link
-                      key={trade}
-                      href={`/auth/register?role=HOMEOWNER&trade=${trade.toLowerCase().replace(/ /g, '-')}`}
-                      className="text-gray-600 text-sm py-1 border-b border-gray-200 last:border-0"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {trade}
-                    </Link>
+                <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
+                  {Object.keys(groupedTrades).map((category) => (
+                    <div key={category} className="border-b border-gray-200 last:border-0 pb-2">
+                      <button
+                        className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveTradeCategory(activeTradeCategory === category ? null : category);
+                        }}
+                      >
+                        {category}
+                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeTradeCategory === category ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {activeTradeCategory === category && (
+                        <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
+                          {groupedTrades[category] && groupedTrades[category].map((trade) => (
+                            <Link
+                              key={trade._id}
+                              href={user?.role === 'HOMEOWNER' ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${trade.name.toLowerCase().replace(/ /g, '-')}`}
+                              className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              {trade.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -345,10 +467,29 @@ export default function Header() {
               </button>
               {mobileExpanded.advice && (
                 <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                  {adviceItems.map((item) => (
-                    <Link key={item} href="#" className="text-gray-600 text-sm py-1" onClick={() => setIsMobileMenuOpen(false)}>
-                      {item}
-                    </Link>
+                  {Object.keys(groupedAdvice).map((category) => (
+                    <div key={category} className="border-b border-gray-200 last:border-0 pb-2">
+                      <button
+                        className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveAdviceCategory(activeAdviceCategory === category ? null : category);
+                        }}
+                      >
+                        {category}
+                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeAdviceCategory === category ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {activeAdviceCategory === category && (
+                        <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
+                          {groupedAdvice[category] && groupedAdvice[category].map((item) => (
+                            <Link key={item} href="#" className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block" onClick={() => setIsMobileMenuOpen(false)}>
+                              {item}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -365,10 +506,34 @@ export default function Header() {
               </button>
               {mobileExpanded.location && (
                 <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                  {locations.map((loc) => (
-                    <Link key={loc} href="#" className="text-gray-600 text-sm py-1" onClick={() => setIsMobileMenuOpen(false)}>
-                      {loc}
-                    </Link>
+                  {locations.map((region) => (
+                    <div key={region} className="border-b border-gray-200 last:border-0 pb-2">
+                      <button
+                        className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveRegion(activeRegion === region ? null : region);
+                        }}
+                      >
+                        {region}
+                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeRegion === region ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {activeRegion === region && (
+                        <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
+                          {LOCATION_DATA[region] && LOCATION_DATA[region].map((area) => (
+                            <Link
+                              key={area}
+                              href={`/local-tradespeople/${area.toLowerCase().replace(/ /g, '-')}`}
+                              className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              {area}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

@@ -96,3 +96,68 @@ CREATE TABLE IF NOT EXISTS seo_pages (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  job_id INT NOT NULL,
+  sender_id INT NOT NULL,
+  receiver_id INT NOT NULL,
+  content TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tradesperson_id INT NOT NULL,
+  user_id INT NOT NULL,
+  stripe_session_id VARCHAR(255) NOT NULL,
+  stripe_payment_intent_id VARCHAR(255),
+  plan VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(10) NOT NULL,
+  credits INT NOT NULL,
+  status ENUM('pending','completed','failed','refunded') DEFAULT 'pending',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_tradesperson (tradesperson_id),
+  INDEX idx_user (user_id),
+  INDEX idx_session (stripe_session_id),
+
+  FOREIGN KEY (tradesperson_id)
+    REFERENCES tradesperson_profiles(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS blogs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  content TEXT NOT NULL,
+  excerpt TEXT,
+  featured_image VARCHAR(255),
+  status ENUM('DRAFT', 'PUBLISHED') DEFAULT 'DRAFT',
+  author VARCHAR(255) DEFAULT 'Admin',
+  tags TEXT,
+  seo_title VARCHAR(255),
+  seo_description TEXT,
+  seo_robots VARCHAR(255) DEFAULT 'index, follow',
+  canonical_url VARCHAR(255),
+  og_title VARCHAR(255),
+  og_description TEXT,
+  og_image VARCHAR(255),
+  schema_markup TEXT,
+  ga_id VARCHAR(50),
+  gtm_id VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
