@@ -402,7 +402,7 @@
 //     if (options.new) {
 //       return this.findById(id);
 //     }
-    
+
 //     return null;
 //   },
 
@@ -713,7 +713,7 @@ export const Job = {
     if (options.new) {
       return this.findById(id);
     }
-    
+
     return null;
   },
 
