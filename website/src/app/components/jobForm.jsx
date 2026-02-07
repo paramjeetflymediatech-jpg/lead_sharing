@@ -1513,7 +1513,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-
+    
     if (!postcode.trim()) {
       toast.error("Please enter a postcode", {
         position: "top-center",
@@ -1540,7 +1540,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
 
       setTradespeople(data.data || []);
       setShowResults(true);
-
+      
       if (data.count === 0) {
         toast.info("No tradespeople found in your area", {
           position: "top-center",
@@ -1592,29 +1592,9 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
                 <h2 className="text-xl font-bold text-gray-800 mb-4">
                   Prefer to make a call?
                 </h2>
-<<<<<<< HEAD
                 <p className="text-gray-600 mb-6 text-sm">
                   Get a list of local tradespeople you can contact directly.
                 </p>
-=======
-
-                <div className="space-y-3">
-                  {[
-                    { label: "Urgent", value: "URGENT" },
-                    { label: "Within 2 weeks", value: "WITHIN_2_WEEKS" },
-                    { label: "Within 2 months", value: "WITHIN_2_MONTHS" },
-                    { label: "2 months+", value: "FLEXIBLE" },
-                  ].map((option) => (
-                    <div
-                      key={option.value}
-                      className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition cursor-pointer"
-                    >
-                      <div className="w-5 h-5 border-2 border-gray-300 rounded-full mr-3"></div>
-                      <span className="text-gray-700">{option.label}</span>
-                    </div>
-                  ))}
-                </div>
->>>>>>> 697eafe66c5800c095b84cb23e7d121b9d841a17
 
                 <form onSubmit={handleSearch} className="space-y-4">
                   <div>
@@ -1801,72 +1781,6 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
                                 )}
                               </div>
                             </div>
-<<<<<<< HEAD
-=======
-
-                            {/* Company Info */}
-                            <div className="flex-grow">
-                              <h3 className="text-xl font-bold text-gray-900 mb-1">
-                                {trade.companyName}
-                              </h3>
-
-                              {/* Ratings */}
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="flex">
-                                  {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="text-yellow-400">★</div>
-                                  ))}
-                                </div>
-                                <span className="text-sm text-gray-600">
-                                  {trade.ratingCount || 27} ratings
-                                </span>
-                              </div>
-
-                              {/* Bio */}
-                              {trade.bio && (
-                                <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                                  {trade.bio}
-                                </p>
-                              )}
-
-                              {/* Skills */}
-                              {trade.skills && trade.skills.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                  {trade.skills.slice(0, 3).map((skill, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                                    >
-                                      {skill}
-                                    </span>
-                                  ))}
-                                  {trade.skills.length > 3 && (
-                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                      +{trade.skills.length - 3} more
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex flex-col gap-2 min-w-[150px]">
-                              <button
-                                onClick={() => handleViewProfile(trade._id)}
-                                className="py-2 px-4 border-2 border-[#1149C7] text-[#1149C7] rounded-lg font-medium hover:bg-blue-50 transition text-sm"
-                              >
-                                View profile
-                              </button>
-                              {trade.phone && (
-                                <button
-                                  onClick={() => handleCallNow(trade.phone)}
-                                  className="py-2 px-4 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition text-sm"
-                                >
-                                  Call now
-                                </button>
-                              )}
-                            </div>
->>>>>>> 697eafe66c5800c095b84cb23e7d121b9d841a17
                           </div>
                         </div>
                       ))}
@@ -1938,7 +1852,7 @@ export default function JobCreationForm() {
         credentials: "include",
         cache: "no-store",
       });
-
+      
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
@@ -1997,7 +1911,7 @@ export default function JobCreationForm() {
       const userName = user.name || user.user?.name || "";
       const userPhone = user.phone || user.user?.phone || "";
       const userEmail = user.email || user.user?.email || "";
-
+      
       if (userEmail) {
         setForm((prev) => ({
           ...prev,
@@ -2064,7 +1978,7 @@ export default function JobCreationForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+    
     // Description length validation
     if (name === "description" && value.length > VALIDATION_RULES.DESCRIPTION.MAX_LENGTH) {
       toast.error(`Description cannot exceed ${VALIDATION_RULES.DESCRIPTION.MAX_LENGTH} characters`, {
@@ -2450,20 +2364,20 @@ export default function JobCreationForm() {
       case 2:
         return form.ownership;
       case 3:
-        return form.description.length >= VALIDATION_RULES.DESCRIPTION.MIN_LENGTH &&
-          form.description.length <= VALIDATION_RULES.DESCRIPTION.MAX_LENGTH;
+        return form.description.length >= VALIDATION_RULES.DESCRIPTION.MIN_LENGTH && 
+               form.description.length <= VALIDATION_RULES.DESCRIPTION.MAX_LENGTH;
       case 4:
-        return form.budgetMin && form.budgetMax &&
-          Number(form.budgetMin) >= VALIDATION_RULES.BUDGET.MIN &&
-          Number(form.budgetMax) <= VALIDATION_RULES.BUDGET.MAX &&
-          Number(form.budgetMin) < Number(form.budgetMax);
+        return form.budgetMin && form.budgetMax && 
+               Number(form.budgetMin) >= VALIDATION_RULES.BUDGET.MIN &&
+               Number(form.budgetMax) <= VALIDATION_RULES.BUDGET.MAX &&
+               Number(form.budgetMin) < Number(form.budgetMax);
       case 5:
         return form.postcode && VALIDATION_RULES.POSTCODE.PATTERN.test(form.postcode);
       case 6:
         return form.contactName && form.contactPhone && form.contactEmail &&
-          form.contactName.length >= 2 &&
-          VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone) &&
-          form.contactEmail.includes('@');
+               form.contactName.length >= 2 &&
+               VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone) &&
+               form.contactEmail.includes('@');
       default:
         return false;
     }
@@ -2503,14 +2417,14 @@ export default function JobCreationForm() {
 
       {/* Initial Form - Matches ratedpeople.com style */}
       {!isOpen && currentStep === 1 && (
-        <div className="bg-[#2c2c2c] rounded-lg shadow-2xl max-w-4xl mx-auto p-4 sm:p-6 text-left relative z-20">
+        <div className="bg-[#2c2c2c] rounded-lg shadow-2xl max-w-4xl mx-auto p-6 text-left relative z-20">
           <p className="text-white text-center mb-4 text-base">
             Post your job for free. Get quotes. Read reviews.
           </p>
-
+          
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             {/* Category Dropdown */}
-            <div className="flex-1 w-full">
+            <div className="flex-1">
               <label className="block text-sm font-bold text-white mb-2">
                 What service are you looking for?
               </label>
@@ -2530,7 +2444,7 @@ export default function JobCreationForm() {
             </div>
 
             {/* SubCategory Dropdown */}
-            <div className="flex-1 w-full">
+            <div className="flex-1">
               <label className="block text-sm font-bold text-white mb-2">
                 What type of job is it?
               </label>
@@ -2551,7 +2465,7 @@ export default function JobCreationForm() {
             </div>
 
             {/* Next Step Button */}
-            <div className="flex items-center md:items-end w-full md:w-auto">
+            <div className="flex items-end">
               <button
                 onClick={nextStep}
                 disabled={!canProceed()}
@@ -2566,7 +2480,7 @@ export default function JobCreationForm() {
           <div className="flex items-center justify-center mt-4 text-white text-sm">
             <span className="mr-2">Great</span>
             <div className="flex gap-1">
-              {[1, 2, 3, 4].map(i => (
+              {[1,2,3,4].map(i => (
                 <div key={i} className="w-5 h-5 bg-[#84cc16] flex items-center justify-center text-xs">★</div>
               ))}
               <div className="w-5 h-5 bg-gray-400 flex items-center justify-center text-xs">★</div>
@@ -2580,7 +2494,7 @@ export default function JobCreationForm() {
       {isOpen && currentStep > 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-
+            
             {/* Header with Blue Theme */}
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-3">
@@ -2624,7 +2538,7 @@ export default function JobCreationForm() {
             {/* Form Content */}
             <form onSubmit={handleSubmit}>
               <div className="p-6">
-
+                
                 {/* Step 2: Ownership */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
@@ -2642,10 +2556,11 @@ export default function JobCreationForm() {
                           key={option.value}
                           type="button"
                           onClick={() => setForm((prev) => ({ ...prev, ownership: option.value }))}
-                          className={`w-full p-4 border-2 rounded-lg text-left transition ${form.ownership === option.value
+                          className={`w-full p-4 border-2 rounded-lg text-left transition ${
+                            form.ownership === option.value
                               ? "border-[#1149C7] bg-blue-50"
                               : "border-gray-200 hover:border-gray-300"
-                            }`}
+                          }`}
                         >
                           {option.label}
                         </button>
@@ -2661,13 +2576,14 @@ export default function JobCreationForm() {
                       <h2 className="text-2xl font-bold text-gray-800 mb-2">
                         Describe what needs to be done
                       </h2>
-                      <p className={`text-sm ${form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH
-                          ? 'text-red-500'
+                      <p className={`text-sm ${
+                        form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH 
+                          ? 'text-red-500' 
                           : form.description.length > VALIDATION_RULES.DESCRIPTION.MAX_LENGTH - 50
-                            ? 'text-orange-500'
-                            : 'text-gray-500'
-                        }`}>
-                        {form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH
+                          ? 'text-orange-500'
+                          : 'text-gray-500'
+                      }`}>
+                        {form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH 
                           ? `At least ${VALIDATION_RULES.DESCRIPTION.MIN_LENGTH} characters required (${form.description.length}/${VALIDATION_RULES.DESCRIPTION.MIN_LENGTH})`
                           : `${form.description.length}/${VALIDATION_RULES.DESCRIPTION.MAX_LENGTH} characters (${getRemainingCharacters()} remaining)`
                         }
@@ -2686,7 +2602,7 @@ export default function JobCreationForm() {
                     {/* Media Upload */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Add photos or videos (optional)
+                        Add photos or videos (optional) 
                         <span className="ml-2 text-gray-400">
                           ({uploadedMedia.length}/{VALIDATION_RULES.MEDIA.MAX_FILES} files)
                         </span>
@@ -2700,10 +2616,11 @@ export default function JobCreationForm() {
                         </div>
                       )}
 
-                      <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition ${isUploadDisabled
-                          ? 'border-gray-200 bg-gray-50'
+                      <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition ${
+                        isUploadDisabled 
+                          ? 'border-gray-200 bg-gray-50' 
                           : 'border-gray-300 hover:border-[#1149C7]'
-                        }`}>
+                      }`}>
                         <input
                           type="file"
                           multiple
