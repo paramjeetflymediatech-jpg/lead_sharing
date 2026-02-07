@@ -6,6 +6,9 @@ import { Toaster } from "react-hot-toast";
 export const metadata = {
   title: "Lead Sharing",
   description: "Find and hire trusted tradespeople in the UK",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {

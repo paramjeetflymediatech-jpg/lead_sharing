@@ -10,7 +10,7 @@ export async function GET() {
     try {
         // await connectToDatabase();
 
-        const leads = await Lead.find({});
+        const leads = await Lead.findDetailed({});
         // .populate(...) // Removed population for MySQL compatibility stub
         //
         // ;
