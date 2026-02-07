@@ -1,9 +1,9 @@
 const dotenv = require("dotenv");
 dotenv.config();
- 
+
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
- 
+
 async function runMigration() {
   const connection = await mysql.createConnection({
     host: process.env.MYSQL_HOST || "localhost",
@@ -13,30 +13,34 @@ async function runMigration() {
     password: process.env.MYSQL_PASSWORD || "root",
     multipleStatements: true,
   });
- 
+
   console.log("✅ Connected to MySQL");
- 
+
   try {
     console.log("🧹 Dropping existing tables...");
     await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
- 
-    await connection.query(`
-      DROP TABLE IF EXISTS blogs;
-      DROP TABLE IF EXISTS reviews;
-      DROP TABLE IF EXISTS tradesperson_ratings;
-      DROP TABLE IF EXISTS messages;
-      DROP TABLE IF EXISTS payments;
-      DROP TABLE IF EXISTS leads;
-      DROP TABLE IF EXISTS jobs;
-      DROP TABLE IF EXISTS tradesperson_profiles;
-      DROP TABLE IF EXISTS sub_categories;
-      DROP TABLE IF EXISTS categories;
-      DROP TABLE IF EXISTS seo_pages;
-      DROP TABLE IF EXISTS users;
-    `);
- 
+
+    const tables = [
+      'blogs',
+      'reviews',
+      'tradesperson_ratings',
+      'messages',
+      'payments',
+      'leads',
+      'jobs',
+      'tradesperson_profiles',
+      'sub_categories',
+      'categories',
+      'seo_pages',
+      'users'
+    ];
+
+    for (const table of tables) {
+      await connection.query(`DROP TABLE IF EXISTS ${table}`);
+    }
+
     await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
- 
+
     /* ================= USERS ================= */
     await connection.query(`
       CREATE TABLE users (
@@ -52,7 +56,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ users");
- 
+
     /* ================= SEO PAGES ================= */
     await connection.query(`
       CREATE TABLE seo_pages (
@@ -66,7 +70,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ seo_pages");
- 
+
     /* ================= CATEGORIES ================= */
     await connection.query(`
       CREATE TABLE categories (
@@ -78,7 +82,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ categories");
- 
+
     /* ================= SUB CATEGORIES ================= */
     await connection.query(`
       CREATE TABLE sub_categories (
@@ -92,7 +96,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ sub_categories");
- 
+
     /* ================= TRADESPERSON PROFILES ================= */
     await connection.query(`
       CREATE TABLE tradesperson_profiles (
@@ -114,7 +118,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ tradesperson_profiles");
- 
+
     /* ================= JOBS ================= */
     await connection.query(`
       CREATE TABLE jobs (
@@ -163,7 +167,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ jobs");
- 
+
     /* ================= LEADS ================= */
     await connection.query(`
       CREATE TABLE leads (
@@ -182,7 +186,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ leads");
- 
+
     /* ================= PAYMENTS ================= */
     await connection.query(`
       CREATE TABLE payments (
@@ -203,7 +207,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ payments");
- 
+
     /* ================= TRADESPERSON RATINGS ================= */
     await connection.query(`
       CREATE TABLE tradesperson_ratings (
@@ -220,7 +224,7 @@ async function runMigration() {
       );
     `);
     console.log("✅ tradesperson_ratings");
- 
+
     /* ================= BLOGS ================= */
     await connection.query(`
       CREATE TABLE blogs (
@@ -248,18 +252,18 @@ async function runMigration() {
       );
     `);
     console.log("✅ blogs");
- 
+
     /* ================= SEED DATA ================= */
     console.log("🌱 Inserting seed data...");
- 
+
     const hashedPassword = await bcrypt.hash("admin123", 10);
- 
+
     await connection.query(
       `INSERT INTO users (email, password, name, role)
        VALUES (?, ?, ?, 'ADMIN')`,
       ["leadsharing@gmail.com", hashedPassword, "Admin User"]
     );
- 
+
     await connection.query(`
       INSERT INTO categories (name, slug) VALUES
       ('Roofing', 'roofing'),
@@ -268,7 +272,7 @@ async function runMigration() {
       ('Carpentry', 'carpentry'),
       ('Painting & Decorating', 'painting-decorating')
     `);
- 
+
     console.log("🎉 MIGRATION COMPLETED SUCCESSFULLY");
   } catch (err) {
     console.error("❌ Migration failed:", err);
@@ -278,7 +282,6 @@ async function runMigration() {
     console.log("🔌 DB connection closed");
   }
 }
- 
+
 runMigration().catch(console.error);
- 
- 
+
