@@ -276,8 +276,8 @@ async function runMigration() {
     host: process.env.MYSQL_HOST || "localhost",
     port: process.env.MYSQL_PORT || 3306,
     database: process.env.MYSQL_DATABASE || "lead_sharing",
-    user: process.env.MYSQL_USER || "root",
-    password: process.env.MYSQL_PASSWORD || "root",
+    user: process.env.MYSQL_USER || "aman",
+    password: process.env.MYSQL_PASSWORD || "aman1234",
   });
 
   console.log("✅ Connected to MySQL");
@@ -527,16 +527,16 @@ async function runMigration() {
 
     // Optional: Insert some initial data
     console.log("📝 Inserting initial data...");
-    
+
     // Insert an admin user
-    const bcrypt = require('bcrypt');
+    const bcrypt = require('bcryptjs');
     const hashedPassword = await bcrypt.hash('admin123', 10);
-    
+
     await connection.query(`
       INSERT INTO users (email, password, name, role) 
       VALUES (?, ?, ?, 'ADMIN')
       ON DUPLICATE KEY UPDATE email=email
-    `, ['admin@example.com', hashedPassword, 'Admin User']);
+    `, ['leadsharing@gmail.com', hashedPassword, 'Admin User']);
 
     // Insert some categories
     await connection.query(`
