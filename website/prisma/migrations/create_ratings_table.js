@@ -1,5 +1,13 @@
 const dotenv = require("dotenv");
-dotenv.config();
+const path = require("path");
+
+// Load environment variables from .env.production if it exists, otherwise .env
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+console.log(`📁 Using environment file: ${envFile}`);
+console.log(`🔌 Connecting to database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
+
 
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
