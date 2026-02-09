@@ -484,6 +484,12 @@ export default async function CreditsPage() {
       cache: 'no-store',
     });
 
+
+
+
+
+    
+
     console.log("API Response status:", res.status);
 
     if (!res.ok) {
