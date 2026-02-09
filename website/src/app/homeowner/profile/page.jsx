@@ -24,6 +24,7 @@ export default function ProfilePage() {
         lastName: "",
         email: "",
         phone: "",
+        profileImage: "",
         address: {
             line1: "",
             city: "",
@@ -53,12 +54,16 @@ export default function ProfilePage() {
                         lastName,
                         email: user.email || "",
                         phone: user.phone || "",
+                        profileImage: user.profile_image || "",
                         address: {
                             line1: user.address_line1 || "",
                             city: user.city || "",
                             postcode: user.postcode || ""
                         }
                     }));
+                    if (user.profile_image) {
+                        setAvatar(user.profile_image);
+                    }
                 }
             } catch (error) {
                 toast.error("Failed to load profile");
@@ -73,16 +78,37 @@ export default function ProfilePage() {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatar(reader.result);
-            };
-            reader.readAsDataURL(file);
-            // In real app, upload to server here
-            toast.success("Profile picture updated");
+        if (!file) return;
+
+        // Create a FormData object to send the file
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            // Use the existing upload API
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setAvatar(data.url); // Update preview
+                // Also update the form data so it gets saved on submit
+                setFormData(prev => ({
+                    ...prev,
+                    profileImage: data.url
+                }));
+                toast.success("Profile picture uploaded");
+            } else {
+                toast.error(data.message || "Upload failed");
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast.error("Error uploading picture");
         }
     };
 
