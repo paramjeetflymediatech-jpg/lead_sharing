@@ -755,7 +755,7 @@ export default async function JobDetailsPage({ params }) {
               href="/tradesperson"
               className="inline-block px-6 py-3 bg-[#155DFC] text-white rounded-xl font-bold hover:bg-[#155DFC]/90 transition-all"
             >
-              Back to Dashboard
+              Back to Dashboard /credits
             </Link>
           </div>
         </div>
@@ -1045,8 +1045,8 @@ export default async function JobDetailsPage({ params }) {
 
                   {/* Lead Status Badge */}
                   <div className={`px-4 py-2 rounded-full text-sm font-bold ${!hasUnlocked
-                      ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
-                      : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                    : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                     }`}>
                     {hasUnlocked ? "✓ You've unlocked this lead" : `${leadCount}/3 leads unlocked`}
                   </div>

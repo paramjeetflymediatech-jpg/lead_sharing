@@ -1,7 +1,7 @@
 // import { redirect } from "next/navigation";
 // import { cookies } from "next/headers";
 // import { PLANS } from "@/app/api/topup/route";
-// import CreditsTopUp from "./CreditsTopUp";
+// import CreditsTopUp from "./creditsTopUp";
 // import { CreditCard, Zap, Shield, CheckCircle, ArrowLeft, Star, TrendingUp, Clock, HelpCircle, Mail, Phone } from "lucide-react";
 // import Link from "next/link";
 
@@ -89,7 +89,7 @@
 //               {/* Animated background elements */}
 //               <div className="absolute -right-20 -top-20 w-60 h-60 bg-white/5 rounded-full blur-3xl"></div>
 //               <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-400/10 rounded-full blur-3xl"></div>
-              
+
 //               <div className="flex flex-col lg:flex-row items-center justify-between mb-8 relative z-10">
 //                 <div className="mb-8 lg:mb-0 lg:max-w-lg">
 //                   <h2 className="text-3xl font-bold mb-3">Your Credit Balance</h2>
@@ -101,7 +101,7 @@
 //                     <span className="text-sm font-medium">Credits never expire</span>
 //                   </div>
 //                 </div>
-                
+
 //                 <div className="flex flex-col items-center">
 //                   <div className="text-center mb-4">
 //                     <div className="text-6xl font-black mb-2">{tradespersonProfile.credits || 0}</div>
@@ -117,7 +117,7 @@
 //                   </div>
 //                 </div>
 //               </div>
-              
+
 //               {/* Quick Stats */}
 //               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 relative z-10">
 //                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
@@ -132,7 +132,7 @@
 //                     </div>
 //                   </div>
 //                 </div>
-                
+
 //                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
 //                   <div className="flex items-center gap-4">
 //                     <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center">
@@ -145,7 +145,7 @@
 //                     </div>
 //                   </div>
 //                 </div>
-                
+
 //                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
 //                   <div className="flex items-center gap-4">
 //                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -216,7 +216,7 @@
 //                 Select the perfect plan for your business needs. All plans include full access and premium support.
 //               </p>
 //             </div>
-            
+
 //             <div className="grid lg:grid-cols-3 gap-8">
 //               {Object.entries(PLANS).map(([key, plan]) => (
 //                 <div 
@@ -235,7 +235,7 @@
 //                       </div>
 //                     </div>
 //                   )}
-                  
+
 //                   {/* Plan Header */}
 //                   <div className="mb-8">
 //                     <div className="flex items-center justify-between mb-4">
@@ -251,7 +251,7 @@
 //                     <p className="text-zinc-600 dark:text-zinc-400 mb-6">
 //                       {plan.description}
 //                     </p>
-                    
+
 //                     {/* Price Display */}
 //                     <div className="mb-6">
 //                       <div className="flex items-baseline gap-2 mb-2">
@@ -332,7 +332,7 @@
 //                 Get answers to common questions about credits and payments
 //               </p>
 //             </div>
-            
+
 //             <div className="grid md:grid-cols-2 gap-6">
 //               {[
 //                 {
@@ -380,17 +380,17 @@
 //             <div className="bg-gradient-to-br from-zinc-900 to-black dark:from-zinc-800 dark:to-black rounded-3xl p-10 text-center relative overflow-hidden">
 //               {/* Background pattern */}
 //               <div className="absolute inset-0 bg-gradient-to-br from-[#155DFC]/5 to-transparent"></div>
-              
+
 //               <div className="relative z-10">
 //                 <div className="w-16 h-16 bg-gradient-to-br from-[#155DFC] to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
 //                   <HelpCircle className="w-8 h-8 text-white" />
 //                 </div>
-                
+
 //                 <h3 className="text-2xl font-bold text-white mb-3">Need Help?</h3>
 //                 <p className="text-zinc-300 mb-8 max-w-xl mx-auto">
 //                   Our dedicated support team is here to help you with any questions about credits, payments, or your account.
 //                 </p>
-                
+
 //                 <div className="grid md:grid-cols-2 gap-6 mb-8">
 //                   <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
 //                     <div className="flex items-center gap-4">
@@ -408,7 +408,7 @@
 //                       </div>
 //                     </div>
 //                   </div>
-                  
+
 //                   <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
 //                     <div className="flex items-center gap-4">
 //                       <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
@@ -421,7 +421,7 @@
 //                     </div>
 //                   </div>
 //                 </div>
-                
+
 //                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
 //                   <Link
 //                     href="/tradesperson"
@@ -489,7 +489,7 @@ export default async function CreditsPage() {
 
 
 
-    
+
 
     console.log("API Response status:", res.status);
 
@@ -564,7 +564,7 @@ export default async function CreditsPage() {
               {/* Animated background elements */}
               <div className="absolute -right-20 -top-20 w-60 h-60 bg-white/5 rounded-full blur-3xl"></div>
               <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-400/10 rounded-full blur-3xl"></div>
-              
+
               <div className="flex flex-col lg:flex-row items-center justify-between mb-8 relative z-10">
                 <div className="mb-8 lg:mb-0 lg:max-w-lg">
                   <h2 className="text-3xl font-bold mb-3">Your Credit Balance</h2>
@@ -576,7 +576,7 @@ export default async function CreditsPage() {
                     <span className="text-sm font-medium">Credits never expire</span>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col items-center">
                   <div className="text-center mb-4">
                     <div className="text-6xl font-black mb-2">{tradespersonProfile.credits || 0}</div>
@@ -592,7 +592,7 @@ export default async function CreditsPage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Quick Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 relative z-10">
                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
@@ -607,7 +607,7 @@ export default async function CreditsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center">
@@ -620,7 +620,7 @@ export default async function CreditsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -691,19 +691,18 @@ export default async function CreditsPage() {
                 Select the perfect plan for your business needs. All plans include full access and premium support.
               </p>
             </div>
-            
+
             <div className="grid lg:grid-cols-3 gap-8">
               {Object.entries(PLANS).map(([key, plan]) => {
                 const perCreditPrice = (plan.amount / plan.credits).toFixed(2);
-                
+
                 return (
-                  <div 
+                  <div
                     key={key}
-                    className={`rounded-3xl p-8 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl ${
-                      key === 'pro' 
-                        ? 'bg-gradient-to-b from-[#155DFC]/5 to-[#155DFC]/10 dark:from-[#155DFC]/10 dark:to-[#155DFC]/5 border-2 border-[#155DFC] shadow-xl shadow-blue-500/20 relative'
-                        : 'bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 shadow-lg'
-                    }`}
+                    className={`rounded-3xl p-8 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl ${key === 'pro'
+                      ? 'bg-gradient-to-b from-[#155DFC]/5 to-[#155DFC]/10 dark:from-[#155DFC]/10 dark:to-[#155DFC]/5 border-2 border-[#155DFC] shadow-xl shadow-blue-500/20 relative'
+                      : 'bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 shadow-lg'
+                      }`}
                   >
                     {key === 'pro' && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
@@ -713,7 +712,7 @@ export default async function CreditsPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Plan Header */}
                     <div className="mb-8">
                       <div className="flex items-center justify-between mb-4">
@@ -729,7 +728,7 @@ export default async function CreditsPage() {
                       <p className="text-zinc-600 dark:text-zinc-400 mb-6">
                         {plan.description}
                       </p>
-                      
+
                       {/* Price Display */}
                       <div className="mb-6">
                         <div className="flex items-baseline gap-2 mb-2">
@@ -786,10 +785,10 @@ export default async function CreditsPage() {
                     </div>
 
                     {/* Buy Button */}
-                    <CreditsTopUp 
-                      plan={key} 
+                    <CreditsTopUp
+                      plan={key}
                       profileId={tradespersonProfile._id}
-                      userId={user.id} 
+                      userId={user.id}
                       isPopular={key === 'pro'}
                     />
                   </div>
@@ -811,7 +810,7 @@ export default async function CreditsPage() {
                 Get answers to common questions about credits and payments
               </p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-6">
               {[
                 {
@@ -839,7 +838,7 @@ export default async function CreditsPage() {
                   answer: "Yes! You can purchase additional credits at any time. Your new credits will be added to your existing balance."
                 }
               ].map((faq, index) => (
-                <div 
+                <div
                   key={index}
                   className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 hover:border-[#155DFC]/30 dark:hover:border-blue-500/30 transition-all duration-200 hover:shadow-lg"
                 >
@@ -859,17 +858,17 @@ export default async function CreditsPage() {
             <div className="bg-gradient-to-br from-zinc-900 to-black dark:from-zinc-800 dark:to-black rounded-3xl p-10 text-center relative overflow-hidden">
               {/* Background pattern */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#155DFC]/5 to-transparent"></div>
-              
+
               <div className="relative z-10">
                 <div className="w-16 h-16 bg-gradient-to-br from-[#155DFC] to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <HelpCircle className="w-8 h-8 text-white" />
                 </div>
-                
+
                 <h3 className="text-2xl font-bold text-white mb-3">Need Help?</h3>
                 <p className="text-zinc-300 mb-8 max-w-xl mx-auto">
                   Our dedicated support team is here to help you with any questions about credits, payments, or your account.
                 </p>
-                
+
                 <div className="grid md:grid-cols-2 gap-6 mb-8">
                   <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
                     <div className="flex items-center gap-4">
@@ -878,8 +877,8 @@ export default async function CreditsPage() {
                       </div>
                       <div className="text-left">
                         <div className="font-semibold text-white mb-1">Email Support</div>
-                        <a 
-                          href="mailto:support@tradeconnect.com" 
+                        <a
+                          href="mailto:support@tradeconnect.com"
                           className="text-blue-300 hover:text-blue-200 transition-colors"
                         >
                           support@tradeconnect.com
@@ -887,7 +886,7 @@ export default async function CreditsPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
@@ -900,7 +899,7 @@ export default async function CreditsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
                     href="/tradesperson"

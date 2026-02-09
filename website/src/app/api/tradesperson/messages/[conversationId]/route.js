@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import db from "../../../../../../config/db";
 
 /**
- * GET /api/homeowner/messages/[conversationId]
+ * GET /api/tradesperson/messages/[conversationId]
  * Fetch all messages for a specific conversation
- * conversationId format: jobId-tradespersonId
+ * conversationId format: jobId-homeownerId
  */
 export async function GET(req, context) {
     try {
@@ -14,7 +14,7 @@ export async function GET(req, context) {
         const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-user-role");
 
-        if (!userId || role !== "HOMEOWNER") {
+        if (!userId || role !== "TRADESPERSON") {
             return NextResponse.json(
                 { success: false, message: "Unauthorized" },
                 { status: 403 }
@@ -22,29 +22,42 @@ export async function GET(req, context) {
         }
 
         // Parse conversation ID
-        const [jobId, tradespersonId] = conversationId.split('-');
+        const [jobId, homeownerId] = conversationId.split('-');
 
-        if (!jobId || !tradespersonId) {
+        if (!jobId || !homeownerId) {
             return NextResponse.json(
                 { success: false, message: "Invalid conversation ID" },
                 { status: 400 }
             );
         }
 
-        // Verify the homeowner owns this job
+        // Get job details
         const [jobs] = await db.query(
-            `SELECT * FROM jobs WHERE id = ? AND homeowner_id = ? LIMIT 1`,
-            [jobId, userId]
+            `SELECT * FROM jobs WHERE id = ? LIMIT 1`,
+            [jobId]
         );
 
         if (!jobs || jobs.length === 0) {
             return NextResponse.json(
-                { success: false, message: "Job not found or access denied" },
+                { success: false, message: "Job not found" },
                 { status: 404 }
             );
         }
 
         const job = jobs[0];
+
+        // Verify tradesperson has unlocked this lead
+        const [leads] = await db.query(
+            `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
+            [jobId, userId]
+        );
+
+        if (!leads || leads.length === 0) {
+            return NextResponse.json(
+                { success: false, message: "You must unlock this lead first" },
+                { status: 403 }
+            );
+        }
 
         // Get all messages for this conversation
         const [messages] = await db.query(`
@@ -59,7 +72,7 @@ export async function GET(req, context) {
         AND ((m.sender_id = ? AND m.receiver_id = ?)
              OR (m.sender_id = ? AND m.receiver_id = ?))
       ORDER BY m.created_at ASC
-    `, [jobId, userId, tradespersonId, tradespersonId, userId]);
+    `, [jobId, userId, homeownerId, homeownerId, userId]);
 
         // Mark messages as read
         await db.query(`
@@ -69,7 +82,7 @@ export async function GET(req, context) {
         AND sender_id = ? 
         AND receiver_id = ?
         AND is_read = FALSE
-    `, [jobId, tradespersonId, userId]);
+    `, [jobId, homeownerId, userId]);
 
         // Get conversation status from the latest message
         const conversationStatus = messages.length > 0
@@ -93,14 +106,14 @@ export async function GET(req, context) {
             success: true,
             conversation: {
                 jobId: parseInt(jobId),
-                tradespersonId: parseInt(tradespersonId),
+                homeownerId: parseInt(homeownerId),
                 jobTitle: job.description,
                 jobStatus: job.status,
                 conversationStatus,
                 acceptedByHomeowner,
                 acceptedByTradesperson,
                 isClosed,
-                needsAcceptance: conversationStatus === 'PENDING_HOMEOWNER_ACCEPTANCE' && !acceptedByHomeowner
+                needsAcceptance: conversationStatus === 'PENDING_TRADESPERSON_ACCEPTANCE' && !acceptedByTradesperson
             },
             messages: messages.map(msg => ({
                 id: msg.id,
@@ -115,7 +128,7 @@ export async function GET(req, context) {
             }))
         });
     } catch (error) {
-        console.error("GET CONVERSATION ERROR:", error);
+        console.error("GET TRADESPERSON CONVERSATION ERROR:", error);
         return NextResponse.json(
             { success: false, message: "Internal server error", error: error.message },
             { status: 500 }
@@ -124,7 +137,7 @@ export async function GET(req, context) {
 }
 
 /**
- * POST /api/homeowner/messages/[conversationId]
+ * POST /api/tradesperson/messages/[conversationId]
  * Send a message in this conversation
  */
 export async function POST(req, context) {
@@ -135,14 +148,14 @@ export async function POST(req, context) {
         const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-user-role");
 
-        if (!userId || role !== "HOMEOWNER") {
+        if (!userId || role !== "TRADESPERSON") {
             return NextResponse.json(
                 { success: false, message: "Unauthorized" },
                 { status: 403 }
             );
         }
 
-        const { message } = await req.json();
+        const { message, isFirstMessage } = await req.json();
 
         if (!message || message.trim() === '') {
             return NextResponse.json(
@@ -152,17 +165,17 @@ export async function POST(req, context) {
         }
 
         // Parse conversation ID
-        const [jobId, tradespersonId] = conversationId.split('-');
+        const [jobId, homeownerId] = conversationId.split('-');
 
-        // Verify the homeowner owns this job
+        // Get job details
         const [jobs] = await db.query(
-            `SELECT * FROM jobs WHERE id = ? AND homeowner_id = ? LIMIT 1`,
-            [jobId, userId]
+            `SELECT * FROM jobs WHERE id = ? LIMIT 1`,
+            [jobId]
         );
 
         if (!jobs || jobs.length === 0) {
             return NextResponse.json(
-                { success: false, message: "Job not found or access denied" },
+                { success: false, message: "Job not found" },
                 { status: 404 }
             );
         }
@@ -177,6 +190,19 @@ export async function POST(req, context) {
             );
         }
 
+        // Verify tradesperson has unlocked this lead
+        const [leads] = await db.query(
+            `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
+            [jobId, userId]
+        );
+
+        if (!leads || leads.length === 0) {
+            return NextResponse.json(
+                { success: false, message: "You must unlock this lead first" },
+                { status: 403 }
+            );
+        }
+
         // Get the latest message to check conversation status
         const [latestMessages] = await db.query(`
       SELECT conversation_status, conversation_accepted_by_homeowner, conversation_accepted_by_tradesperson
@@ -184,11 +210,11 @@ export async function POST(req, context) {
       WHERE job_id = ? AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
       ORDER BY created_at DESC
       LIMIT 1
-    `, [jobId, userId, tradespersonId, tradespersonId, userId]);
+    `, [jobId, userId, homeownerId, homeownerId, userId]);
 
         let conversationStatus = 'ACTIVE';
-        let acceptedByHomeowner = true;
-        let acceptedByTradesperson = true;
+        let acceptedByHomeowner = false;
+        let acceptedByTradesperson = false;
 
         if (latestMessages.length > 0) {
             const latest = latestMessages[0];
@@ -196,11 +222,16 @@ export async function POST(req, context) {
             acceptedByHomeowner = Boolean(latest.conversation_accepted_by_homeowner);
             acceptedByTradesperson = Boolean(latest.conversation_accepted_by_tradesperson);
 
-            // If homeowner is replying for the first time, update status
-            if (conversationStatus === 'PENDING_HOMEOWNER_ACCEPTANCE') {
-                conversationStatus = 'PENDING_TRADESPERSON_ACCEPTANCE';
-                acceptedByHomeowner = true;
+            // If tradesperson is replying after homeowner accepted, update status
+            if (conversationStatus === 'PENDING_TRADESPERSON_ACCEPTANCE') {
+                conversationStatus = 'ACTIVE';
+                acceptedByTradesperson = true;
             }
+        } else if (isFirstMessage) {
+            // This is the first message from tradesperson
+            conversationStatus = 'PENDING_HOMEOWNER_ACCEPTANCE';
+            acceptedByHomeowner = false;
+            acceptedByTradesperson = false;
         }
 
         // Insert the message
@@ -217,7 +248,7 @@ export async function POST(req, context) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, FALSE)
     `, [
             userId,
-            tradespersonId,
+            homeownerId,
             jobId,
             message.trim(),
             conversationStatus,
@@ -231,7 +262,7 @@ export async function POST(req, context) {
             messageId: result.insertId
         });
     } catch (error) {
-        console.error("SEND MESSAGE ERROR:", error);
+        console.error("SEND TRADESPERSON MESSAGE ERROR:", error);
         return NextResponse.json(
             { success: false, message: "Internal server error", error: error.message },
             { status: 500 }
@@ -240,8 +271,8 @@ export async function POST(req, context) {
 }
 
 /**
- * PUT /api/homeowner/messages/[conversationId]
- * Accept a conversation (used when homeowner first responds)
+ * PUT /api/tradesperson/messages/[conversationId]
+ * Accept a conversation
  */
 export async function PUT(req, context) {
     try {
@@ -251,33 +282,33 @@ export async function PUT(req, context) {
         const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-user-role");
 
-        if (!userId || role !== "HOMEOWNER") {
+        if (!userId || role !== "TRADESPERSON") {
             return NextResponse.json(
                 { success: false, message: "Unauthorized" },
                 { status: 403 }
             );
         }
 
-        const [jobId, tradespersonId] = conversationId.split('-');
+        const [jobId, homeownerId] = conversationId.split('-');
 
-        // Update all messages in this conversation to mark as accepted by homeowner
+        // Update all messages in this conversation to mark as accepted by tradesperson
         await db.query(`
       UPDATE messages 
-      SET conversation_accepted_by_homeowner = TRUE,
+      SET conversation_accepted_by_tradesperson = TRUE,
           conversation_status = CASE
-            WHEN conversation_status = 'PENDING_HOMEOWNER_ACCEPTANCE' THEN 'PENDING_TRADESPERSON_ACCEPTANCE'
+            WHEN conversation_status = 'PENDING_TRADESPERSON_ACCEPTANCE' THEN 'ACTIVE'
             ELSE conversation_status
           END
       WHERE job_id = ? 
         AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
-    `, [jobId, userId, tradespersonId, tradespersonId, userId]);
+    `, [jobId, userId, homeownerId, homeownerId, userId]);
 
         return NextResponse.json({
             success: true,
             message: "Conversation accepted"
         });
     } catch (error) {
-        console.error("ACCEPT CONVERSATION ERROR:", error);
+        console.error("ACCEPT TRADESPERSON CONVERSATION ERROR:", error);
         return NextResponse.json(
             { success: false, message: "Internal server error", error: error.message },
             { status: 500 }

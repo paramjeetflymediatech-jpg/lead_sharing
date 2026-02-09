@@ -49,7 +49,7 @@ export default function PaymentsPage() {
       });
 
       // 3️⃣ Fetch payment history
-      const paymentsRes = await fetch("/api/tradesperson/payments", {
+      const paymentsRes = await fetch("/api/credits", {
         credentials: "include",
       });
 
@@ -263,7 +263,7 @@ export default function PaymentsPage() {
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
                       {getStatusIcon(payment.status)}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold border ${getPlanBadgeColor(payment.plan)}`}>
@@ -273,11 +273,11 @@ export default function PaymentsPage() {
                           {payment.status?.toUpperCase()}
                         </span>
                       </div>
-                      
+
                       <h3 className="text-lg font-bold text-zinc-900 mb-1">
                         {payment.credits} Credits Purchase
                       </h3>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-zinc-600">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
@@ -318,11 +318,10 @@ export default function PaymentsPage() {
                     </div>
                     <div>
                       <p className="text-zinc-500 mb-1">Payment Status</p>
-                      <p className={`font-bold ${
-                        payment.status === 'completed' ? 'text-green-600' :
+                      <p className={`font-bold ${payment.status === 'completed' ? 'text-green-600' :
                         payment.status === 'pending' ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
+                          'text-red-600'
+                        }`}>
                         {payment.status}
                       </p>
                     </div>
@@ -349,9 +348,9 @@ export default function PaymentsPage() {
               Contact our support team for any payment-related queries
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              
-                href="mailto:support@tradeconnect.com"
-                className="px-6 py-3 bg-white border-2 border-zinc-300 text-zinc-900 rounded-xl font-bold hover:bg-zinc-50"
+
+              href="mailto:support@tradeconnect.com"
+              className="px-6 py-3 bg-white border-2 border-zinc-300 text-zinc-900 rounded-xl font-bold hover:bg-zinc-50"
               <a>
                 Email Support
               </a>

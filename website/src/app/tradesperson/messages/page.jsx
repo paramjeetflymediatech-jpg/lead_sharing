@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, MessageCircle, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Send, ArrowLeft, MessageCircle, Clock } from "lucide-react";
 import Link from "next/link";
 
-export default function HomeownerMessagesPage() {
+export default function MessagesPage() {
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -14,7 +14,7 @@ export default function HomeownerMessagesPage() {
 
     const fetchConversations = async () => {
         try {
-            const res = await fetch("/api/homeowner/messages");
+            const res = await fetch("/api/tradesperson/conversations");
             if (res.ok) {
                 const data = await res.json();
                 setConversations(data.conversations || []);
@@ -40,44 +40,6 @@ export default function HomeownerMessagesPage() {
         return date.toLocaleDateString();
     };
 
-    const getStatusBadge = (conv) => {
-        if (conv.isClosed) {
-            return (
-                <div className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-semibold rounded-full flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    Closed
-                </div>
-            );
-        }
-
-        if (conv.conversationStatus === 'PENDING_HOMEOWNER_ACCEPTANCE') {
-            return (
-                <div className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold rounded-full flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    Needs Response
-                </div>
-            );
-        }
-
-        if (conv.conversationStatus === 'PENDING_TRADESPERSON_ACCEPTANCE') {
-            return (
-                <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Awaiting Reply
-                </div>
-            );
-        }
-
-        if (conv.conversationStatus === 'ACTIVE') {
-            return (
-                <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Active
-                </div>
-            );
-        }
-    };
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -92,7 +54,7 @@ export default function HomeownerMessagesPage() {
                 {/* Header */}
                 <div className="mb-8">
                     <Link
-                        href="/homeowner"
+                        href="/tradesperson"
                         className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-[#155DFC] dark:hover:text-blue-400 transition-colors mb-6"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -102,7 +64,7 @@ export default function HomeownerMessagesPage() {
                         Messages
                     </h1>
                     <p className="text-zinc-600 dark:text-zinc-400">
-                        Communicate with tradespeople about your job requests
+                        Communicate with homeowners about job opportunities
                     </p>
                 </div>
 
@@ -116,13 +78,13 @@ export default function HomeownerMessagesPage() {
                             No messages yet
                         </h3>
                         <p className="text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-                            When tradespeople send you quotes or questions, their messages will appear here
+                            Start bidding on jobs to begin conversations with homeowners
                         </p>
                         <Link
-                            href="/homeowner"
+                            href="/tradesperson"
                             className="inline-block mt-6 px-6 py-3 bg-[#155DFC] text-white rounded-xl font-semibold hover:bg-[#155DFC]/90 transition-all"
                         >
-                            Back to Dashboard
+                            Browse Jobs
                         </Link>
                     </div>
                 ) : (
@@ -131,21 +93,21 @@ export default function HomeownerMessagesPage() {
                             {conversations.map((conversation) => (
                                 <Link
                                     key={conversation.id}
-                                    href={`/homeowner/messages/${conversation.id}`}
+                                    href={`/tradesperson/messages/${conversation.id}`}
                                     className="block hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
                                 >
                                     <div className="p-6">
                                         <div className="flex items-start gap-4">
                                             {/* Avatar */}
                                             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                                                {conversation.tradespersonName?.charAt(0).toUpperCase() || "?"}
+                                                {conversation.otherUserName?.charAt(0).toUpperCase() || "?"}
                                             </div>
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start justify-between mb-1">
                                                     <h3 className="font-semibold text-zinc-900 dark:text-white truncate">
-                                                        {conversation.tradespersonName || "Unknown Tradesperson"}
+                                                        {conversation.otherUserName || "Unknown User"}
                                                     </h3>
                                                     <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 ml-2">
                                                         <Clock className="w-3 h-3" />
@@ -155,20 +117,19 @@ export default function HomeownerMessagesPage() {
                                                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                                                     {conversation.jobTitle || "Job"}
                                                 </p>
-                                                <p className="text-sm text-zinc-500 dark:text-zinc-500 truncate mb-2">
+                                                <p className="text-sm text-zinc-500 dark:text-zinc-500 truncate">
                                                     {conversation.lastMessage || "No messages yet"}
                                                 </p>
-
-                                                {/* Status Badge */}
-                                                <div className="flex items-center gap-2">
-                                                    {getStatusBadge(conversation)}
-                                                    {conversation.unreadCount > 0 && (
-                                                        <span className="inline-flex items-center justify-center px-2 py-1 bg-[#155DFC] text-white text-xs font-bold rounded-full">
-                                                            {conversation.unreadCount} new
-                                                        </span>
-                                                    )}
-                                                </div>
                                             </div>
+
+                                            {/* Unread Badge */}
+                                            {conversation.unreadCount > 0 && (
+                                                <div className="flex-shrink-0">
+                                                    <span className="inline-flex items-center justify-center w-6 h-6 bg-[#155DFC] text-white text-xs font-bold rounded-full">
+                                                        {conversation.unreadCount}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </Link>

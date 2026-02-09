@@ -30,7 +30,7 @@
 //     // Get user info from headers (set by middleware)
 //     const userId = req.headers.get("x-user-id");
 //     const userRole = req.headers.get("x-user-role");
-    
+
 //     if (!userId || !userRole) {
 //       return NextResponse.json({ 
 //         error: "Unauthorized - No user information" 
@@ -54,7 +54,7 @@
 
 //     // Get tradesperson profile
 //     const profile = await TradespersonProfile.findOne({ user: userId });
-    
+
 //     if (!profile) {
 //       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 //     }
@@ -143,7 +143,7 @@
 //     // Get user info from headers (set by middleware)
 //     const userId = req.headers.get("x-user-id");
 //     const userRole = req.headers.get("x-user-role");
-    
+
 //     if (!userId || !userRole) {
 //       return NextResponse.json({ 
 //         error: "Unauthorized - No user information" 
@@ -167,7 +167,7 @@
 
 //     // Get tradesperson profile
 //     const profile = await TradespersonProfile.findOne({ user: userId });
-    
+
 //     if (!profile) {
 //       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 //     }
