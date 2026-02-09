@@ -233,7 +233,7 @@ export default function HomeownerDashboard() {
               ) : (
                 <div className="text-center py-12">
                   <p className="text-zinc-500 font-bold tracking-tight">No active jobs found</p>
-                  <Link href="/homeowner/jobs/new" className="mt-4 inline-block text-[#1149C7] font-bold text-sm">Post one now →</Link>
+                  <Link href="/jobs" className="mt-4 inline-block text-[#1149C7] font-bold text-sm">Post one now →</Link>
                 </div>
               )}
             </div>

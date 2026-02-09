@@ -1217,7 +1217,7 @@ export default function HomeownerJobsPage() {
                   }
                 </p>
                 <Link
-                  href="/homeowner/post-job"
+                  href="/jobs"
                   className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#155DFC] to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/30"
                 >
                   <PlusIcon className="h-5 w-5 mr-2" />
