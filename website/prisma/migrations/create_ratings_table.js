@@ -267,6 +267,53 @@ async function runMigration() {
     `);
     console.log("✅ blogs");
 
+    /* ================= MESSAGES ================= */
+    await connection.query(`
+      CREATE TABLE messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        job_id INT NOT NULL,
+        sender_id INT NOT NULL,
+        receiver_id INT NOT NULL,
+        content TEXT NOT NULL,
+        is_read TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+    console.log("✅ messages");
+
+    /* ================= CONVERSATION STATUS ================= */
+    await connection.query(`
+      ALTER TABLE messages 
+      ADD COLUMN conversation_status ENUM(
+        'PENDING_HOMEOWNER_ACCEPTANCE',
+        'PENDING_TRADESPERSON_ACCEPTANCE',
+        'ACTIVE',
+        'CLOSED'
+      ) DEFAULT 'ACTIVE' AFTER is_read
+    `);
+    console.log("✅ conversation_status");
+
+    await connection.query(`
+      ALTER TABLE messages 
+      ADD COLUMN conversation_accepted_by_homeowner BOOLEAN DEFAULT FALSE AFTER conversation_status
+    `);
+    console.log("✅ conversation_accepted_by_homeowner");
+
+    await connection.query(`
+      ALTER TABLE messages 
+      ADD COLUMN conversation_accepted_by_tradesperson BOOLEAN DEFAULT FALSE AFTER conversation_accepted_by_homeowner
+    `);
+    console.log("✅ conversation_accepted_by_tradesperson");
+
+
+
+
+
+
     /* ================= SEED DATA ================= */
     console.log("🌱 Inserting seed data...");
 
