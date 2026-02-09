@@ -27,12 +27,12 @@
 //       sql += ' AND user_id = ?';
 //       params.push(query.user);
 //     }
-    
+
 //     if (query._id) {
 //       sql += ' AND id = ?';
 //       params.push(query._id);
 //     }
-    
+
 //     if (query.id) {
 //       sql += ' AND id = ?';
 //       params.push(query.id);
@@ -82,7 +82,7 @@
 //         const cleanData = { ...createData };
 //         delete cleanData.$inc;
 //         delete cleanData.$set;
-        
+
 //         return this.create(cleanData);
 //       }
 //       return null;
@@ -167,6 +167,16 @@
 
 import pool from '../../config/db';
 
+const safeJsonParse = (str, fallback = []) => {
+  if (!str) return fallback;
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    console.warn('JSON Parse Error in TradespersonProfile:', e.message, 'Input:', str);
+    return fallback;
+  }
+};
+
 const profileToMongoStyle = (row) => {
   if (!row) return null;
   return {
@@ -176,8 +186,8 @@ const profileToMongoStyle = (row) => {
     user: row.user_id,
     companyName: row.company_name,
     profileImage: row.profile_image,
-    serviceAreas: row.service_areas ? JSON.parse(row.service_areas) : [],
-    skills: row.skills ? JSON.parse(row.skills) : [],
+    serviceAreas: safeJsonParse(row.service_areas),
+    skills: safeJsonParse(row.skills),
     credits: row.credits || 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -195,12 +205,12 @@ export const TradespersonProfile = {
       sql += ' AND user_id = ?';
       params.push(query.user);
     }
-    
+
     if (query._id) {
       sql += ' AND id = ?';
       params.push(query._id);
     }
-    
+
     if (query.id) {
       sql += ' AND id = ?';
       params.push(query.id);
@@ -250,7 +260,7 @@ export const TradespersonProfile = {
         const cleanData = { ...createData };
         delete cleanData.$inc;
         delete cleanData.$set;
-        
+
         return this.create(cleanData);
       }
       return null;
@@ -286,7 +296,7 @@ export const TradespersonProfile = {
       values.push(profile.id); // Use the internal MySQL ID
       try {
         await pool.query(
-          `UPDATE tradesperson_profiles SET ${updates.join(', ')} WHERE id = ?`, 
+          `UPDATE tradesperson_profiles SET ${updates.join(', ')} WHERE id = ?`,
           values
         );
       } catch (error) {
@@ -308,13 +318,13 @@ export const TradespersonProfile = {
 
     if (key === 'companyName') column = 'company_name';
     else if (key === 'profileImage') column = 'profile_image';
-    else if (key === 'serviceAreas') { 
-      column = 'service_areas'; 
-      val = JSON.stringify(value || []); 
+    else if (key === 'serviceAreas') {
+      column = 'service_areas';
+      val = JSON.stringify(value || []);
     }
-    else if (key === 'skills') { 
-      column = 'skills'; 
-      val = JSON.stringify(value || []); 
+    else if (key === 'skills') {
+      column = 'skills';
+      val = JSON.stringify(value || []);
     }
     else if (['bio', 'phone', 'postcode', 'credits', 'average_rating', 'total_ratings'].includes(key)) column = key;
 

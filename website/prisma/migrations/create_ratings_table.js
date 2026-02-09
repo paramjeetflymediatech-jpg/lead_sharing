@@ -20,20 +20,24 @@ async function runMigration() {
     console.log("🧹 Dropping existing tables...");
     await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
 
-    await connection.query(`
-      DROP TABLE IF EXISTS blogs;
-      DROP TABLE IF EXISTS reviews;
-      DROP TABLE IF EXISTS tradesperson_ratings;
-      DROP TABLE IF EXISTS messages;
-      DROP TABLE IF EXISTS payments;
-      DROP TABLE IF EXISTS leads;
-      DROP TABLE IF EXISTS jobs;
-      DROP TABLE IF EXISTS tradesperson_profiles;
-      DROP TABLE IF EXISTS sub_categories;
-      DROP TABLE IF EXISTS categories;
-      DROP TABLE IF EXISTS seo_pages;
-      DROP TABLE IF EXISTS users;
-    `);
+    const tables = [
+      'blogs',
+      'reviews',
+      'tradesperson_ratings',
+      'messages',
+      'payments',
+      'leads',
+      'jobs',
+      'tradesperson_profiles',
+      'sub_categories',
+      'categories',
+      'seo_pages',
+      'users'
+    ];
+
+    for (const table of tables) {
+      await connection.query(`DROP TABLE IF EXISTS ${table}`);
+    }
 
     await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
 
@@ -155,7 +159,7 @@ async function runMigration() {
         has_rated TINYINT(1) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
+ 
         FOREIGN KEY (homeowner_id) REFERENCES users(id),
         FOREIGN KEY (category_id) REFERENCES categories(id),
         FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id),
@@ -280,3 +284,4 @@ async function runMigration() {
 }
 
 runMigration().catch(console.error);
+

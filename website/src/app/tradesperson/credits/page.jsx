@@ -475,7 +475,8 @@ export default async function CreditsPage() {
     const cookieHeader = cookieStore.toString();
 
     // ✅ Fetch user data with cookies
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/me`, {
+    // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/me`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://allcarepros.ca'}/api/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
