@@ -51,6 +51,12 @@ async function runMigration() {
         role ENUM('HOMEOWNER','TRADESPERSON','ADMIN') DEFAULT 'HOMEOWNER',
         password_reset_token VARCHAR(255),
         password_reset_expires DATETIME,
+        address_line1 VARCHAR(255),
+        address_line2 VARCHAR(255),
+        city VARCHAR(100),
+        postcode VARCHAR(20),
+        phone VARCHAR(20),
+        profile_image VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );

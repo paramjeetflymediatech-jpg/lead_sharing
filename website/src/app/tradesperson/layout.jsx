@@ -12,12 +12,10 @@ export default async function TradespersonLayout({ children }) {
     const navItems = [
         { name: "Explore Jobs", href: "/tradesperson", icon: "HomeIcon" },
         { name: "My Unlocked Leads", href: "/tradesperson/leads", icon: "ClipboardDocumentListIcon" },
+        { name: "My Messages", href: "/tradesperson/messages", icon: "ChatBubbleBottomCenterTextIcon" },
         { name: "My Profile", href: "/tradesperson/profile", icon: "UserIcon" },
         { name: "Ratings", href: "/tradesperson/ratings", icon: "StarIcon" },
         { name: "My Account", href: "/tradesperson/account", icon: "Cog6ToothIcon" },
-  
-
-
         { name: "Help", href: "/tradesperson/help", icon: "QuestionMarkCircleIcon" },
     ];
 

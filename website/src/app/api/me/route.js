@@ -67,7 +67,7 @@ export async function PUT(req) {
     }
 
     const body = await req.json();
-    const { firstName, lastName, phone, address, currentPassword, newPassword } = body;
+    const { firstName, lastName, phone, address, profileImage, currentPassword, newPassword } = body;
 
     const updates = {};
     if (firstName && lastName) {
@@ -77,6 +77,7 @@ export async function PUT(req) {
     }
 
     if (phone) updates.phone = phone;
+    if (profileImage) updates.profile_image = profileImage;
     // Address handling - simplistic for now, assuming columns exist or we skip
     if (address) {
       if (address.city) updates.city = address.city;
