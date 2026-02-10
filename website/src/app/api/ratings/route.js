@@ -102,7 +102,7 @@
 //     if (tradespersonId) {
 //       const ratings = await TradespersonRating.findByTradesperson(tradespersonId);
 //       const stats = await TradespersonRating.getAverageRating(tradespersonId);
-      
+
 //       return NextResponse.json({
 //         success: true,
 //         ratings,
@@ -197,7 +197,7 @@
 //     }
 
 //     const job = jobs[0];
-    
+
 //     // Check if job has hired tradesperson
 //     if (!job.hired_tradesperson_id || job.hired_tradesperson_id !== tradespersonId) {
 //       return NextResponse.json(
@@ -850,14 +850,14 @@ export async function POST(req) {
     console.log("  Average:", avgRating);
     console.log("  Total:", totalRatings);
 
-    // FIRST: Find the tradesperson profile ID from user ID
+    // The tradespersonId from frontend is actually hired_tradesperson_id which is a PROFILE ID
     const [profile] = await db.query(
-      `SELECT id, user_id, company_name FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
+      `SELECT id, user_id, company_name FROM tradesperson_profiles WHERE id = ? LIMIT 1`,
       [tradespersonId]
     );
 
     if (!profile || profile.length === 0) {
-      console.error(`❌ No tradesperson profile found for user_id: ${tradespersonId}`);
+      console.error(`❌ No tradesperson profile found for profile_id: ${tradespersonId}`);
       return NextResponse.json(
         { success: false, message: "Tradesperson profile not found" },
         { status: 404 }
@@ -909,8 +909,8 @@ export async function POST(req) {
   } catch (error) {
     console.error("❌ Rating error:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: "Failed to submit rating",
         error: error.message
       },

@@ -77,7 +77,7 @@
 
 
 import { NextResponse } from "next/server";
-import db from  "../../../../../../config/db"
+import db from "../../../../../../config/db"
 
 export async function GET(req, context) {
   try {
@@ -109,7 +109,19 @@ export async function GET(req, context) {
     // 🔎 Fetch job with category and subcategory using JOIN
     const [jobs] = await db.query(
       `SELECT 
-        j.*,
+        j.id,
+        j.homeowner_id,
+        j.category_id,
+        j.sub_category_id,
+        j.postcode,
+        j.description,
+        j.budget_min,
+        j.budget_max,
+        j.status,
+        j.hired_tradesperson_id,
+        j.has_rated,
+        j.created_at,
+        j.updated_at,
         c.id as category_id,
         c.name as category_name,
         sc.id as subcategory_id,

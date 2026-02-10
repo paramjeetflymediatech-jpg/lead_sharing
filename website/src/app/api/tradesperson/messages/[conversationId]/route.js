@@ -46,10 +46,25 @@ export async function GET(req, context) {
 
         const job = jobs[0];
 
+        // Get tradesperson profile ID
+        const [profiles] = await db.query(
+            `SELECT id FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
+            [userId]
+        );
+
+        if (!profiles || profiles.length === 0) {
+            return NextResponse.json(
+                { success: false, message: "Tradesperson profile not found" },
+                { status: 404 }
+            );
+        }
+
+        const tradespersonId = profiles[0].id;
+
         // Verify tradesperson has unlocked this lead
         const [leads] = await db.query(
             `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-            [jobId, userId]
+            [jobId, tradespersonId]
         );
 
         if (!leads || leads.length === 0) {
@@ -190,10 +205,25 @@ export async function POST(req, context) {
             );
         }
 
+        // Get tradesperson profile ID
+        const [profiles] = await db.query(
+            `SELECT id FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
+            [userId]
+        );
+
+        if (!profiles || profiles.length === 0) {
+            return NextResponse.json(
+                { success: false, message: "Tradesperson profile not found" },
+                { status: 404 }
+            );
+        }
+
+        const tradespersonId = profiles[0].id;
+
         // Verify tradesperson has unlocked this lead
         const [leads] = await db.query(
             `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-            [jobId, userId]
+            [jobId, tradespersonId]
         );
 
         if (!leads || leads.length === 0) {

@@ -82,7 +82,7 @@ export async function POST(req) {
     // Check if already unlocked
     const [existingLeads] = await db.query(
       `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-      [jobId, userId]
+      [jobId, profile.id]
     );
 
     if (existingLeads && existingLeads.length > 0) {
@@ -102,7 +102,7 @@ export async function POST(req) {
     const [leadResult] = await db.query(
       `INSERT INTO leads (job_id, tradesperson_id, message, price_estimate, is_unlocked, unlocked_at) 
        VALUES (?, ?, ?, ?, TRUE, NOW())`,
-      [jobId, userId, message.trim(), priceEstimate.trim()]
+      [jobId, profile.id, message.trim(), priceEstimate.trim()]
     );
 
     // 🚀 CREATE MESSAGE AUTOMATICALLY
