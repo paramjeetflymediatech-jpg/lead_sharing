@@ -81,6 +81,15 @@ export default function Header() {
     ? []
     : trades.filter((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
+  const adviceLinks = {
+    "Ask a tradesperson": "/ask-a-tradesperson",
+    "Cost guides": "/cost-guides",
+    "Homeowner advice centre": "/homeowner-advice",
+    "Inspiration centre": "/inspiration",
+    "Trade advice centre": "/trade-advice",
+    "Trends report": "/trends-report"
+  };
+
   const [groupedAdvice, setGroupedAdvice] = useState({
     "Homeowner Advice": ["Ask a tradesperson", "Cost guides", "Homeowner advice centre", "Inspiration centre"],
     "Trade Advice": ["Trade advice centre", "Trends report"]
@@ -228,7 +237,7 @@ export default function Header() {
                       {activeAdviceCategory && groupedAdvice[activeAdviceCategory] && groupedAdvice[activeAdviceCategory].map((item) => (
                         <Link
                           key={item}
-                          href="#"
+                          href={adviceLinks[item] || "#"}
                           className="text-gray-600 hover:text-[#1149C7] text-sm font-medium transition-colors hover:underline"
                           onClick={() => setActiveDropdown(null)}
                         >
@@ -477,7 +486,7 @@ export default function Header() {
                         {activeAdviceCategory === category && (
                           <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
                             {groupedAdvice[category] && groupedAdvice[category].map((item) => (
-                              <Link key={item} href="#" className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block" onClick={() => setIsMobileMenuOpen(false)}>
+                              <Link key={item} href={adviceLinks[item] || "#"} className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block" onClick={() => setIsMobileMenuOpen(false)}>
                                 {item}
                               </Link>
                             ))}
