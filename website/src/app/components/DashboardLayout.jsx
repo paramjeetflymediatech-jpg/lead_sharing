@@ -29,7 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 const REQUESTED_ICONS = {
-     StarIcon,
+    StarIcon,
     HomeIcon,
     BriefcaseIcon,
     PlusIcon,
@@ -76,8 +76,12 @@ export default function DashboardLayout({ children, navItems, user }) {
                 <div className="flex flex-col h-full">
                     {/* Logo Section */}
                     <div className="p-6 flex items-center justify-between">
-                        <Link href="/" className="text-2xl font-bold tracking-tight text-[#1149C7]">
-                            Leadsharing
+                        <Link href="/" className="flex items-center">
+                            <img
+                                src="/allcarepros-logo.png"
+                                alt="All Care Pros"
+                                className="h-12 w-auto object-contain"
+                            />
                         </Link>
                         <button className="lg:hidden p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg" onClick={toggleSidebar}>
                             <XMarkIcon className="w-6 h-6" />

@@ -10,10 +10,21 @@ const COMMON_PAGES = [
     { label: "Home Page", value: "/" },
     { label: "Login", value: "/auth/login" },
     { label: "Register", value: "/auth/register" },
+    { label: "Create Job", value: "/create-job" },
+    { label: "Browse Jobs", value: "/jobs" },
     { label: "About Us", value: "/about" },
+    { label: "How It Works", value: "/how-it-works" },
+    { label: "Help & FAQs", value: "/help" },
+    { label: "User Agreement", value: "/user-agreement" },
+    { label: "Legal", value: "/legal" },
+    { label: "Careers", value: "/careers" },
+    { label: "Partners", value: "/partners" },
+    { label: "Affiliates", value: "/affiliates" },
+    { label: "Testimonials", value: "/testimonials" },
     { label: "Contact Us", value: "/contact" },
     { label: "Privacy Policy", value: "/privacy" },
     { label: "Terms of Service", value: "/terms" },
+
 ];
 
 export default function SeoForm({ initialData, isEditing = false }) {

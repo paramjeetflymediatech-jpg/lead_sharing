@@ -39,7 +39,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    
+
     if (!postcode.trim()) {
       toast.error("Please enter a postcode", {
         position: "top-center",
@@ -67,7 +67,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
 
       setTradespeople(data.data || []);
       setShowResults(true);
-      
+
       if (data.count === 0) {
         toast.info("No tradespeople found in your area", {
           position: "top-center",
@@ -173,7 +173,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">
                   When to post
                 </h2>
-                
+
                 <div className="space-y-3">
                   {[
                     { label: "Urgent", value: "URGENT" },
@@ -243,7 +243,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
                               <h3 className="text-xl font-bold text-gray-900 mb-1">
                                 {trade.companyName}
                               </h3>
-                              
+
                               {/* Ratings */}
                               <div className="flex items-center gap-2 mb-2">
                                 <div className="flex">
@@ -368,7 +368,7 @@ export default function JobCreationForm() {
         credentials: "include",
         cache: "no-store",
       });
-      
+
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
@@ -427,7 +427,7 @@ export default function JobCreationForm() {
       const userName = user.name || user.user?.name || "";
       const userPhone = user.phone || user.user?.phone || "";
       const userEmail = user.email || user.user?.email || "";
-      
+
       if (userEmail) {
         setForm((prev) => ({
           ...prev,
@@ -494,7 +494,7 @@ export default function JobCreationForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Description length validation
     if (name === "description" && value.length > VALIDATION_RULES.DESCRIPTION.MAX_LENGTH) {
       toast.error(`Description cannot exceed ${VALIDATION_RULES.DESCRIPTION.MAX_LENGTH} characters`, {
@@ -878,20 +878,20 @@ export default function JobCreationForm() {
       case 2:
         return form.ownership;
       case 3:
-        return form.description.length >= VALIDATION_RULES.DESCRIPTION.MIN_LENGTH && 
-               form.description.length <= VALIDATION_RULES.DESCRIPTION.MAX_LENGTH;
+        return form.description.length >= VALIDATION_RULES.DESCRIPTION.MIN_LENGTH &&
+          form.description.length <= VALIDATION_RULES.DESCRIPTION.MAX_LENGTH;
       case 4:
-        return form.budgetMin && form.budgetMax && 
-               Number(form.budgetMin) >= VALIDATION_RULES.BUDGET.MIN &&
-               Number(form.budgetMax) <= VALIDATION_RULES.BUDGET.MAX &&
-               Number(form.budgetMin) < Number(form.budgetMax);
+        return form.budgetMin && form.budgetMax &&
+          Number(form.budgetMin) >= VALIDATION_RULES.BUDGET.MIN &&
+          Number(form.budgetMax) <= VALIDATION_RULES.BUDGET.MAX &&
+          Number(form.budgetMin) < Number(form.budgetMax);
       case 5:
         return form.postcode && VALIDATION_RULES.POSTCODE.PATTERN.test(form.postcode);
       case 6:
         return form.contactName && form.contactPhone && form.contactEmail &&
-               form.contactName.length >= 2 &&
-               VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone) &&
-               form.contactEmail.includes('@');
+          form.contactName.length >= 2 &&
+          VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone) &&
+          form.contactEmail.includes('@');
       default:
         return false;
     }
@@ -934,22 +934,22 @@ export default function JobCreationForm() {
 
       {/* Initial Form - Matches ratedpeople.com style */}
       {!isOpen && currentStep === 1 && (
-        <div className="bg-[#2c2c2c] rounded-lg shadow-2xl max-w-4xl mx-auto p-6 text-left relative z-20">
-          <p className="text-white text-center mb-4 text-base">
-            Post your job for free. Get quotes. Read reviews.
+        <div className="bg-[#2c2c2c] rounded-lg shadow-2xl max-w-4xl mx-auto p-4 sm:p-6 md:p-8 text-left relative z-20">
+          <p className="text-white text-center mb-4 text-sm sm:text-base md:text-lg">
+            Post a job for free. Get transparent quotes. Read real reviews.
           </p>
-          
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-4">
             {/* Category Dropdown */}
             <div className="flex-1">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 What service are you looking for?
               </label>
               <select
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className="w-full h-[50px] px-4 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] outline-none"
+                className="w-full h-[45px] sm:h-[50px] px-3 sm:px-4 border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-base focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] outline-none"
               >
                 <option value="">Please select</option>
                 {categories.map((cat) => (
@@ -962,7 +962,7 @@ export default function JobCreationForm() {
 
             {/* SubCategory Dropdown */}
             <div className="flex-1">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 What type of job is it?
               </label>
               <select
@@ -970,7 +970,7 @@ export default function JobCreationForm() {
                 value={form.subCategory}
                 onChange={handleChange}
                 disabled={!form.category}
-                className="w-full h-[50px] px-4 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full h-[45px] sm:h-[50px] px-3 sm:px-4 border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-base focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">Please select</option>
                 {filteredSubCategories.map((sub) => (
@@ -986,7 +986,7 @@ export default function JobCreationForm() {
               <button
                 onClick={nextStep}
                 disabled={!canProceed()}
-                className="w-full md:w-auto bg-[#84cc16] hover:bg-[#65a30d] text-white font-bold py-3 px-8 rounded-md transition h-[50px] whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full md:w-auto bg-[#1149C7] hover:bg-[#0d38a0] text-white font-bold py-3 px-6 sm:px-8 rounded-md transition h-[45px] sm:h-[50px] whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 Next step &gt;
               </button>
@@ -994,15 +994,15 @@ export default function JobCreationForm() {
           </div>
 
           {/* Trustpilot Rating */}
-          <div className="flex items-center justify-center mt-4 text-white text-sm">
-            <span className="mr-2">Great</span>
+          <div className="flex flex-col sm:flex-row items-center justify-center mt-4 gap-2 text-white text-xs sm:text-sm">
+            <span className="mr-0 sm:mr-2">Great</span>
             <div className="flex gap-1">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="w-5 h-5 bg-[#84cc16] flex items-center justify-center text-xs">★</div>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="w-4 h-4 sm:w-5 sm:h-5 bg-[#1149C7] flex items-center justify-center text-xs">★</div>
               ))}
-              <div className="w-5 h-5 bg-gray-400 flex items-center justify-center text-xs">★</div>
+              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-gray-400 flex items-center justify-center text-xs">★</div>
             </div>
-            <span className="ml-2 underline cursor-pointer">19,128 reviews on Trustpilot</span>
+            <span className="ml-0 sm:ml-2 underline cursor-pointer">5,000+ reviews on Trustpilot</span>
           </div>
         </div>
       )}
@@ -1010,19 +1010,21 @@ export default function JobCreationForm() {
       {/* Modal for Steps 2-6 with Blue Theme */}
       {isOpen && currentStep > 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 mt-15">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh]">
+
             {/* Header with Blue Theme */}
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#1149C7] rounded flex items-center justify-center text-white font-bold">
-                  L
-                </div>
+                <img
+                  src="/allcarepros-logo.png"
+                  alt="All Care Pros"
+                  className="h-12 w-auto object-contain"
+                />
                 <div>
-                  <span className="font-bold text-lg">Leadsharing</span>
+                  {/* <span className="font-bold text-lg">All Care Pros</span>
                   <p className="text-xs text-gray-500">
                     {isLoadingUser ? "Loading..." : `Logged in as: ${getDisplayEmail()}`}
-                  </p>
+                  </p> */}
                 </div>
               </div>
               <button
@@ -1055,7 +1057,7 @@ export default function JobCreationForm() {
             {/* Form Content */}
             <form onSubmit={handleSubmit}>
               <div className="p-6">
-                
+
                 {/* Step 2: Ownership */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
@@ -1073,11 +1075,10 @@ export default function JobCreationForm() {
                           key={option.value}
                           type="button"
                           onClick={() => setForm((prev) => ({ ...prev, ownership: option.value }))}
-                          className={`w-full p-4 border-2 rounded-lg text-left transition ${
-                            form.ownership === option.value
-                              ? "border-[#1149C7] bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
+                          className={`w-full p-4 border-2 rounded-lg text-left transition ${form.ownership === option.value
+                            ? "border-[#1149C7] bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                            }`}
                         >
                           {option.label}
                         </button>
@@ -1093,14 +1094,13 @@ export default function JobCreationForm() {
                       <h2 className="text-2xl font-bold text-gray-800 mb-2">
                         Describe what needs to be done
                       </h2>
-                      <p className={`text-sm ${
-                        form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH 
-                          ? 'text-red-500' 
-                          : form.description.length > VALIDATION_RULES.DESCRIPTION.MAX_LENGTH - 50
+                      <p className={`text-sm ${form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH
+                        ? 'text-red-500'
+                        : form.description.length > VALIDATION_RULES.DESCRIPTION.MAX_LENGTH - 50
                           ? 'text-orange-500'
                           : 'text-gray-500'
-                      }`}>
-                        {form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH 
+                        }`}>
+                        {form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH
                           ? `At least ${VALIDATION_RULES.DESCRIPTION.MIN_LENGTH} characters required (${form.description.length}/${VALIDATION_RULES.DESCRIPTION.MIN_LENGTH})`
                           : `${form.description.length}/${VALIDATION_RULES.DESCRIPTION.MAX_LENGTH} characters (${getRemainingCharacters()} remaining)`
                         }
@@ -1119,7 +1119,7 @@ export default function JobCreationForm() {
                     {/* Media Upload */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Add photos or videos (optional) 
+                        Add photos or videos (optional)
                         <span className="ml-2 text-gray-400">
                           ({uploadedMedia.length}/{VALIDATION_RULES.MEDIA.MAX_FILES} files)
                         </span>
@@ -1133,11 +1133,10 @@ export default function JobCreationForm() {
                         </div>
                       )}
 
-                      <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition ${
-                        isUploadDisabled 
-                          ? 'border-gray-200 bg-gray-50' 
-                          : 'border-gray-300 hover:border-[#1149C7]'
-                      }`}>
+                      <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition ${isUploadDisabled
+                        ? 'border-gray-200 bg-gray-50'
+                        : 'border-gray-300 hover:border-[#1149C7]'
+                        }`}>
                         <input
                           type="file"
                           multiple
@@ -1476,7 +1475,7 @@ export default function JobCreationForm() {
 
 
 
-   
+
 
 
 

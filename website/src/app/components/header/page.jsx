@@ -107,16 +107,19 @@ export default function Header() {
 
   return (
     <header className="w-full bg-white border-b border-zinc-200 sticky top-0 z-50 font-sans">
-      <div className="mx-auto max-w-7xl px-6 h-20 flex justify-between items-center bg-white relative z-50">
-        {/* Logo */}
+      <div className="mx-auto max-w-7xl px-4 lg:px-6 h-16 lg:h-20 flex justify-between items-center bg-white relative z-50">
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 group flex-shrink-0">
-          <div className="w-8 h-8 rounded bg-[#1149C7] flex items-center justify-center text-white font-bold text-lg">
-            L
-          </div>
-          <span className="text-xl font-bold text-[#1a1a1a] tracking-tight group-hover:text-[#1149C7] transition-colors">
-            Leadsharing
-          </span>
+          <img
+            src="/allcarepros-logo.png"
+            alt="All Care Pros"
+            className="h-8 lg:h-10 w-auto object-contain"
+          />
+          {/* {user && (
+            <span className="text-base lg:text-xl font-bold text-[#1a1a1a] tracking-tight group-hover:text-[#1149C7] transition-colors lg:inline">
+              All Care Pros
+            </span>
+          )} */}
         </a>
 
 
@@ -309,7 +312,7 @@ export default function Header() {
           </Link>
         </nav>
 
-        {/* Right Side Actions */}
+        {/* Right Side Actions - Desktop */}
         <div className="hidden lg:flex items-center space-x-6">
           {user ? (
             <div className="relative">
@@ -370,24 +373,171 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden text-gray-700 p-2"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <XMarkIcon className="w-8 h-8" /> : <Bars3Icon className="w-8 h-8" />}
-        </button>
+        {/* Mobile Right Side - Login and Trade buttons + Menu */}
+        <div className="lg:hidden flex items-center gap-3">
+          {!user && (
+            <>
+              <Link href="/auth/login" className="text-sm font-medium text-gray-700 hover:text-[#155DFC] transition-colors">
+                Log in
+              </Link>
+              <Link
+                href="/auth/register?role=TRADESPERSON"
+                className="rounded-md bg-[#1149C7] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#0d38a0]"
+              >
+                Trade
+              </Link>
+            </>
+          )}
+
+          {/* Mobile Menu Button */}
+          <button
+            className="text-gray-700 p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <XMarkIcon className="w-7 h-7" /> : <Bars3Icon className="w-7 h-7" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-20 bg-white z-[999] overflow-y-auto pb-20 border-t border-gray-100 shadow-xl">
-          <div className="flex flex-col p-4 space-y-2">
+        <div className="lg:hidden fixed inset-0 top-16 bg-white z-[999] overflow-y-auto border-t border-gray-100 shadow-xl">
+          <div className="flex flex-col min-h-[calc(100vh-4rem)] p-4">
 
-            {/* Mobile User Section */}
+            {/* Menu Items Section */}
+            <div className="flex-1 space-y-2">
+              {/* Mobile Trade Section */}
+              <div className="border-b border-gray-100 pb-2">
+                <button
+                  onClick={() => toggleMobileSection('trades')}
+                  className="flex w-full justify-between items-center py-2 font-bold text-gray-800"
+                >
+                  Find a Trade
+                  <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.trades ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileExpanded.trades && (
+                  <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
+                    {Object.keys(groupedTrades).map((category) => (
+                      <div key={category} className="border-b border-gray-200 last:border-0 pb-2">
+                        <button
+                          className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTradeCategory(activeTradeCategory === category ? null : category);
+                          }}
+                        >
+                          {category}
+                          <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeTradeCategory === category ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {activeTradeCategory === category && (
+                          <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
+                            {groupedTrades[category] && groupedTrades[category].map((trade) => (
+                              <Link
+                                key={trade._id}
+                                href={user?.role === 'HOMEOWNER' ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${trade.name.toLowerCase().replace(/ /g, '-')}`}
+                                className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {trade.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Advice Section */}
+              <div className="border-b border-gray-100 pb-2">
+                <button
+                  onClick={() => toggleMobileSection('advice')}
+                  className="flex w-full justify-between items-center py-2 font-bold text-gray-800"
+                >
+                  Advice centre
+                  <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.advice ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileExpanded.advice && (
+                  <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
+                    {Object.keys(groupedAdvice).map((category) => (
+                      <div key={category} className="border-b border-gray-200 last:border-0 pb-2">
+                        <button
+                          className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveAdviceCategory(activeAdviceCategory === category ? null : category);
+                          }}
+                        >
+                          {category}
+                          <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeAdviceCategory === category ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {activeAdviceCategory === category && (
+                          <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
+                            {groupedAdvice[category] && groupedAdvice[category].map((item) => (
+                              <Link key={item} href="#" className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block" onClick={() => setIsMobileMenuOpen(false)}>
+                                {item}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Location Section */}
+              <div className="border-b border-gray-100 pb-2">
+                <button
+                  onClick={() => toggleMobileSection('location')}
+                  className="flex w-full justify-between items-center py-2 font-bold text-gray-800"
+                >
+                  Location
+                  <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.location ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileExpanded.location && (
+                  <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
+                    {locations.map((region) => (
+                      <div key={region} className="border-b border-gray-200 last:border-0 pb-2">
+                        <button
+                          className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveRegion(activeRegion === region ? null : region);
+                          }}
+                        >
+                          {region}
+                          <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeRegion === region ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {activeRegion === region && (
+                          <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
+                            {LOCATION_DATA[region] && LOCATION_DATA[region].map((area) => (
+                              <Link
+                                key={area}
+                                href={`/local-tradespeople/${area.toLowerCase().replace(/ /g, '-')}`}
+                                className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {area}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile User Section - Moved to Bottom */}
             {user && (
-              <div className="border-b border-gray-100 pb-4 mb-2">
-                <div className="flex items-center gap-3 px-2 mb-4">
+              <div className="mt-auto pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-3 px-2 mb-3">
                   <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7]">
                     <UserCircleIcon className="w-7 h-7" />
                   </div>
@@ -412,139 +562,6 @@ export default function Header() {
               </div>
             )}
 
-            {/* Mobile Trade Section */}
-            <div className="border-b border-gray-100 pb-2">
-              <button
-                onClick={() => toggleMobileSection('trades')}
-                className="flex w-full justify-between items-center py-2 font-bold text-gray-800"
-              >
-                Find a Trade
-                <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.trades ? 'rotate-180' : ''}`} />
-              </button>
-              {mobileExpanded.trades && (
-                <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                  {Object.keys(groupedTrades).map((category) => (
-                    <div key={category} className="border-b border-gray-200 last:border-0 pb-2">
-                      <button
-                        className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveTradeCategory(activeTradeCategory === category ? null : category);
-                        }}
-                      >
-                        {category}
-                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeTradeCategory === category ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {activeTradeCategory === category && (
-                        <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
-                          {groupedTrades[category] && groupedTrades[category].map((trade) => (
-                            <Link
-                              key={trade._id}
-                              href={user?.role === 'HOMEOWNER' ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${trade.name.toLowerCase().replace(/ /g, '-')}`}
-                              className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              {trade.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Advice Section */}
-            <div className="border-b border-gray-100 pb-2">
-              <button
-                onClick={() => toggleMobileSection('advice')}
-                className="flex w-full justify-between items-center py-2 font-bold text-gray-800"
-              >
-                Advice centre
-                <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.advice ? 'rotate-180' : ''}`} />
-              </button>
-              {mobileExpanded.advice && (
-                <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                  {Object.keys(groupedAdvice).map((category) => (
-                    <div key={category} className="border-b border-gray-200 last:border-0 pb-2">
-                      <button
-                        className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveAdviceCategory(activeAdviceCategory === category ? null : category);
-                        }}
-                      >
-                        {category}
-                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeAdviceCategory === category ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {activeAdviceCategory === category && (
-                        <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
-                          {groupedAdvice[category] && groupedAdvice[category].map((item) => (
-                            <Link key={item} href="#" className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block" onClick={() => setIsMobileMenuOpen(false)}>
-                              {item}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Location Section */}
-            <div className="border-b border-gray-100 pb-2">
-              <button
-                onClick={() => toggleMobileSection('location')}
-                className="flex w-full justify-between items-center py-2 font-bold text-gray-800"
-              >
-                Location
-                <ChevronDownIcon className={`w-5 h-5 transition-transform ${mobileExpanded.location ? 'rotate-180' : ''}`} />
-              </button>
-              {mobileExpanded.location && (
-                <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                  {locations.map((region) => (
-                    <div key={region} className="border-b border-gray-200 last:border-0 pb-2">
-                      <button
-                        className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveRegion(activeRegion === region ? null : region);
-                        }}
-                      >
-                        {region}
-                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeRegion === region ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {activeRegion === region && (
-                        <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
-                          {LOCATION_DATA[region] && LOCATION_DATA[region].map((area) => (
-                            <Link
-                              key={area}
-                              href={`/local-tradespeople/${area.toLowerCase().replace(/ /g, '-')}`}
-                              className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              {area}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {!user && (
-              <div className="pt-4 space-y-3">
-                <Link href="/auth/login" className="block text-center w-full border-2 border-gray-200 text-gray-800 rounded-lg py-3 font-bold hover:bg-gray-50">Log in</Link>
-                <Link href="/auth/register?role=TRADESPERSON" className="block text-center w-full bg-[#1149C7] text-white rounded-lg py-3 font-bold hover:bg-[#0d38a0]">Trade sign up</Link>
-              </div>
-            )}
           </div>
         </div>
       )}

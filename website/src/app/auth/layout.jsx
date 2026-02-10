@@ -8,6 +8,7 @@ export default function AuthLayout({ children }) {
         <div className="flex min-h-screen flex-col bg-white dark:bg-[#000000]">
             <Header />
             {children}
+            
             <Footer />
         </div>
     );

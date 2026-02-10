@@ -4,10 +4,10 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 export const metadata = {
-  title: "Lead Sharing",
-  description: "Find and hire trusted tradespeople in the UK",
+  title: "All Care Pros",
+  description: "Find and hire trusted tradespeople in the UK with All Care Pros",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.png",
   },
 };
 

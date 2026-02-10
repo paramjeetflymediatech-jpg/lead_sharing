@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  CreditCard, 
-  ArrowLeft, 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
-  Building, 
-  User, 
-  Calendar, 
-  DollarSign, 
+import {
+  CreditCard,
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Building,
+  User,
+  Calendar,
+  DollarSign,
   Award,
   Search,
   Filter,
@@ -71,7 +71,7 @@ export default function AdminPaymentsPage() {
       // Check both possible role properties
       const userRole = userData?.user?.role || userData?.role;
       console.log("User role:", userRole);
-      
+
       // Convert to uppercase for comparison
       if (userRole?.toUpperCase() !== "ADMIN") {
         console.log("Not an admin, redirecting to login");
@@ -103,10 +103,10 @@ export default function AdminPaymentsPage() {
 
       const paymentsData = await paymentsRes.json();
       console.log("Payments data received:", paymentsData);
-      
+
       const paymentsList = paymentsData.payments || [];
       console.log("Payments list length:", paymentsList.length);
-      
+
       setPayments(paymentsList);
       setFilteredPayments(paymentsList);
 
@@ -115,7 +115,7 @@ export default function AdminPaymentsPage() {
       const totalCredits = paymentsList
         .filter(p => p.status === 'completed')
         .reduce((sum, p) => sum + (p.credits || 0), 0);
-      
+
       const completedTransactions = paymentsList.filter(p => p.status === 'completed').length;
       const pendingTransactions = paymentsList.filter(p => p.status === 'pending').length;
 
@@ -159,7 +159,7 @@ export default function AdminPaymentsPage() {
       const startDate = new Date(dateRange.start);
       filtered = filtered.filter(payment => new Date(payment.created_at) >= startDate);
     }
-    
+
     if (dateRange.end) {
       const endDate = new Date(dateRange.end);
       endDate.setHours(23, 59, 59, 999); // Include entire end day
@@ -261,7 +261,7 @@ export default function AdminPaymentsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
+      {/* <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
           <Link href="/admin" className="flex items-center gap-2 shrink-0">
             <div className="h-10 w-10 rounded-lg bg-[#155DFC] flex items-center justify-center text-white">
@@ -296,7 +296,10 @@ export default function AdminPaymentsPage() {
             </Link>
           </div>
         </div>
-      </header>
+      </header> */}
+
+
+
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
         {/* Page Header */}
@@ -451,7 +454,7 @@ export default function AdminPaymentsPage() {
                 <input
                   type="date"
                   value={dateRange.start}
-                  onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
                   className="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent"
                 />
               </div>
@@ -462,7 +465,7 @@ export default function AdminPaymentsPage() {
                 <input
                   type="date"
                   value={dateRange.end}
-                  onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
                   className="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent"
                 />
               </div>
@@ -488,8 +491,8 @@ export default function AdminPaymentsPage() {
               No payments found
             </h3>
             <p className="text-sm text-zinc-600">
-              {payments.length === 0 
-                ? "No payment transactions have been made yet" 
+              {payments.length === 0
+                ? "No payment transactions have been made yet"
                 : "No payments match your filters"}
             </p>
           </div>
@@ -506,7 +509,7 @@ export default function AdminPaymentsPage() {
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
                       {getStatusIcon(payment.status)}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold border ${getPlanBadgeColor(payment.plan)}`}>
@@ -516,11 +519,11 @@ export default function AdminPaymentsPage() {
                           {payment.status?.toUpperCase()}
                         </span>
                       </div>
-                      
+
                       <h3 className="text-lg font-bold text-zinc-900 mb-1">
                         {payment.credits} Credits Purchase
                       </h3>
-                      
+
                       <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-600">
                         <span className="flex items-center gap-1">
                           <User className="w-4 h-4" />
@@ -565,11 +568,10 @@ export default function AdminPaymentsPage() {
                     </div>
                     <div>
                       <p className="text-zinc-500 mb-1">Payment Status</p>
-                      <p className={`font-bold ${
-                        payment.status === 'completed' ? 'text-green-600' :
+                      <p className={`font-bold ${payment.status === 'completed' ? 'text-green-600' :
                         payment.status === 'pending' ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
+                          'text-red-600'
+                        }`}>
                         {payment.status}
                       </p>
                     </div>
@@ -592,10 +594,11 @@ export default function AdminPaymentsPage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </div >
               </div>
-            ))}
-          </div>
+            ))
+            }
+          </div >
         )}
       </main>
     </div>

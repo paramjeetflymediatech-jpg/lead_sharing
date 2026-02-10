@@ -24,7 +24,7 @@ export async function getSeoMetadata(path) {
             openGraph: {
                 title: seoData.ogTitle || seoData.title,
                 description: seoData.ogDescription || seoData.metaDescription,
-                url: seoData.canonicalUrl || `https://leadsharing.com${path}`,
+                url: seoData.canonicalUrl || `https://allcarepros.ca${path}`,
                 images: seoData.ogImage ? [{ url: seoData.ogImage }] : [],
                 type: 'website',
             },

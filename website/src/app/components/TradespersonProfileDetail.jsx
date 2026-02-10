@@ -103,7 +103,7 @@
 //               <p className="text-gray-600 mb-3">
 //                 {profile.serviceAreas?.join(", ")} • {profile.postcode}
 //               </p>
-              
+
 //               {/* Ratings */}
 //               <div className="flex items-center gap-3 mb-4">
 //                 <div className="flex">
@@ -231,7 +231,7 @@
 //       {/* CTA */}
 //       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-8 text-center text-white">
 //         <h3 className="text-2xl font-bold mb-2">
-//           Post your job for free. Get quotes. Read reviews.
+//           Find reliable, vetted tradespeople right in your neighborhood. 
 //         </h3>
 //         <p className="mb-6 opacity-90">
 //           Connect with local tradespeople like {profile.companyName}
@@ -298,7 +298,7 @@ export default function TradespersonProfileDetail({ profileId }) {
   const fetchProfileAndRatings = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch profile
       const profileRes = await fetch(`/api/tradespeople/${profileId}`);
       const profileData = await profileRes.json();
@@ -313,7 +313,7 @@ export default function TradespersonProfileDetail({ profileId }) {
       try {
         const ratingsRes = await fetch(`/api/tradesperson/ratings?tradespersonId=${profileId}`);
         const ratingsData = await ratingsRes.json();
-        
+
         if (ratingsRes.ok) {
           setRatings(ratingsData.ratings || []);
           setRatingStats({
@@ -412,18 +412,17 @@ export default function TradespersonProfileDetail({ profileId }) {
                 <p className="text-gray-600 mb-3">
                   {profile.serviceAreas?.join(", ")} • {profile.postcode}
                 </p>
-                
+
                 {/* Ratings */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <span 
-                        key={i} 
-                        className={`text-xl ${
-                          i < Math.round(averageRating) 
-                            ? 'text-yellow-400' 
+                      <span
+                        key={i}
+                        className={`text-xl ${i < Math.round(averageRating)
+                            ? 'text-yellow-400'
                             : 'text-gray-300'
-                        }`}
+                          }`}
                       >
                         ★
                       </span>
@@ -521,13 +520,12 @@ export default function TradespersonProfileDetail({ profileId }) {
                             </span>
                             <div className="flex">
                               {[...Array(5)].map((_, i) => (
-                                <span 
-                                  key={i} 
-                                  className={`text-sm ${
-                                    i < review.rating 
-                                      ? 'text-yellow-400' 
+                                <span
+                                  key={i}
+                                  className={`text-sm ${i < review.rating
+                                      ? 'text-yellow-400'
                                       : 'text-gray-300'
-                                  }`}
+                                    }`}
                                 >
                                   ★
                                 </span>
@@ -600,7 +598,7 @@ export default function TradespersonProfileDetail({ profileId }) {
         {/* CTA */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-8 text-center text-white">
           <h3 className="text-2xl font-bold mb-2">
-            Post your job for free. Get quotes. Read reviews.
+            Find reliable, vetted tradespeople right in your neighborhood.
           </h3>
           <p className="mb-6 opacity-90">
             Connect with local tradespeople like {profile.companyName}
