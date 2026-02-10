@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 export const metadata = {
   title: "All Care Pros",
-  description: "Find and hire trusted tradespeople in the UK with All Care Pros",
+  description: "Find and hire trusted tradespeople in Canada with All Care Pros",
   icons: {
     icon: "/favicon.png",
   },

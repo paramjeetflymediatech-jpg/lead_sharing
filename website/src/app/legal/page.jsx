@@ -35,7 +35,7 @@ export default async function LegalPage() {
                             <div className="bg-gray-50 p-6 rounded-xl space-y-2">
                                 <p className="text-gray-700"><strong>Company Name:</strong> Leadsharing Ltd</p>
                                 <p className="text-gray-700"><strong>Trading As:</strong> All Care Pros</p>
-                                <p className="text-gray-700"><strong>Registered in:</strong> United Kingdom</p>
+                                <p className="text-gray-700"><strong>Registered in:</strong> Canada</p>
                                 <p className="text-gray-700"><strong>Company Number:</strong> [Company Registration Number]</p>
                                 <p className="text-gray-700"><strong>VAT Number:</strong> [VAT Number]</p>
                             </div>
@@ -68,7 +68,7 @@ export default async function LegalPage() {
                         <div>
                             <h2 className="text-3xl font-bold text-gray-900 mb-4">Intellectual Property</h2>
                             <p className="text-gray-600 leading-relaxed">
-                                All content on this website, including text, graphics, logos, images, and software, is the property of Leadsharing Ltd or its content suppliers and is protected by UK and international copyright laws.
+                                All content on this website, including text, graphics, logos, images, and software, is the property of Leadsharing Ltd or its content suppliers and is protected by Canadian and international copyright laws.
                             </p>
                         </div>
 

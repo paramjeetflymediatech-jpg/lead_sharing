@@ -33,7 +33,7 @@ export default async function PartnersPage() {
                         <div className="text-center">
                             <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Partner With All Care Pros?</h2>
                             <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-12">
-                                We're building the UK's leading platform for home services. Partner with us to reach thousands of homeowners and tradespeople.
+                                We're building Canada's leading platform for home services. Partner with us to reach thousands of homeowners and tradespeople.
                             </p>
 
                             <div className="grid md:grid-cols-3 gap-8">

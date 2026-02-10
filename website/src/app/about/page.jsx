@@ -22,7 +22,7 @@ export default async function AboutPage() {
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-4xl md:text-5xl font-extrabold mb-6">About All Care Pros</h1>
                         <p className="text-xl md:text-2xl opacity-90">
-                            Connecting homeowners with trusted tradespeople across the UK
+                            Connecting homeowners with trusted tradespeople across Canada
                         </p>
                     </div>
                 </section>

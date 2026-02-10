@@ -11,19 +11,19 @@ export default async function CareersPage() {
         {
             title: "Full Stack Developer",
             department: "Engineering",
-            location: "Remote / London",
+            location: "Remote / Toronto",
             type: "Full-time"
         },
         {
             title: "Customer Success Manager",
             department: "Customer Support",
-            location: "London",
+            location: "Toronto",
             type: "Full-time"
         },
         {
             title: "Marketing Manager",
             department: "Marketing",
-            location: "Remote / London",
+            location: "Remote / Vancouver",
             type: "Full-time"
         },
         {

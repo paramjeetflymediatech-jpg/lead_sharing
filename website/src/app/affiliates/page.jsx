@@ -83,13 +83,13 @@ export default async function AffiliatesPage() {
                             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                                 <div className="bg-white p-6 rounded-xl border-2 border-[#1149C7]">
                                     <h3 className="text-2xl font-bold text-[#1149C7] mb-2">Homeowner Referrals</h3>
-                                    <p className="text-4xl font-extrabold text-gray-900 mb-2">£10</p>
+                                    <p className="text-4xl font-extrabold text-gray-900 mb-2">$15</p>
                                     <p className="text-gray-600">Per homeowner who posts their first job</p>
                                 </div>
 
                                 <div className="bg-white p-6 rounded-xl border-2 border-[#1149C7]">
                                     <h3 className="text-2xl font-bold text-[#1149C7] mb-2">Tradesperson Referrals</h3>
-                                    <p className="text-4xl font-extrabold text-gray-900 mb-2">£25</p>
+                                    <p className="text-4xl font-extrabold text-gray-900 mb-2">$35</p>
                                     <p className="text-gray-600">Per tradesperson who completes their first paid subscription</p>
                                 </div>
                             </div>
