@@ -10,12 +10,12 @@
 const dotenv = require("dotenv");
 const path = require("path");
 
-// Load environment variables from .env.production if it exists, otherwise .env
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+// Load .env from project root (2 levels up from migrations folder)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-console.log(`📁 Using environment file: ${envFile}`);
-console.log(`🔌 Connecting to database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
+console.log("✅ Connected to .env file");
+console.log(`🔌 Database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
+
 const mysql = require("mysql2/promise");
 
 async function runMigration() {

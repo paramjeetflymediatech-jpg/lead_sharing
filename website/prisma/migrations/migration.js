@@ -7,7 +7,14 @@
  */
 
 const dotenv = require("dotenv");
-dotenv.config();
+const path = require("path");
+
+// Load .env from project root (2 levels up from migrations folder)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+console.log("✅ Connected to .env file");
+console.log(`🔌 Database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
+
 const mysql = require("mysql2/promise");
 
 async function runMigration() {
