@@ -182,7 +182,7 @@ export default function ProfilePage() {
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-white">Profile Settings</h1>
+                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">Profile Settings</h1>
                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                         Manage your personal information and security preferences.
                     </p>
