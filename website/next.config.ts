@@ -23,7 +23,15 @@ const nextConfig: NextConfig = {
         ]
       }
     ]
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/uploads/:path*",
+        destination: "/api/uploads-serve/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
