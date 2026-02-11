@@ -213,7 +213,7 @@ export default function AdminJobsPage() {
                         <div key={job._id} className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800 flex flex-col gap-3">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="font-bold text-zinc-900 dark:text-white line-clamp-1">{job.description}</div>
+                                    {/* <div className="font-bold text-zinc-900 dark:text-white line-clamp-1">{job.description}</div> */}
                                     <div className="text-zinc-500 text-xs mt-0.5 flex items-center gap-1">
                                         <ClockIcon className="w-3 h-3" />
                                         {new Date(job.createdAt).toLocaleDateString()}

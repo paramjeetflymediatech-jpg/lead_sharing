@@ -191,7 +191,7 @@ export default function SeoManagementPage() {
                                 </div>
                                 <div>
                                     <span className="text-zinc-400 text-xs uppercase tracking-wider font-semibold block mb-1">Description</span>
-                                    <div className="text-xs text-zinc-500">{page.metaDescription}</div>
+                                    {/* <div className="text-xs text-zinc-500">{page.metaDescription}</div> */}
                                 </div>
                             </div>
 

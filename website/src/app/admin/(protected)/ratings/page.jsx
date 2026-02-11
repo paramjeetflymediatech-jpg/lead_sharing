@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { StarIcon as StarIconOutline, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import Pagination from "../../../../components/Pagination";
 
 export default function AdminTradespersonRatingsPage() {
   const [tradespeople, setTradespeople] = useState([]);
@@ -10,9 +11,18 @@ export default function AdminTradespersonRatingsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTradesperson, setSelectedTradesperson] = useState(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   useEffect(() => {
     fetchAllRatings();
   }, []);
+
+  // Reset pagination on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const fetchAllRatings = async () => {
     try {
@@ -70,6 +80,11 @@ export default function AdminTradespersonRatingsPage() {
     tp.userEmail?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination Slicing
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTradespeople = filteredTradespeople.slice(indexOfFirstItem, indexOfLastItem);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-zinc-900">
@@ -84,7 +99,7 @@ export default function AdminTradespersonRatingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -145,8 +160,8 @@ export default function AdminTradespersonRatingsPage() {
           </div>
 
           <div className="divide-y divide-gray-200 dark:divide-zinc-700">
-            {filteredTradespeople.length > 0 ? (
-              filteredTradespeople.map((tp) => (
+            {currentTradespeople.length > 0 ? (
+              currentTradespeople.map((tp) => (
                 <div key={tp.id} className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -232,6 +247,14 @@ export default function AdminTradespersonRatingsPage() {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredTradespeople.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

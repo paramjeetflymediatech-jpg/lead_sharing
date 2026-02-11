@@ -116,9 +116,9 @@ export default function TradespersonConversationPage() {
                     </Link>
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-xl font-bold text-zinc-900 dark:text-white">
+                            <p className="text-xl font-bold text-zinc-900 dark:text-white ">
                                 {conversation.jobTitle || "Conversation"}
-                            </h1>
+                            </p>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
                                 Job Status: {conversation.jobStatus}
                             </p>
@@ -147,8 +147,8 @@ export default function TradespersonConversationPage() {
                             >
                                 <div
                                     className={`max-w-md px-4 py-3 rounded-2xl ${msg.isMine
-                                            ? "bg-[#155DFC] text-white"
-                                            : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700"
+                                        ? "bg-[#155DFC] text-white"
+                                        : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700"
                                         }`}
                                 >
                                     <p className="text-sm mb-1">{msg.content}</p>

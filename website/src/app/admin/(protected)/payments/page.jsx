@@ -18,11 +18,12 @@ import {
   Filter,
   Download
 } from "lucide-react";
+import Pagination from "../../../../components/Pagination";
 
 export default function AdminPaymentsPage() {
   const router = useRouter();
   const [payments, setPayments] = useState([]);
-  const [filteredPayments, setFilteredPayments] = useState([]);
+  // const [filteredPayments, setFilteredPayments] = useState([]); // Server side now
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const [stats, setStats] = useState({
@@ -39,13 +40,14 @@ export default function AdminPaymentsPage() {
     end: ""
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 6;
 
   useEffect(() => {
-    filterPayments();
-  }, [searchTerm, statusFilter, dateRange, payments]);
+    fetchData();
+  }, [currentPage, searchTerm, statusFilter, dateRange]);
 
   const fetchData = async () => {
     try {
@@ -56,30 +58,20 @@ export default function AdminPaymentsPage() {
         credentials: "include",
       });
 
-      console.log("User response status:", userRes.status);
-
       if (!userRes.ok) {
-        console.log("Not authenticated, redirecting to login");
         router.push("/auth/login");
         return;
       }
 
       const userData = await userRes.json();
-      console.log("UserData from /api/me:", userData);
 
-      // 2️⃣ Check if user is an admin - FIXED: Check uppercase "ADMIN"
-      // Check both possible role properties
+      // 2️⃣ Check if user is an admin
       const userRole = userData?.user?.role || userData?.role;
-      console.log("User role:", userRole);
-
-      // Convert to uppercase for comparison
       if (userRole?.toUpperCase() !== "ADMIN") {
-        console.log("Not an admin, redirecting to login");
         router.push("/auth/login");
         return;
       }
 
-      // Store user data properly
       setUserData({
         id: userData.user?.id || userData.id,
         email: userData.user?.email || userData.email,
@@ -87,86 +79,54 @@ export default function AdminPaymentsPage() {
         role: userRole,
       });
 
-      // 3️⃣ Fetch all payments for admin
-      console.log("Fetching payments...");
-      const paymentsRes = await fetch("/api/admin/payments", {
+      // 3️⃣ Fetch payments with pagination & filters
+      const queryParams = new URLSearchParams({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchTerm,
+        status: statusFilter !== 'all' ? statusFilter : '',
+        startDate: dateRange.start,
+        endDate: dateRange.end
+      });
+
+      const paymentsRes = await fetch(`/api/admin/payments?${queryParams.toString()}`, {
         credentials: "include",
       });
 
-      console.log("Payments response status:", paymentsRes.status);
-
-      if (!paymentsRes.ok) {
-        const errorText = await paymentsRes.text();
-        console.error("Payments API error:", errorText);
-        throw new Error("Failed to load payments");
-      }
+      if (!paymentsRes.ok) throw new Error("Failed to load payments");
 
       const paymentsData = await paymentsRes.json();
-      console.log("Payments data received:", paymentsData);
 
-      const paymentsList = paymentsData.payments || [];
-      console.log("Payments list length:", paymentsList.length);
+      setPayments(paymentsData.payments || []);
+      setTotalItems(paymentsData.total || 0);
 
-      setPayments(paymentsList);
-      setFilteredPayments(paymentsList);
-
-      // 4️⃣ Calculate stats
-      const totalRevenue = paymentsList.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-      const totalCredits = paymentsList
-        .filter(p => p.status === 'completed')
-        .reduce((sum, p) => sum + (p.credits || 0), 0);
-
-      const completedTransactions = paymentsList.filter(p => p.status === 'completed').length;
-      const pendingTransactions = paymentsList.filter(p => p.status === 'pending').length;
-
-      setStats({
-        totalRevenue: totalRevenue.toFixed(2),
-        totalCredits,
-        totalTransactions: paymentsList.length,
-        completedTransactions,
-        pendingTransactions
-      });
+      // 4️⃣ Stats come from summary object now
+      if (paymentsData.summary) {
+        setStats({
+          totalRevenue: parseFloat(paymentsData.summary.total_revenue || 0).toFixed(2),
+          totalCredits: paymentsData.summary.total_credits_issued || 0,
+          totalTransactions: paymentsData.summary.total_transactions || 0,
+          completedTransactions: paymentsData.summary.completed || 0,
+          pendingTransactions: paymentsData.summary.pending || 0
+        });
+      }
 
     } catch (err) {
       console.error("Error in fetchData:", err);
-      // Don't redirect on error, just show empty state
     } finally {
       setLoading(false);
     }
   };
 
-  const filterPayments = () => {
-    let filtered = [...payments];
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(payment =>
-        payment.tradesperson_id?.toString().includes(searchTerm) ||
-        payment.user_id?.toString().includes(searchTerm) ||
-        payment.plan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.stripe_payment_intent_id?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(payment => payment.status === statusFilter);
-    }
-
-    // Apply date range filter
-    if (dateRange.start) {
-      const startDate = new Date(dateRange.start);
-      filtered = filtered.filter(payment => new Date(payment.created_at) >= startDate);
-    }
-
-    if (dateRange.end) {
-      const endDate = new Date(dateRange.end);
-      endDate.setHours(23, 59, 59, 999); // Include entire end day
-      filtered = filtered.filter(payment => new Date(payment.created_at) <= endDate);
-    }
-
-    setFilteredPayments(filtered);
+  const handleStatusChange = (e) => {
+    setStatusFilter(e.target.value);
+    setCurrentPage(1);
   };
 
   const formatDate = (dateString) => {
@@ -203,39 +163,21 @@ export default function AdminPaymentsPage() {
   };
 
   const exportToCSV = () => {
+    // Note: Exporting only current page or all? usually all.
+    // implementing basic export for current view for now or fetch all.
+    // For simplicity keeping current view or might need separate endpoint for full export.
     const headers = [
-      "ID",
-      "Tradesperson ID",
-      "User ID",
-      "Plan",
-      "Amount",
-      "Currency",
-      "Credits",
-      "Status",
-      "Stripe Session ID",
-      "Payment Intent ID",
-      "Transaction Date"
+      "ID", "Tradesperson ID", "User ID", "Plan", "Amount", "Currency",
+      "Credits", "Status", "Stripe Session ID", "Payment Intent ID", "Transaction Date"
     ];
 
-    const csvData = filteredPayments.map(payment => [
-      payment.id,
-      payment.tradesperson_id,
-      payment.user_id,
-      payment.plan,
-      payment.amount,
-      payment.currency,
-      payment.credits,
-      payment.status,
-      payment.stripe_session_id,
-      payment.stripe_payment_intent_id,
-      formatDate(payment.created_at)
+    const csvData = payments.map(payment => [
+      payment.id, payment.tradesperson_id, payment.user_id, payment.plan,
+      payment.amount, payment.currency, payment.credits, payment.status,
+      payment.stripe_session_id, payment.stripe_payment_intent_id, formatDate(payment.created_at)
     ]);
 
-    const csvContent = [
-      headers.join(","),
-      ...csvData.map(row => row.join(","))
-    ].join("\n");
-
+    const csvContent = [headers.join(","), ...csvData.map(row => row.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -247,12 +189,12 @@ export default function AdminPaymentsPage() {
     window.URL.revokeObjectURL(url);
   };
 
-  if (loading) {
+  if (loading && payments.length === 0) {
     return (
       <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#155DFC] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-zinc-600">Loading all payments...</p>
+          <p className="text-zinc-600">Loading payments...</p>
         </div>
       </div>
     );
@@ -260,47 +202,6 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
-      {/* Header */}
-      {/* <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
-          <Link href="/admin" className="flex items-center gap-2 shrink-0">
-            <div className="h-10 w-10 rounded-lg bg-[#155DFC] flex items-center justify-center text-white">
-              <CreditCard className="w-5 h-5" />
-            </div>
-            <h1 className="text-lg sm:text-xl font-bold text-black hidden xs:block">
-              Admin Payments Dashboard
-            </h1>
-          </Link>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            {userData && (
-              <div className="hidden md:flex items-center gap-2 text-sm text-zinc-600">
-                <User className="w-4 h-4" />
-                <span className="font-medium">{userData.name}</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  ADMIN
-                </span>
-              </div>
-            )}
-            <div className="rounded-full bg-green-100 px-3 py-1.5 border border-green-200">
-              <span className="text-xs font-bold text-green-700">
-                Admin View
-              </span>
-            </div>
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-black hover:bg-zinc-50"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-            </Link>
-          </div>
-        </div>
-      </header> */}
-
-
-
-
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
         {/* Page Header */}
         <div className="mb-8">
@@ -327,9 +228,9 @@ export default function AdminPaymentsPage() {
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Total Revenue</p>
+                <p className="text-sm font-medium text-zinc-500"> Revenue</p>
                 <p className="text-2xl font-bold text-zinc-900">
-                  GBP {stats.totalRevenue}
+                  {stats.totalRevenue}
                 </p>
               </div>
             </div>
@@ -341,7 +242,7 @@ export default function AdminPaymentsPage() {
                 <Award className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Total Credits Issued</p>
+                <p className="text-sm font-medium text-zinc-500">Credits</p>
                 <p className="text-2xl font-bold text-zinc-900">{stats.totalCredits}</p>
               </div>
             </div>
@@ -353,7 +254,7 @@ export default function AdminPaymentsPage() {
                 <Calendar className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Total Transactions</p>
+                <p className="text-sm font-medium text-zinc-500">Transactions</p>
                 <p className="text-2xl font-bold text-zinc-900">{stats.totalTransactions}</p>
               </div>
             </div>
@@ -401,6 +302,7 @@ export default function AdminPaymentsPage() {
                   setSearchTerm("");
                   setStatusFilter("all");
                   setDateRange({ start: "", end: "" });
+                  setCurrentPage(1);
                 }}
                 className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50"
               >
@@ -421,7 +323,7 @@ export default function AdminPaymentsPage() {
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearch}
                   placeholder="Search by ID, plan, status..."
                   className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent"
                 />
@@ -435,7 +337,7 @@ export default function AdminPaymentsPage() {
               </label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={handleStatusChange}
                 className="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent"
               >
                 <option value="all">All Statuses</option>
@@ -454,7 +356,10 @@ export default function AdminPaymentsPage() {
                 <input
                   type="date"
                   value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                  onChange={(e) => {
+                    setDateRange({ ...dateRange, start: e.target.value });
+                    setCurrentPage(1);
+                  }}
                   className="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent"
                 />
               </div>
@@ -465,7 +370,10 @@ export default function AdminPaymentsPage() {
                 <input
                   type="date"
                   value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                  onChange={(e) => {
+                    setDateRange({ ...dateRange, end: e.target.value });
+                    setCurrentPage(1);
+                  }}
                   className="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent"
                 />
               </div>
@@ -475,14 +383,14 @@ export default function AdminPaymentsPage() {
           {/* Results Count */}
           <div className="mt-4 pt-4 border-t border-zinc-100">
             <p className="text-sm text-zinc-600">
-              Showing <span className="font-bold">{filteredPayments.length}</span> of{" "}
-              <span className="font-bold">{payments.length}</span> transactions
+              Showing <span className="font-bold">{payments.length}</span> results of{" "}
+              <span className="font-bold">{totalItems}</span> total
             </p>
           </div>
         </div>
 
         {/* Payments List */}
-        {filteredPayments.length === 0 ? (
+        {payments.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-zinc-300 p-12 text-center bg-white">
             <div className="mx-auto w-20 h-20 rounded-full bg-zinc-100 flex items-center justify-center mb-4">
               <CreditCard className="w-10 h-10 text-zinc-400" />
@@ -491,14 +399,14 @@ export default function AdminPaymentsPage() {
               No payments found
             </h3>
             <p className="text-sm text-zinc-600">
-              {payments.length === 0
+              {totalItems === 0
                 ? "No payment transactions have been made yet"
                 : "No payments match your filters"}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredPayments.map((payment) => (
+            {payments.map((payment) => (
               <div
                 key={payment.id}
                 className="bg-white rounded-2xl border border-zinc-200 p-6 shadow-sm hover:shadow-md transition-all"
@@ -600,6 +508,17 @@ export default function AdminPaymentsPage() {
             }
           </div >
         )}
+
+        {/* Pagination Section */}
+        <div className="mt-8">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+
       </main>
     </div>
   );

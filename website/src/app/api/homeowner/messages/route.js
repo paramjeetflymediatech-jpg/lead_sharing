@@ -41,6 +41,7 @@ export async function GET(req) {
           u.name as tradesperson_name,
           u.email as tradesperson_email,
           tp.company_name,
+          tp.profile_image,
           j.description as job_title,
           j.status as job_status,
           j.homeowner_id
@@ -88,6 +89,7 @@ export async function GET(req) {
         tradespersonId: conv.tradesperson_id,
         tradespersonName: detail.company_name || detail.tradesperson_name,
         tradespersonEmail: detail.tradesperson_email,
+        tradespersonProfileImage: detail.profile_image,
         jobTitle: detail.job_title,
         jobStatus: detail.job_status,
         conversationStatus: latest.conversation_status || 'ACTIVE',

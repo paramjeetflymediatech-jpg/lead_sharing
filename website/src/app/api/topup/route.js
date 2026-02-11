@@ -441,7 +441,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const PLANS = {
   starter: { name: "Starter Pack", amount: 9.99, credits: 10 },
-  pro: { name: "Professional Pack", amount: 19.99, credits: 25 },
+  pro: { name: "Pro Pack", amount: 19.99, credits: 25 },
   business: { name: "Business Pack", amount: 39.99, credits: 60 },
 };
 

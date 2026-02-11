@@ -197,7 +197,7 @@ export default function ProfilePage() {
                             Public Profile
                         </h2>
                         <div className="flex flex-col items-center sm:flex-row sm:items-start gap-8">
-                            <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                            <div className="relative group cursor-pointer shrink-0" onClick={handleAvatarClick}>
                                 <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 ring-4 ring-white dark:ring-zinc-800 shadow-lg">
                                     {avatar ? (
                                         <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
@@ -358,17 +358,17 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-4 pt-4">
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-4 pt-4">
                         <button
                             type="button"
-                            className="px-6 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition font-medium"
+                            className="w-full sm:w-auto px-6 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition font-medium"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2"
+                            className="w-full sm:w-auto px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-bold shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>

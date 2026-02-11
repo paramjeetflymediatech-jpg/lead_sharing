@@ -225,7 +225,7 @@ export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
       </button>
       
       {/* Trust badges */}
-      <div className="flex flex-col items-center gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+      {/* <div className="flex flex-col items-center gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
           <Check className="w-3 h-3 text-green-500" />
           <span>30-day money-back guarantee</span>
@@ -237,7 +237,7 @@ export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
         <div className="text-xs text-zinc-400 dark:text-zinc-500 text-center">
           Powered by Stripe • Your payment is secure
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -184,11 +184,12 @@ export default function AdminLeadsPage() {
                         <div key={lead._id} className="bg-white rounded-xl p-4 shadow-sm border border-zinc-200 flex flex-col gap-3">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    {lead.job ? (
-                                        <div className="font-bold text-zinc-900 line-clamp-1">{lead.job.description}</div>
-                                    ) : (
+                                    {/* {lead.job ? (
+                                        <div className="font-bold text-sm text-zinc-900 line-clamp-1">{lead.job.description}</div>
+                                    ) :
+                                     (
                                         <span className="text-red-500 text-xs italic">Job Deleted</span>
-                                    )}
+                                    )} */}
                                     <div className="text-zinc-500 text-xs mt-0.5">
                                         {new Date(lead.createdAt).toLocaleDateString()}
                                     </div>

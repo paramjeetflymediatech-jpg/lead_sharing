@@ -49,17 +49,17 @@ export default function MessagesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-black">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full  bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-black">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link
+                    {/* <Link
                         href="/tradesperson"
                         className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-[#155DFC] dark:hover:text-blue-400 transition-colors mb-6"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Back to Dashboard</span>
-                    </Link>
+                    </Link> */}
                     <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">
                         Messages
                     </h1>
@@ -99,24 +99,29 @@ export default function MessagesPage() {
                                     <div className="p-6">
                                         <div className="flex items-start gap-4">
                                             {/* Avatar */}
-                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                                                {conversation.otherUserName?.charAt(0).toUpperCase() || "?"}
-                                            </div>
+                                            {conversation.homeownerProfileImage ? (
+                                                <img
+                                                    src={conversation.homeownerProfileImage}
+                                                    alt={conversation.homeownerName}
+                                                    className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-zinc-800 shadow-sm"
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 shadow-sm">
+                                                    {conversation.homeownerName?.charAt(0).toUpperCase() || "?"}
+                                                </div>
+                                            )}
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start justify-between mb-1">
                                                     <h3 className="font-semibold text-zinc-900 dark:text-white truncate">
-                                                        {conversation.otherUserName || "Unknown User"}
+                                                        {conversation.homeownerName || "Unknown User"}
                                                     </h3>
                                                     <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 ml-2">
                                                         <Clock className="w-3 h-3" />
                                                         {formatTime(conversation.lastMessageTime)}
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                                                    {conversation.jobTitle || "Job"}
-                                                </p>
                                                 <p className="text-sm text-zinc-500 dark:text-zinc-500 truncate">
                                                     {conversation.lastMessage || "No messages yet"}
                                                 </p>

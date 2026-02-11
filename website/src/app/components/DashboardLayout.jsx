@@ -63,7 +63,7 @@ export default function DashboardLayout({ children, navItems, user }) {
             {/* Mobile Sidebar Overlay */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity"
+                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm xl:hidden transition-opacity"
                     onClick={toggleSidebar}
                 />
             )}
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children, navItems, user }) {
             {/* Sidebar */}
             <aside className={`
         fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800
-        transition-transform duration-300 ease-in-out lg:translate-x-0
+        transition-transform duration-300 ease-in-out xl:translate-x-0
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
                 <div className="flex flex-col h-full">
@@ -84,7 +84,7 @@ export default function DashboardLayout({ children, navItems, user }) {
                                 className="h-12 w-auto object-contain"
                             />
                         </Link>
-                        <button className="lg:hidden p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg" onClick={toggleSidebar}>
+                        <button className="xl:hidden p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg" onClick={toggleSidebar}>
                             <XMarkIcon className="w-6 h-6" />
                         </button>
                     </div>
@@ -130,7 +130,7 @@ export default function DashboardLayout({ children, navItems, user }) {
 
                     {/* Sidebar Footer - User Profile (Mobile Only Context) */}
                     <div className="p-6 border-t border-zinc-200 dark:border-zinc-800">
-                        <div className="flex items-center gap-3 mb-4 lg:hidden">
+                        <div className="flex items-center gap-3 mb-4 xl:hidden">
                             <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
                                 <UserCircleIcon className="w-6 h-6 text-zinc-500" />
                             </div>
@@ -153,27 +153,36 @@ export default function DashboardLayout({ children, navItems, user }) {
             </aside>
 
             {/* Main Content Wrapper */}
-            <div className="lg:pl-72 flex flex-col min-h-screen">
+            <div className="xl:pl-72 flex flex-col min-h-screen">
                 {/* Header */}
                 <header className="sticky top-0 z-30 flex items-center justify-between px-6 h-20 bg-white/80 dark:bg-black/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
-                    <button
-                        className="lg:hidden p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
-                        onClick={toggleSidebar}
-                    >
-                        <Bars3Icon className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center xl:hidden">
+                        <Link href="/" className="flex items-center">
+                            <img
+                                src="/allcarepros-logo.png"
+                                alt="All Care Pros"
+                                className="h-8 w-auto object-contain"
+                            />
+                        </Link>
+                    </div>
 
-                    <div className="flex-1 px-4 lg:px-0">
+                    <div className="flex-1 px-4 xl:px-0">
                         <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest hidden sm:block">
                             Welcome Back, {user?.name?.split(' ')[0] || user?.email?.split('@')[0]}
                         </h2>
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <button
+                            className="xl:hidden p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
+                            onClick={toggleSidebar}
+                        >
+                            <Bars3Icon className="w-6 h-6" />
+                        </button>
 
 
                         {/* Desktop User Menu (Hidden on mobile) */}
-                        <div className="hidden lg:flex items-center gap-3 pl-4 border-l border-zinc-200 dark:border-zinc-800">
+                        <div className="hidden xl:flex items-center gap-3 pl-4 border-l border-zinc-200 dark:border-zinc-800">
                             <div className="text-right">
                                 <p className="text-sm font-bold text-zinc-900 dark:text-white">{user?.name || user?.email}</p>
                                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none mt-0.5">{user?.role}</p>
@@ -188,7 +197,7 @@ export default function DashboardLayout({ children, navItems, user }) {
                 </header>
 
                 {/* Content Area */}
-                <main className="flex-1 p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <main className="flex-1 p-6 xl:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     {children}
                 </main>
             </div>

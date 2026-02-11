@@ -997,9 +997,9 @@ export default async function JobDetailsPage({ params }) {
           </div>
         </header> */}
 
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
           {/* Breadcrumb */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <nav className="flex items-center gap-2 text-sm text-zinc-500">
               <Link href="/tradesperson" className="hover:text-[#155DFC]">
                 Dashboard
@@ -1013,7 +1013,7 @@ export default async function JobDetailsPage({ params }) {
                 Job Details
               </span>
             </nav>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}

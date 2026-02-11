@@ -7,7 +7,7 @@
 
 // export async function POST(req) {
 //   console.log("=== STRIPE WEBHOOK RECEIVED ===");
-  
+
 //   const body = await req.text();
 //   const signature = req.headers.get("stripe-signature");
 
@@ -28,10 +28,10 @@
 //   }
 
 //   console.log("📦 Event type:", event.type);
-  
+
 //   if (event.type === "checkout.session.completed") {
 //     const session = event.data.object;
-    
+
 //     console.log("✅ Checkout session completed!");
 //     console.log("💰 Session ID:", session.id);
 //     console.log("💳 Payment status:", session.payment_status);
@@ -55,10 +55,10 @@
 //       }
 
 //       console.log("🔍 Looking for profile with ID:", tradespersonId);
-      
+
 //       // Check if profile exists
 //       const existingProfile = await TradespersonProfile.findOne({ _id: tradespersonId });
-      
+
 //       if (!existingProfile) {
 //         console.error("❌ Profile not found for ID:", tradespersonId);
 //       } else {
