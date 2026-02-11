@@ -4,7 +4,7 @@ import { Seo } from '@/models/Seo';
 
 export async function GET(req, { params }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         // await connectToDatabase();
         const seoPage = await Seo.findById(id);
 
@@ -20,7 +20,7 @@ export async function GET(req, { params }) {
 
 export async function PUT(req, { params }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         // await connectToDatabase();
         const body = await req.json();
 
@@ -38,7 +38,7 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(req, { params }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         // await connectToDatabase();
         const deletedSeo = await Seo.findByIdAndDelete(id);
 

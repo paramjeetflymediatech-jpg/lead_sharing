@@ -1841,7 +1841,7 @@ export default async function TradespersonDashboard({ searchParams }) {
             </Link>
             {/* Payment History Link */}
             <Link
-              href="/credits"
+              href="/tradesperson/payments"
               className="px-4 py-2.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-bold rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all flex items-center gap-2"
               title="View payment history"
             >
@@ -2082,7 +2082,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                 </Link>
 
                 <Link
-                  href="/credits"
+                  href="/tradesperson/payments"
                   className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:shadow-md transition-all group"
                 >
                   <div className="flex items-center gap-3">

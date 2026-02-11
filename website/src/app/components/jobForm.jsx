@@ -1009,8 +1009,8 @@ export default function JobCreationForm() {
 
       {/* Modal for Steps 2-6 with Blue Theme */}
       {isOpen && currentStep > 1 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 mt-15">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl my-4 sm:my-8 max-h-[95vh] flex flex-col">
 
             {/* Header with Blue Theme */}
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
@@ -1055,13 +1055,13 @@ export default function JobCreationForm() {
             </div>
 
             {/* Form Content */}
-            <form onSubmit={handleSubmit}>
-              <div className="p-6">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1">
 
                 {/* Step 2: Ownership */}
                 {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
+                  <div className="space-y-4 sm:space-y-6">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                       Are you the owner or authorised to make property changes?
                     </h2>
                     <div className="space-y-3">
@@ -1089,9 +1089,9 @@ export default function JobCreationForm() {
 
                 {/* Step 3: Description */}
                 {currentStep === 3 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                         Describe what needs to be done
                       </h2>
                       <p className={`text-sm ${form.description.length < VALIDATION_RULES.DESCRIPTION.MIN_LENGTH
@@ -1111,7 +1111,7 @@ export default function JobCreationForm() {
                       value={form.description}
                       onChange={handleChange}
                       rows="6"
-                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                      className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                       placeholder="Describe the work you need done..."
                       maxLength={VALIDATION_RULES.DESCRIPTION.MAX_LENGTH}
                     />
@@ -1133,7 +1133,7 @@ export default function JobCreationForm() {
                         </div>
                       )}
 
-                      <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition ${isUploadDisabled
+                      <div className={`relative border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition ${isUploadDisabled
                         ? 'border-gray-200 bg-gray-50'
                         : 'border-gray-300 hover:border-[#1149C7]'
                         }`}>
@@ -1166,7 +1166,7 @@ export default function JobCreationForm() {
                       </div>
 
                       {uploadedMedia.length > 0 && (
-                        <div className="grid grid-cols-2 gap-3 mt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                           {uploadedMedia.map((media, index) => (
                             <div key={index} className="relative group">
                               {media.type === "IMAGE" ? (
@@ -1202,16 +1202,16 @@ export default function JobCreationForm() {
 
                 {/* Step 4: Budget */}
                 {currentStep === 4 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                         Roughly, what's your budget?
                       </h2>
                       <p className="text-sm text-gray-500">
                         You're not committing to anything here. It's just a guide.
                       </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Minimum Budget (£)
@@ -1221,7 +1221,7 @@ export default function JobCreationForm() {
                           name="budgetMin"
                           value={form.budgetMin}
                           onChange={handleChange}
-                          className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                          className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                           placeholder="500"
                           min={VALIDATION_RULES.BUDGET.MIN}
                           max={VALIDATION_RULES.BUDGET.MAX}
@@ -1239,7 +1239,7 @@ export default function JobCreationForm() {
                           name="budgetMax"
                           value={form.budgetMax}
                           onChange={handleChange}
-                          className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                          className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                           placeholder="1000"
                           min={VALIDATION_RULES.BUDGET.MIN}
                           max={VALIDATION_RULES.BUDGET.MAX}
@@ -1261,9 +1261,9 @@ export default function JobCreationForm() {
 
                 {/* Step 5: Location & Timeline */}
                 {currentStep === 5 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                         Job details
                       </h2>
                       <p className="text-sm text-gray-500">
@@ -1280,7 +1280,7 @@ export default function JobCreationForm() {
                         name="postcode"
                         value={form.postcode}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition uppercase"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition uppercase text-sm sm:text-base"
                         placeholder="SW1A 1AA"
                         pattern="[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}"
                       />
@@ -1298,7 +1298,7 @@ export default function JobCreationForm() {
                         name="city"
                         value={form.city}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                         placeholder="London"
                       />
                     </div>
@@ -1311,7 +1311,7 @@ export default function JobCreationForm() {
                         name="startTime"
                         value={form.startTime}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                       >
                         <option value="URGENT">Urgent</option>
                         <option value="WITHIN_2_DAYS">Within 2 Days</option>
@@ -1329,7 +1329,7 @@ export default function JobCreationForm() {
                         name="jobStage"
                         value={form.jobStage}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                       >
                         <option value="READY_TO_HIRE">Ready to hire</option>
                         <option value="PLANNING">Planning</option>
@@ -1341,9 +1341,9 @@ export default function JobCreationForm() {
 
                 {/* Step 6: Contact Information */}
                 {currentStep === 6 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                         Contact Information
                       </h2>
                       <p className="text-sm text-gray-500">
@@ -1367,7 +1367,7 @@ export default function JobCreationForm() {
                         name="contactName"
                         value={form.contactName}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                         placeholder="John Doe"
                         required
                         minLength={2}
@@ -1388,7 +1388,7 @@ export default function JobCreationForm() {
                         name="contactPhone"
                         value={form.contactPhone}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                         placeholder="07700 900000"
                         required
                         pattern="^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$"
@@ -1412,7 +1412,7 @@ export default function JobCreationForm() {
                         name="contactEmail"
                         value={form.contactEmail}
                         onChange={handleChange}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
+                        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
                         placeholder="john@example.com"
                         required
                       />
@@ -1433,12 +1433,12 @@ export default function JobCreationForm() {
               </div>
 
               {/* Navigation Buttons - Blue Theme */}
-              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 flex gap-4">
+              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-3 sm:p-4 flex gap-2 sm:gap-4 flex-shrink-0">
                 {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="flex-1 py-3 px-6 border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition"
+                    className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
                   >
                     Back
                   </button>
@@ -1448,7 +1448,7 @@ export default function JobCreationForm() {
                     type="button"
                     onClick={nextStep}
                     disabled={!canProceed()}
-                    className="flex-1 py-3 px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     Next step →
                   </button>
@@ -1456,7 +1456,7 @@ export default function JobCreationForm() {
                   <button
                     type="submit"
                     disabled={!canProceed() || loading}
-                    className="flex-1 py-3 px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     {loading ? "Creating..." : "Submit Job"}
                   </button>

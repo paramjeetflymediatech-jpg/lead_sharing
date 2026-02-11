@@ -77,6 +77,14 @@ async function runMigration() {
         title VARCHAR(255) NOT NULL,
         meta_description TEXT,
         keywords TEXT,
+        meta_robots VARCHAR(255) DEFAULT 'index, follow',
+        og_title VARCHAR(500),
+        og_description TEXT,
+        og_image VARCHAR(500),
+        canonical_url VARCHAR(500),
+        schema_markup TEXT,
+        google_analytics_id VARCHAR(50),
+        google_tag_manager_id VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );
@@ -175,7 +183,7 @@ async function runMigration() {
         FOREIGN KEY (homeowner_id) REFERENCES users(id),
         FOREIGN KEY (category_id) REFERENCES categories(id),
         FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id),
-        FOREIGN KEY (hired_tradesperson_id) REFERENCES users(id)
+        FOREIGN KEY (hired_tradesperson_id) REFERENCES users(id) ON DELETE SET NULL
       );
     `);
     console.log("✅ jobs");
@@ -274,6 +282,14 @@ async function runMigration() {
         receiver_id INT NOT NULL,
         content TEXT NOT NULL,
         is_read TINYINT(1) DEFAULT 0,
+        conversation_status ENUM(
+          'PENDING_HOMEOWNER_ACCEPTANCE',
+          'PENDING_TRADESPERSON_ACCEPTANCE',
+          'ACTIVE',
+          'CLOSED'
+        ) DEFAULT 'ACTIVE',
+        conversation_accepted_by_homeowner BOOLEAN DEFAULT FALSE,
+        conversation_accepted_by_tradesperson BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
@@ -282,35 +298,6 @@ async function runMigration() {
       );
     `);
     console.log("✅ messages");
-
-    /* ================= CONVERSATION STATUS ================= */
-    await connection.query(`
-      ALTER TABLE messages 
-      ADD COLUMN conversation_status ENUM(
-        'PENDING_HOMEOWNER_ACCEPTANCE',
-        'PENDING_TRADESPERSON_ACCEPTANCE',
-        'ACTIVE',
-        'CLOSED'
-      ) DEFAULT 'ACTIVE' AFTER is_read
-    `);
-    console.log("✅ conversation_status");
-
-    await connection.query(`
-      ALTER TABLE messages 
-      ADD COLUMN conversation_accepted_by_homeowner BOOLEAN DEFAULT FALSE AFTER conversation_status
-    `);
-    console.log("✅ conversation_accepted_by_homeowner");
-
-    await connection.query(`
-      ALTER TABLE messages 
-      ADD COLUMN conversation_accepted_by_tradesperson BOOLEAN DEFAULT FALSE AFTER conversation_accepted_by_homeowner
-    `);
-    console.log("✅ conversation_accepted_by_tradesperson");
-
-
-
-
-
 
     /* ================= SEED DATA ================= */
     console.log("🌱 Inserting seed data...");
@@ -343,4 +330,3 @@ async function runMigration() {
 }
 
 runMigration().catch(console.error);
-

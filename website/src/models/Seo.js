@@ -1,4 +1,3 @@
-
 import pool from '../../config/db';
 
 const seoToMongoStyle = (row) => {
@@ -10,6 +9,14 @@ const seoToMongoStyle = (row) => {
         title: row.title,
         metaDescription: row.meta_description,
         keywords: row.keywords,
+        metaRobots: row.meta_robots,
+        ogTitle: row.og_title,
+        ogDescription: row.og_description,
+        ogImage: row.og_image,
+        canonicalUrl: row.canonical_url,
+        schemaMarkup: row.schema_markup,
+        googleAnalyticsId: row.google_analytics_id,
+        googleTagManagerId: row.google_tag_manager_id,
         createdAt: row.created_at,
         updatedAt: row.updated_at
     };
@@ -59,10 +66,23 @@ export const Seo = {
     },
 
     async create(data) {
-        const { pageName, title, metaDescription, keywords } = data;
+        const {
+            pageName, title, metaDescription, keywords,
+            metaRobots, ogTitle, ogDescription, ogImage,
+            canonicalUrl, schemaMarkup, googleAnalyticsId, googleTagManagerId
+        } = data;
+
         const [result] = await pool.query(
-            'INSERT INTO seo_pages (page_name, title, meta_description, keywords) VALUES (?, ?, ?, ?)',
-            [pageName, title, metaDescription, keywords]
+            `INSERT INTO seo_pages (
+                page_name, title, meta_description, keywords,
+                meta_robots, og_title, og_description, og_image,
+                canonical_url, schema_markup, google_analytics_id, google_tag_manager_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                pageName, title, metaDescription, keywords,
+                metaRobots || 'index, follow', ogTitle, ogDescription, ogImage,
+                canonicalUrl, schemaMarkup, googleAnalyticsId, googleTagManagerId
+            ]
         );
         return { _id: result.insertId, ...data };
     },
@@ -70,14 +90,25 @@ export const Seo = {
     async findByIdAndUpdate(id, data, options = {}) {
         const updates = [];
         const values = [];
-        for (const [key, value] of Object.entries(data)) {
-            let col = null;
-            if (key === 'pageName') col = 'page_name';
-            else if (key === 'title') col = 'title';
-            else if (key === 'metaDescription') col = 'meta_description';
-            else if (key === 'keywords') col = 'keywords';
 
-            if (col) {
+        const fieldMap = {
+            pageName: 'page_name',
+            title: 'title',
+            metaDescription: 'meta_description',
+            keywords: 'keywords',
+            metaRobots: 'meta_robots',
+            ogTitle: 'og_title',
+            ogDescription: 'og_description',
+            ogImage: 'og_image',
+            canonicalUrl: 'canonical_url',
+            schemaMarkup: 'schema_markup',
+            googleAnalyticsId: 'google_analytics_id',
+            googleTagManagerId: 'google_tag_manager_id'
+        };
+
+        for (const [key, value] of Object.entries(data)) {
+            const col = fieldMap[key];
+            if (col && value !== undefined) {
                 updates.push(`${col} = ?`);
                 values.push(value);
             }
@@ -89,7 +120,7 @@ export const Seo = {
         }
 
         if (options.new) {
-            // fetch again...
+            return await this.findById(id);
         }
     },
 

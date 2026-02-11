@@ -970,7 +970,7 @@ export default async function JobDetailsPage({ params }) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-[#000000]">
         {/* Header */}
-        <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-4 sm:px-6 py-4">
+        {/* <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/50 px-4 sm:px-6 py-4">
           <div className="mx-auto flex max-w-7xl items-center justify-between">
             <Link href="/tradesperson" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold shadow-lg shadow-[#155DFC]/20">
@@ -995,7 +995,7 @@ export default async function JobDetailsPage({ params }) {
               </Link>
             </div>
           </div>
-        </header>
+        </header> */}
 
         <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
           {/* Breadcrumb */}

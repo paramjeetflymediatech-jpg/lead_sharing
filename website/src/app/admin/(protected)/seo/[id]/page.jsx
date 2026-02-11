@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import SeoForm from "../_components/SeoForm";
 import toast from "react-hot-toast";
 
 export default function EditSeoPage({ params }) {
-    const { id } = params;
+    const { id } = use(params);
     const [initialData, setInitialData] = useState(null);
     const [loading, setLoading] = useState(true);
 

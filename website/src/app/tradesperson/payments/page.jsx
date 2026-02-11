@@ -49,7 +49,7 @@ export default function PaymentsPage() {
       });
 
       // 3️⃣ Fetch payment history
-      const paymentsRes = await fetch("/api/credits", {
+      const paymentsRes = await fetch("/api/tradesperson/payments", {
         credentials: "include",
       });
 
@@ -222,7 +222,7 @@ export default function PaymentsPage() {
               <p className="text-blue-100">Purchase credits to unlock more job leads</p>
             </div>
             <Link
-              href="/credits"
+              href="/tradesperson/credits"
               className="px-6 py-3 bg-white text-[#155DFC] rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg whitespace-nowrap"
             >
               Buy Credits
@@ -243,7 +243,7 @@ export default function PaymentsPage() {
               Your credit purchase transactions will appear here
             </p>
             <Link
-              href="/credits"
+              href="/tradesperson/credits"
               className="inline-flex items-center gap-2 rounded-xl bg-[#155DFC] px-6 py-3 text-sm font-bold text-white hover:bg-[#155DFC]/90"
             >
               <CreditCard className="w-4 h-4" />
@@ -348,14 +348,14 @@ export default function PaymentsPage() {
               Contact our support team for any payment-related queries
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-
-              href="mailto:support@tradeconnect.com"
-              className="px-6 py-3 bg-white border-2 border-zinc-300 text-zinc-900 rounded-xl font-bold hover:bg-zinc-50"
-              <a>
+              <a
+                href="mailto:support@tradeconnect.com"
+                className="px-6 py-3 bg-white border-2 border-zinc-300 text-zinc-900 rounded-xl font-bold hover:bg-zinc-50"
+              >
                 Email Support
               </a>
               <Link
-                href="/credits"
+                href="/tradesperson/credits"
                 className="px-6 py-3 bg-[#155DFC] text-white rounded-xl font-bold hover:bg-[#155DFC]/90"
               >
                 Buy More Credits
