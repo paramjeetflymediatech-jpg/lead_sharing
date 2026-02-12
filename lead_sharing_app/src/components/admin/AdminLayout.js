@@ -11,6 +11,7 @@ import {
     Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import LogoutModal from "../LogoutModal";
 
 export default function AdminLayout({
     children,
@@ -21,6 +22,7 @@ export default function AdminLayout({
 }) {
     const { user, logout } = useAuth();
     const [menuVisible, setMenuVisible] = React.useState(false);
+    const [logoutModalVisible, setLogoutModalVisible] = React.useState(false);
 
     function handleMenuPress(screen) {
         setMenuVisible(false);
@@ -33,20 +35,16 @@ export default function AdminLayout({
     }
 
     function handleLogout() {
-        Alert.alert("Logout", "Are you sure you want to logout?", [
-            { text: "Cancel", style: "cancel" },
-            {
-                text: "Logout",
-                style: "destructive",
-                onPress: async () => {
-                    try {
-                        await logout();
-                    } catch (error) {
-                        console.error("Logout error:", error);
-                    }
-                },
-            },
-        ]);
+        setLogoutModalVisible(true);
+    }
+
+    async function confirmLogout() {
+        setLogoutModalVisible(false);
+        try {
+            await logout();
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
     }
 
     return (
@@ -285,7 +283,14 @@ export default function AdminLayout({
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+
+
+            <LogoutModal
+                visible={logoutModalVisible}
+                onClose={() => setLogoutModalVisible(false)}
+                onLogout={confirmLogout}
+            />
+        </SafeAreaView >
     );
 }
 

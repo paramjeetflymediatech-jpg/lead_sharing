@@ -8,9 +8,12 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { tradespersonAPI } from "../../services/api";
+import { Feather } from "@expo/vector-icons";
 
 export default function EditProfileScreen({ navigation }) {
     const { user, updateUser } = useAuth();
@@ -96,200 +99,261 @@ export default function EditProfileScreen({ navigation }) {
     }
 
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Edit Profile</Text>
-                <Text style={styles.headerSubtitle}>Update your business information</Text>
-            </View>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+        >
+            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+                {/* <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                    </TouchableOpacity>
+                    <View>
+                        <Text style={styles.headerTitle}>Edit Profile</Text>
+                        <Text style={styles.headerSubtitle}>Update your business details</Text>
+                    </View>
+                </View> */}
 
-            {/* Company Name */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Company Name *</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Your company name"
-                    value={formData.company_name}
-                    onChangeText={(value) => updateField("company_name", value)}
-                />
-            </View>
+                <View style={styles.formContainer}>
+                    {/* Company Name */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Company Name <Text style={styles.required}>*</Text></Text>
+                        <View style={styles.inputWrapper}>
+                            <Feather name="briefcase" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. Acme Plumbing"
+                                placeholderTextColor="#9CA3AF"
+                                value={formData.company_name}
+                                onChangeText={(value) => updateField("company_name", value)}
+                            />
+                        </View>
+                    </View>
 
-            {/* Contact Name */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Contact Name *</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Your name"
-                    value={formData.contact_name}
-                    onChangeText={(value) => updateField("contact_name", value)}
-                />
-            </View>
+                    {/* Contact Name */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Contact Name <Text style={styles.required}>*</Text></Text>
+                        <View style={styles.inputWrapper}>
+                            <Feather name="user" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Your full name"
+                                placeholderTextColor="#9CA3AF"
+                                value={formData.contact_name}
+                                onChangeText={(value) => updateField("contact_name", value)}
+                            />
+                        </View>
+                    </View>
 
-            {/* Email (Read-only) */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    style={[styles.input, styles.inputDisabled]}
-                    value={user?.email || ""}
-                    editable={false}
-                />
-                <Text style={styles.hint}>Email cannot be changed</Text>
-            </View>
+                    {/* Email (Read-only) */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Email Address</Text>
+                        <View style={[styles.inputWrapper, styles.inputDisabled]}>
+                            <Feather name="mail" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                style={[styles.input, { color: "#6B7280" }]}
+                                value={user?.email || ""}
+                                editable={false}
+                            />
+                            <Feather name="lock" size={16} color="#9CA3AF" />
+                        </View>
+                        <Text style={styles.helperText}>Email cannot be changed.</Text>
+                    </View>
 
-            {/* Phone */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Phone Number</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="e.g. 07700 900000"
-                    keyboardType="phone-pad"
-                    value={formData.phone}
-                    onChangeText={(value) => updateField("phone", value)}
-                />
-            </View>
+                    {/* Phone */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Phone Number</Text>
+                        <View style={styles.inputWrapper}>
+                            <Feather name="phone" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. 07700 900000"
+                                placeholderTextColor="#9CA3AF"
+                                keyboardType="phone-pad"
+                                value={formData.phone}
+                                onChangeText={(value) => updateField("phone", value)}
+                            />
+                        </View>
+                    </View>
 
-            {/* Service Areas */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Service Areas (Postcodes)</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="e.g. SW1, W1, WC1 (comma separated)"
-                    value={formData.service_areas}
-                    onChangeText={(value) => updateField("service_areas", value)}
-                    autoCapitalize="characters"
-                />
-                <Text style={styles.hint}>Enter postcodes separated by commas</Text>
-            </View>
+                    {/* Service Areas */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Service Areas</Text>
+                        <View style={styles.inputWrapper}>
+                            <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. SW1, W1, WC1"
+                                placeholderTextColor="#9CA3AF"
+                                value={formData.service_areas}
+                                onChangeText={(value) => updateField("service_areas", value)}
+                                autoCapitalize="characters"
+                            />
+                        </View>
+                        <Text style={styles.helperText}>Comma-separated postcodes.</Text>
+                    </View>
 
-            {/* Bio */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Bio</Text>
-                <TextInput
-                    style={styles.textArea}
-                    placeholder="Tell homeowners about your business..."
-                    multiline
-                    numberOfLines={4}
-                    value={formData.bio}
-                    onChangeText={(value) => updateField("bio", value)}
-                />
-            </View>
+                    {/* Bio */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Business Bio</Text>
+                        <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+                            <Feather name="align-left" size={20} color="#9CA3AF" style={[styles.inputIcon, { marginTop: 12 }]} />
+                            <TextInput
+                                style={[styles.input, styles.textArea]}
+                                placeholder="Describe your services and experience..."
+                                placeholderTextColor="#9CA3AF"
+                                multiline
+                                numberOfLines={4}
+                                value={formData.bio}
+                                onChangeText={(value) => updateField("bio", value)}
+                            />
+                        </View>
+                    </View>
 
-            {/* Save Button */}
-            <TouchableOpacity
-                style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-                onPress={handleSave}
-                disabled={loading}
-            >
-                {loading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                    <Text style={styles.saveButtonText}>Save Changes</Text>
-                )}
-            </TouchableOpacity>
+                    {/* Actions */}
+                    <TouchableOpacity
+                        style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                        onPress={handleSave}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="#FFFFFF" />
+                        ) : (
+                            <>
+                                <Feather name="check" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                                <Text style={styles.saveButtonText}>Save Changes</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => navigation.goBack()}
-            >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <View style={{ height: 40 }} />
-        </ScrollView>
+                <View style={{ height: 40 }} />
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     header: {
-        padding: 20,
-        paddingTop: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+        backgroundColor: "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: "#F3F4F6",
+    },
+    backButton: {
+        marginRight: 16,
+        padding: 8,
+        marginLeft: -8,
     },
     headerTitle: {
-        fontSize: 26,
+        fontSize: 20,
         fontWeight: "700",
-        color: "#1F2937",
+        color: "#111827",
     },
     headerSubtitle: {
-        fontSize: 14,
+        fontSize: 13,
         color: "#6B7280",
-        marginTop: 4,
     },
-    section: {
-        paddingHorizontal: 16,
+    formContainer: {
+        padding: 20,
+    },
+    inputGroup: {
         marginBottom: 20,
     },
     label: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: "600",
-        color: "#1F2937",
+        color: "#374151",
         marginBottom: 8,
     },
-    input: {
+    required: {
+        color: "#EF4444",
+    },
+    inputWrapper: {
+        flexDirection: "row",
+        alignItems: "center",
         backgroundColor: "#FFFFFF",
-        borderRadius: 10,
-        padding: 14,
-        fontSize: 15,
-        color: "#1F2937",
         borderWidth: 1,
         borderColor: "#E5E7EB",
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        minHeight: 50,
+    },
+    inputIcon: {
+        marginRight: 10,
+    },
+    input: {
+        flex: 1,
+        fontSize: 15,
+        color: "#1F2937",
+        paddingVertical: 12,
     },
     inputDisabled: {
-        backgroundColor: "#F3F4F6",
-        color: "#9CA3AF",
+        backgroundColor: "#F9FAFB",
+        borderColor: "#F3F4F6",
+    },
+    textAreaWrapper: {
+        alignItems: "flex-start",
+        paddingVertical: 0,
     },
     textArea: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 10,
-        padding: 14,
-        fontSize: 15,
-        color: "#1F2937",
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-        minHeight: 100,
+        height: 100,
         textAlignVertical: "top",
+        paddingTop: 12,
     },
-    hint: {
+    helperText: {
         fontSize: 12,
         color: "#9CA3AF",
         marginTop: 6,
+        marginLeft: 4,
     },
     saveButton: {
-        backgroundColor: "#2563EB",
-        marginHorizontal: 16,
-        marginTop: 8,
-        borderRadius: 12,
-        padding: 16,
+        flexDirection: "row",
+        justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#2563EB",
+        borderRadius: 12,
+        paddingVertical: 16,
+        marginTop: 12,
         shadowColor: "#2563EB",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 6,
+        elevation: 4,
     },
     saveButtonDisabled: {
-        opacity: 0.6,
+        opacity: 0.7,
     },
     saveButtonText: {
         color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "700",
     },
     cancelButton: {
-        backgroundColor: "transparent",
-        marginHorizontal: 16,
-        marginTop: 12,
-        borderRadius: 12,
-        padding: 16,
         alignItems: "center",
+        paddingVertical: 16,
+        marginTop: 8,
     },
     cancelButtonText: {
         color: "#6B7280",

@@ -7,9 +7,13 @@ import {
     RefreshControl,
     ActivityIndicator,
     TouchableOpacity,
+    Dimensions,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { tradespersonAPI, jobAPI } from "../../services/api";
+import { Feather } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
 
 export default function TradespersonHomeTab({ navigation }) {
     const { user } = useAuth();
@@ -65,75 +69,127 @@ export default function TradespersonHomeTab({ navigation }) {
 
     const credits = profile?.credits || 0;
     const profileViews = profile?.profile_views || 0;
+    const companyName = profile?.company_name || user?.name || "Tradesperson";
 
     return (
         <ScrollView
             style={styles.container}
+            contentContainerStyle={styles.contentContainer}
             refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} />
             }
         >
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.greeting}>Welcome back,</Text>
-                <Text style={styles.companyName}>{profile?.company_name || user?.name || "Tradesperson"}</Text>
+                <View>
+                    <Text style={styles.greeting}>Welcome back,</Text>
+                    <Text style={styles.companyName} numberOfLines={1}>
+                        {companyName}
+                    </Text>
+                </View>
+                <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.profileButton}>
+                    <Feather name="user" size={20} color="#4B5563" />
+                </TouchableOpacity>
             </View>
 
             {/* Credits Card */}
-            <TouchableOpacity style={styles.creditsCard} onPress={() => navigation.navigate("BuyCredits")}>
-                <View style={styles.creditsLeft}>
-                    <View style={styles.creditsIconContainer}>
-                        <Text style={styles.creditsIcon}>💳</Text>
+            <TouchableOpacity
+                style={styles.creditsCard}
+                onPress={() => navigation.navigate("BuyCredits")}
+                activeOpacity={0.9}
+            >
+                <View style={styles.creditsContent}>
+                    <View style={styles.creditsInfo}>
+                        <View style={styles.creditsIconBadge}>
+                            <Feather name="credit-card" size={20} color="#FFFFFF" />
+                        </View>
+                        <View>
+                            <Text style={styles.creditsLabel}>Balance</Text>
+                            <Text style={styles.creditsValue}>{credits} Credits</Text>
+                        </View>
                     </View>
-                    <View>
-                        <Text style={styles.creditsLabel}>Available Credits</Text>
-                        <Text style={styles.creditsValue}>{credits}</Text>
+                    <View style={styles.topUpButton}>
+                        <Text style={styles.topUpText}>Top Up</Text>
+                        <Feather name="plus" size={14} color="#2563EB" />
                     </View>
-                </View>
-                <View style={styles.buyButton}>
-                    <Text style={styles.buyButtonText}>Buy More</Text>
                 </View>
             </TouchableOpacity>
 
             {/* Stats Grid */}
-            <View style={styles.statsGrid}>
-                <StatCard icon="📋" value={0} label="Active Leads" color="#F59E0B" />
-                <StatCard icon="🔓" value={0} label="Unlocked" color="#10B981" />
-                <StatCard icon="🏗️" value={recentJobs.length} label="Available" color="#2563EB" />
-                <StatCard icon="👁️" value={profileViews} label="Views" color="#8B5CF6" />
+            <View style={styles.statsContainer}>
+                <Text style={styles.sectionTitle}>Overview</Text>
+                <View style={styles.statsGrid}>
+                    <StatCard
+                        icon="briefcase"
+                        value={0}
+                        label="My Leads"
+                        color="#F59E0B"
+                    />
+                    <StatCard
+                        icon="unlock"
+                        value={0}
+                        label="Unlocked"
+                        color="#10B981"
+                    />
+                    <StatCard
+                        icon="layers"
+                        value={recentJobs.length}
+                        label="Marketplace"
+                        color="#2563EB"
+                    />
+                    <StatCard
+                        icon="eye"
+                        value={profileViews}
+                        label="Views"
+                        color="#8B5CF6"
+                    />
+                </View>
             </View>
 
             {/* Recent Opportunities */}
             <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Recent Opportunities</Text>
+                    <Text style={styles.sectionTitle}>Recent Jobs</Text>
                     {recentJobs.length > 0 && (
                         <TouchableOpacity onPress={() => navigation.navigate("Browse")}>
-                            <Text style={styles.viewAllText}>View All →</Text>
+                            <Text style={styles.viewAllText}>View All</Text>
                         </TouchableOpacity>
                     )}
                 </View>
 
                 {recentJobs.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Text style={styles.emptyIcon}>📭</Text>
-                        <Text style={styles.emptyTitle}>No jobs available</Text>
-                        <Text style={styles.emptyText}>Check back later for new opportunities</Text>
+                        <Feather name="inbox" size={48} color="#D1D5DB" />
+                        <Text style={styles.emptyTitle}>No jobs yet</Text>
+                        <Text style={styles.emptyText}>New opportunities will appear here.</Text>
                     </View>
                 ) : (
-                    recentJobs.map((job, index) => <JobCard key={job.id || index} job={job} credits={credits} navigation={navigation} />)
+                    recentJobs.map((job, index) => (
+                        <JobCard
+                            key={job.id || index}
+                            job={job}
+                            credits={credits}
+                            navigation={navigation}
+                        />
+                    ))
                 )}
             </View>
+
+            <View style={styles.footerSpace} />
         </ScrollView>
     );
 }
 
 function StatCard({ icon, value, label, color }) {
     return (
-        <View style={[styles.statCard, { borderTopColor: color }]}>
-            <Text style={styles.statIcon}>{icon}</Text>
-            <Text style={styles.statValue}>{value}</Text>
-            <Text style={styles.statLabel}>{label}</Text>
+        <View style={styles.statCard}>
+            <View style={[styles.statIconContainer, { backgroundColor: `${color}15` }]}>
+                <Feather name={icon} size={20} color={color} />
+            </View>
+            <View style={styles.statContent}>
+                <Text style={styles.statValue}>{value}</Text>
+                <Text style={styles.statLabel} numberOfLines={1}>{label}</Text>
+            </View>
         </View>
     );
 }
@@ -145,28 +201,36 @@ function JobCard({ job, credits, navigation }) {
         <TouchableOpacity
             style={styles.jobCard}
             onPress={() => navigation.navigate("JobDetails", { jobId: job.id })}
+            activeOpacity={0.7}
         >
             <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle} numberOfLines={2}>
-                    {job.description || "Job Description"}
+                <Text style={styles.jobTitle} numberOfLines={1}>
+                    {job.description || "Job Request"}
                 </Text>
                 {!canAfford && (
-                    <View style={styles.lowCreditsTag}>
-                        <Text style={styles.lowCreditsText}>Low Credits</Text>
+                    <View style={styles.badge}>
+                        <Text style={styles.badgeText}>Low Credits</Text>
                     </View>
                 )}
             </View>
 
-            <View style={styles.jobInfo}>
-                <Text style={styles.jobInfoText}>📍 {job.postcode || "N/A"}</Text>
-                <Text style={styles.jobInfoText}>
-                    💰 £{job.budget_min || 0} -{job.budget_max || 0}
-                </Text>
+            <View style={styles.jobDetails}>
+                <View style={styles.detailItem}>
+                    <Feather name="map-pin" size={12} color="#6B7280" />
+                    <Text style={styles.detailText}>{job.postcode || "Remote"}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.detailItem}>
+                    <Text style={styles.currencySymbol}>£</Text>
+                    <Text style={styles.detailText}>
+                        {job.budget_min ? `${job.budget_min} - ${job.budget_max}` : "Budget N/A"}
+                    </Text>
+                </View>
             </View>
 
-            <View style={styles.jobFooter}>
-                <Text style={styles.creditCost}>1 Credit to unlock</Text>
-                <Text style={styles.viewDetails}>View Details →</Text>
+            <View style={styles.tapHint}>
+                <Text style={styles.costText}>1 Credit</Text>
+                <Feather name="chevron-right" size={16} color="#D1D5DB" />
             </View>
         </TouchableOpacity>
     );
@@ -175,131 +239,158 @@ function JobCard({ job, credits, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
-        paddingTop: 20,
+        backgroundColor: "#F9FAFB",
+    },
+    contentContainer: {
+        paddingTop: 10,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F9FAFB",
     },
     header: {
-        padding: 20,
-        paddingTop: 16,
-        marginTop: 20,
-    },
-    greeting: {
-        fontSize: 15,
-        color: "#6B7280",
-    },
-    companyName: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#1F2937",
-        marginTop: 4,
-    },
-    creditsCard: {
-        backgroundColor: "#2563EB",
-        marginHorizontal: 16,
-        marginBottom: 20,
-        borderRadius: 20,
-        padding: 20,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        marginBottom: 10,
+    },
+    greeting: {
+        fontSize: 14,
+        color: "#6B7280",
+        marginBottom: 4,
+    },
+    companyName: {
+        fontSize: 22,
+        fontWeight: "800",
+        color: "#111827",
+        maxWidth: width * 0.7,
+    },
+    profileButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#FFFFFF",
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+    },
+    creditsCard: {
+        backgroundColor: "#2563EB",
+        marginHorizontal: 20,
+        marginBottom: 24,
+        borderRadius: 20,
+        padding: 20,
         shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
         elevation: 8,
     },
-    creditsLeft: {
+    creditsContent: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    creditsInfo: {
         flexDirection: "row",
         alignItems: "center",
     },
-    creditsIconContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+    creditsIconBadge: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
         backgroundColor: "rgba(255,255,255,0.2)",
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 14,
-    },
-    creditsIcon: {
-        fontSize: 24,
+        marginRight: 16,
     },
     creditsLabel: {
+        color: "rgba(255,255,255,0.8)",
         fontSize: 13,
-        color: "rgba(255,255,255,0.9)",
-        marginBottom: 4,
+        fontWeight: "500",
     },
     creditsValue: {
-        fontSize: 32,
-        fontWeight: "700",
         color: "#FFFFFF",
-    },
-    buyButton: {
-        backgroundColor: "#FFFFFF",
-        paddingHorizontal: 18,
-        paddingVertical: 10,
-        borderRadius: 10,
-    },
-    buyButtonText: {
-        color: "#2563EB",
-        fontSize: 14,
+        fontSize: 20,
         fontWeight: "700",
+    },
+    topUpButton: {
+        backgroundColor: "#FFFFFF",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 100,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    topUpText: {
+        color: "#2563EB",
+        fontSize: 13,
+        fontWeight: "700",
+    },
+    statsContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 24,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: "#111827",
+        marginBottom: 16,
     },
     statsGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
-        paddingHorizontal: 16,
         gap: 12,
-        marginBottom: 16,
+        justifyContent: 'space-between',
     },
     statCard: {
-        width: "48%",
+        width: (width - 52) / 2, // Responsive grid (screen width - margins - gap) / 2
         backgroundColor: "#FFFFFF",
         borderRadius: 16,
         padding: 16,
-        alignItems: "center",
-        borderTopWidth: 3,
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 3,
+        shadowOpacity: 0.02,
+        shadowRadius: 4,
+        elevation: 1,
     },
-    statIcon: {
-        fontSize: 32,
-        marginBottom: 8,
+    statIconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    statContent: {
+        gap: 4,
     },
     statValue: {
-        fontSize: 28,
+        fontSize: 20,
         fontWeight: "700",
-        color: "#1F2937",
-        marginBottom: 4,
+        color: "#111827",
     },
     statLabel: {
         fontSize: 13,
         color: "#6B7280",
-        textAlign: "center",
     },
     section: {
-        paddingHorizontal: 16,
-        marginBottom: 24,
+        paddingHorizontal: 20,
+        marginBottom: 20,
     },
     sectionHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 12,
-    },
-    sectionTitle: {
-        fontSize: 19,
-        fontWeight: "700",
-        color: "#1F2937",
+        marginBottom: 16,
     },
     viewAllText: {
         fontSize: 14,
@@ -309,84 +400,102 @@ const styles = StyleSheet.create({
     emptyState: {
         backgroundColor: "#FFFFFF",
         borderRadius: 16,
-        padding: 40,
+        padding: 32,
         alignItems: "center",
-    },
-    emptyIcon: {
-        fontSize: 56,
-        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
+        borderStyle: "dashed",
     },
     emptyTitle: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "600",
-        color: "#1F2937",
-        marginBottom: 6,
+        color: "#374151",
+        marginTop: 12,
+        marginBottom: 4,
     },
     emptyText: {
         fontSize: 14,
-        color: "#6B7280",
+        color: "#9CA3AF",
         textAlign: "center",
     },
     jobCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 16,
         marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 8,
+        elevation: 1,
     },
     jobHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: 10,
+        alignItems: "center",
+        marginBottom: 12,
     },
     jobTitle: {
         flex: 1,
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: "600",
-        color: "#1F2937",
+        color: "#111827",
         marginRight: 10,
     },
-    lowCreditsTag: {
+    badge: {
         backgroundColor: "#FEE2E2",
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 6,
+        borderRadius: 4,
     },
-    lowCreditsText: {
-        color: "#DC2626",
-        fontSize: 11,
-        fontWeight: "600",
+    badgeText: {
+        color: "#EF4444",
+        fontSize: 10,
+        fontWeight: "700",
+        textTransform: "uppercase",
     },
-    jobInfo: {
+    jobDetails: {
         flexDirection: "row",
-        gap: 16,
+        alignItems: "center",
         marginBottom: 12,
     },
-    jobInfoText: {
+    detailItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    detailText: {
         fontSize: 13,
         color: "#6B7280",
     },
-    jobFooter: {
+    currencySymbol: {
+        fontSize: 14,
+        color: "#6B7280",
+        fontWeight: "600",
+        marginRight: 4,
+    },
+    divider: {
+        width: 1,
+        height: 12,
+        backgroundColor: "#E5E7EB",
+        marginHorizontal: 12,
+    },
+    tapHint: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingTop: 12,
         borderTopWidth: 1,
-        borderTopColor: "#F3F4F6",
+        borderTopColor: "#F9FAFB",
     },
-    creditCost: {
-        fontSize: 13,
+    costText: {
+        fontSize: 12,
+        fontWeight: "600",
         color: "#F59E0B",
-        fontWeight: "600",
     },
-    viewDetails: {
-        fontSize: 13,
-        color: "#2563EB",
-        fontWeight: "600",
+    footerSpace: {
+        height: 100, // Space for floating tab bar
     },
 });

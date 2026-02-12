@@ -41,8 +41,8 @@ export default function WelcomeScreen({ navigation }) {
                     },
                 ]}
             >
-                <Text style={styles.logoText}>Lead Sharing</Text>
-                <Text style={styles.tagline}>Connect. Hire. Grow.</Text>
+                <Text style={styles.logoText}>All Care Pros</Text>
+                <Text style={styles.tagline}>Find and hire trusted tradespeople</Text>
             </Animated.View>
 
             {/* Bottom Buttons */}

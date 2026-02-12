@@ -9,12 +9,14 @@ import {
     Alert,
 } from "react-native";
 import { jobAPI, tradespersonAPI } from "../../services/api";
+import UnlockLeadModal from "../../components/UnlockLeadModal";
 
 export default function JobDetailsScreen({ route, navigation }) {
     const { jobId } = route.params;
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [unlocking, setUnlocking] = useState(false);
+    const [showUnlockModal, setShowUnlockModal] = useState(false);
 
     useEffect(() => {
         loadJobDetails();
@@ -33,29 +35,30 @@ export default function JobDetailsScreen({ route, navigation }) {
         }
     }
 
-    async function handleUnlock() {
-        Alert.alert(
-            "Unlock Lead",
-            "This will cost 1 credit. Continue?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Unlock",
-                    onPress: async () => {
-                        try {
-                            setUnlocking(true);
-                            await tradespersonAPI.unlockLead(jobId);
-                            Alert.alert("Success", "Lead unlocked! You can now contact the homeowner.");
-                            loadJobDetails();
-                        } catch (error) {
-                            Alert.alert("Error", error.message || "Failed to unlock lead");
-                        } finally {
-                            setUnlocking(false);
-                        }
-                    },
-                },
-            ]
-        );
+    function handleUnlockClick() {
+        setShowUnlockModal(true);
+    }
+
+    async function handleUnlockConfirm({ message, priceEstimate }) {
+        try {
+            setUnlocking(true);
+            await tradespersonAPI.unlockLeadWithDetail({
+                jobId,
+                message,
+                priceEstimate
+            });
+
+            // Close modal first
+            setShowUnlockModal(false);
+
+            // Show success styling (or simple alert for now)
+            Alert.alert("Success", "Lead unlocked! Your quote has been sent.");
+            loadJobDetails();
+        } catch (error) {
+            Alert.alert("Error", error.message || "Failed to unlock lead");
+        } finally {
+            setUnlocking(false);
+        }
     }
 
     async function handleSubmitQuote() {
@@ -99,6 +102,15 @@ export default function JobDetailsScreen({ route, navigation }) {
 
     return (
         <ScrollView style={styles.container}>
+            {/* Modal */}
+            <UnlockLeadModal
+                visible={showUnlockModal}
+                onClose={() => setShowUnlockModal(false)}
+                onUnlock={handleUnlockConfirm}
+                loading={unlocking}
+                cost={1}
+            />
+
             {/* Job Header */}
             <View style={styles.header}>
                 <View style={styles.newBadge}>
@@ -180,7 +192,7 @@ export default function JobDetailsScreen({ route, navigation }) {
 
                     <TouchableOpacity
                         style={[styles.unlockButton, unlocking && styles.buttonDisabled]}
-                        onPress={handleUnlock}
+                        onPress={handleUnlockClick}
                         disabled={unlocking}
                     >
                         {unlocking ? (

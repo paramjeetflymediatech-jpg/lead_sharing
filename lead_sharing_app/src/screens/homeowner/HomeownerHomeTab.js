@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
     View,
     Text,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { homeownerAPI } from "../../services/api";
+import { Feather } from "@expo/vector-icons";
 
 export default function HomeownerHomeTab({ navigation }) {
     const { user } = useAuth();
@@ -18,13 +20,17 @@ export default function HomeownerHomeTab({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [])
+    );
 
     async function loadData() {
         try {
-            setLoading(true);
+            // Only set loading on initial load
+            if (!dashboard) setLoading(true);
+
             const [dashboardData, jobsData] = await Promise.all([
                 homeownerAPI.getDashboard().catch(() => null),
                 homeownerAPI.getMyJobs().catch(() => ({})),
@@ -37,6 +43,8 @@ export default function HomeownerHomeTab({ navigation }) {
                 jobs = jobsData;
             } else if (Array.isArray(jobsData?.data)) {
                 jobs = jobsData.data;
+            } else if (Array.isArray(jobsData?.data?.jobs)) {
+                jobs = jobsData.data.jobs;
             } else if (Array.isArray(jobsData?.jobs)) {
                 jobs = jobsData.jobs;
             }
@@ -74,28 +82,69 @@ export default function HomeownerHomeTab({ navigation }) {
             refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} />
             }
+            showsVerticalScrollIndicator={false}
         >
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.greeting}>Welcome back,</Text>
-                <Text style={styles.userName}>{user?.name || "Homeowner"}</Text>
+                <View>
+                    <Text style={styles.greeting}>Welcome back,</Text>
+                    <Text style={styles.userName}>{user?.name?.split(" ")[0] || "Homeowner"}</Text>
+                </View>
+                <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate("Profile")}>
+                    <Text style={styles.profileInitials}>
+                        {user?.name?.charAt(0).toUpperCase() || "H"}
+                    </Text>
+                </TouchableOpacity>
             </View>
 
             {/* Stats Grid */}
             <View style={styles.statsGrid}>
-                <StatCard icon="🏗️" value={activeJobs} label="Active Jobs" color="#2563EB" />
-                <StatCard icon="📋" value={pendingQuotes} label="Pending" color="#F59E0B" />
-                <StatCard icon="📊" value={totalJobs} label="Total Jobs" color="#10B981" />
-                <StatCard icon="✅" value={completedJobs} label="Completed" color="#8B5CF6" />
+                <StatCard
+                    icon="activity"
+                    value={activeJobs}
+                    label="Active Jobs"
+                    color="#2563EB"
+                    bgColor="#EFF6FF"
+                />
+                <StatCard
+                    icon="clock"
+                    value={pendingQuotes}
+                    label="Pending"
+                    color="#F59E0B"
+                    bgColor="#FFFBEB"
+                />
+                <StatCard
+                    icon="briefcase"
+                    value={totalJobs}
+                    label="Total Jobs"
+                    color="#10B981"
+                    bgColor="#ECFDF5"
+                />
+                <StatCard
+                    icon="check-circle"
+                    value={completedJobs}
+                    label="Completed"
+                    color="#8B5CF6"
+                    bgColor="#F5F3FF"
+                />
             </View>
 
             {/* Quick Action - Post Job */}
             <TouchableOpacity
                 style={styles.postJobButton}
                 onPress={() => navigation.navigate("PostJob")}
+                activeOpacity={0.9}
             >
-                <Text style={styles.postJobIcon}>➕</Text>
-                <Text style={styles.postJobText}>Post New Job</Text>
+                <View style={styles.postJobContent}>
+                    <View style={styles.postJobIconContainer}>
+                        <Feather name="plus" size={24} color="#FFFFFF" />
+                    </View>
+                    <View>
+                        <Text style={styles.postJobTitle}>Post a New Job</Text>
+                        <Text style={styles.postJobSubtitle}>Get quotes from local pros</Text>
+                    </View>
+                </View>
+                <Feather name="chevron-right" size={24} color="#FFFFFF" style={{ opacity: 0.8 }} />
             </TouchableOpacity>
 
             {/* Recent Jobs */}
@@ -104,30 +153,36 @@ export default function HomeownerHomeTab({ navigation }) {
                     <Text style={styles.sectionTitle}>Recent Jobs</Text>
                     {recentJobs.length > 0 && (
                         <TouchableOpacity onPress={() => navigation.navigate("Jobs")}>
-                            <Text style={styles.viewAllText}>View All →</Text>
+                            <Text style={styles.viewAllText}>View All</Text>
                         </TouchableOpacity>
                     )}
                 </View>
 
                 {recentJobs.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Text style={styles.emptyIcon}>📭</Text>
+                        <View style={styles.emptyIconContainer}>
+                            <Feather name="inbox" size={32} color="#9CA3AF" />
+                        </View>
                         <Text style={styles.emptyTitle}>No jobs yet</Text>
                         <Text style={styles.emptyText}>Post your first job to get started</Text>
                     </View>
                 ) : (
-                    recentJobs.map((job, index) => <JobCard key={job.id || index} job={job} navigation={navigation} />)
+                    recentJobs.map((job, index) => <JobCard key={job._id || job.id || index} job={job} navigation={navigation} />)
                 )}
             </View>
+
+            <View style={{ height: 40 }} />
         </ScrollView>
     );
 }
 
-function StatCard({ icon, value, label, color }) {
+function StatCard({ icon, value, label, color, bgColor }) {
     return (
-        <View style={[styles.statCard, { borderTopColor: color }]}>
-            <Text style={styles.statIcon}>{icon}</Text>
-            <Text style={styles.statValue}>{value}</Text>
+        <View style={[styles.statCard, { backgroundColor: bgColor }]}>
+            <View style={[styles.statIconContainer, { backgroundColor: color }]}>
+                <Feather name={icon} size={16} color="#FFFFFF" />
+            </View>
+            <Text style={[styles.statValue, { color }]}>{value}</Text>
             <Text style={styles.statLabel}>{label}</Text>
         </View>
     );
@@ -136,32 +191,51 @@ function StatCard({ icon, value, label, color }) {
 function JobCard({ job, navigation }) {
     const getStatusColor = (status) => {
         switch (status) {
-            case "OPEN": return "#10B981";
-            case "HIRED": return "#2563EB";
-            case "COMPLETED": return "#8B5CF6";
-            case "CANCELLED": return "#EF4444";
-            default: return "#6B7280";
+            case "OPEN": return { color: "#10B981", bg: "#D1FAE5" };
+            case "HIRED": return { color: "#2563EB", bg: "#DBEAFE" };
+            case "COMPLETED": return { color: "#8B5CF6", bg: "#EDE9FE" };
+            case "CANCELLED": return { color: "#EF4444", bg: "#FEE2E2" };
+            default: return { color: "#6B7280", bg: "#F3F4F6" };
         }
     };
+
+    const statusStyle = getStatusColor(job.status);
 
     return (
         <TouchableOpacity
             style={styles.jobCard}
-            onPress={() => navigation?.navigate("JobDetails", { jobId: job.id })}
+            onPress={() => navigation?.navigate("JobDetails", { jobId: job._id || job.id })}
+            activeOpacity={0.7}
         >
             <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle} numberOfLines={2}>
+                <Text style={styles.jobTitle} numberOfLines={1}>
                     {job.description || "Job Description"}
                 </Text>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
-                    <Text style={styles.statusText}>
+                <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+                    <Text style={[styles.statusText, { color: statusStyle.color }]}>
                         {job.status?.charAt(0) + job.status?.slice(1).toLowerCase()}
                     </Text>
                 </View>
             </View>
-            <View style={styles.jobInfo}>
-                <Text style={styles.jobInfoText}>📍 {job.postcode || "N/A"}</Text>
-                <Text style={styles.jobInfoText}>⏰ {job.start_time?.replace(/_/g, " ") || "Flexible"}</Text>
+
+            <View style={styles.jobDetailsRow}>
+                <View style={styles.jobDetailItem}>
+                    <Feather name="map-pin" size={12} color="#6B7280" style={{ marginRight: 4 }} />
+                    <Text style={styles.jobDetailText}>{job.postcode || "N/A"}</Text>
+                </View>
+                <View style={styles.jobDetailItem}>
+                    <Feather name="clock" size={12} color="#6B7280" style={{ marginRight: 4 }} />
+                    <Text style={styles.jobDetailText}>
+                        {job.start_time ? job.start_time.replace(/_/g, " ").toLowerCase() : "flexible"}
+                    </Text>
+                </View>
+            </View>
+
+            <View style={styles.cardFooter}>
+                <Text style={styles.dateText}>
+                    Posted {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'recently'}
+                </Text>
+                <Feather name="chevron-right" size={16} color="#9CA3AF" />
             </View>
         </TouchableOpacity>
     );
@@ -170,99 +244,125 @@ function JobCard({ job, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F9FAFB",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F9FAFB",
     },
     header: {
-        padding: 20,
-        paddingTop: 16,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
     },
     greeting: {
-        fontSize: 15,
+        fontSize: 14,
         color: "#6B7280",
+        fontWeight: "500",
     },
     userName: {
-        fontSize: 26,
+        fontSize: 24,
+        fontWeight: "800",
+        color: "#111827",
+    },
+    profileButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#2563EB",
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 2,
+    },
+    profileInitials: {
+        color: "#FFFFFF",
+        fontSize: 16,
         fontWeight: "700",
-        color: "#1F2937",
-        marginTop: 4,
     },
     statsGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
         paddingHorizontal: 16,
         gap: 12,
-        marginBottom: 16,
+        marginBottom: 24,
     },
     statCard: {
-        width: "48%",
-        backgroundColor: "#FFFFFF",
+        width: "48%", // Approximately half width minus gap
         borderRadius: 16,
         padding: 16,
-        alignItems: "center",
-        borderTopWidth: 3,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 3,
+        alignItems: "flex-start",
     },
-    statIcon: {
-        fontSize: 32,
-        marginBottom: 8,
+    statIconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 12,
     },
     statValue: {
-        fontSize: 28,
-        fontWeight: "700",
-        color: "#1F2937",
+        fontSize: 24,
+        fontWeight: "800",
         marginBottom: 4,
     },
     statLabel: {
-        fontSize: 13,
+        fontSize: 12,
+        fontWeight: "600",
         color: "#6B7280",
-        textAlign: "center",
     },
     postJobButton: {
         backgroundColor: "#2563EB",
-        marginHorizontal: 16,
-        marginBottom: 24,
-        borderRadius: 16,
-        padding: 18,
+        marginHorizontal: 20,
+        marginBottom: 32,
+        borderRadius: 20,
+        padding: 20,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "space-between",
         shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
+        shadowRadius: 12,
+        elevation: 8,
     },
-    postJobIcon: {
-        fontSize: 20,
-        marginRight: 8,
+    postJobContent: {
+        flexDirection: "row",
+        alignItems: "center",
     },
-    postJobText: {
+    postJobIconContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        backgroundColor: "rgba(255,255,255,0.2)",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 16,
+    },
+    postJobTitle: {
         color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: "700",
     },
+    postJobSubtitle: {
+        color: "rgba(255,255,255,0.8)",
+        fontSize: 13,
+    },
     section: {
-        paddingHorizontal: 16,
-        marginBottom: 24,
+        paddingHorizontal: 20,
     },
     sectionHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 12,
+        marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 19,
+        fontSize: 18,
         fontWeight: "700",
         color: "#1F2937",
     },
@@ -274,18 +374,25 @@ const styles = StyleSheet.create({
     emptyState: {
         backgroundColor: "#FFFFFF",
         borderRadius: 16,
-        padding: 40,
+        padding: 32,
         alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
     },
-    emptyIcon: {
-        fontSize: 56,
-        marginBottom: 12,
+    emptyIconContainer: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: "#F3F4F6",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 16,
     },
     emptyTitle: {
-        fontSize: 17,
-        fontWeight: "600",
+        fontSize: 16,
+        fontWeight: "700",
         color: "#1F2937",
-        marginBottom: 6,
+        marginBottom: 4,
     },
     emptyText: {
         fontSize: 14,
@@ -294,44 +401,62 @@ const styles = StyleSheet.create({
     },
     jobCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 16,
         marginBottom: 12,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowRadius: 8,
         elevation: 2,
+        borderWidth: 1,
+        borderColor: "#EFF6FF",
     },
     jobHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: 10,
+        alignItems: "center",
+        marginBottom: 12,
     },
     jobTitle: {
         flex: 1,
-        fontSize: 15,
-        fontWeight: "600",
-        color: "#1F2937",
-        marginRight: 10,
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#111827",
+        marginRight: 12,
     },
     statusBadge: {
-        paddingHorizontal: 10,
+        paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
     },
     statusText: {
-        color: "#FFFFFF",
         fontSize: 11,
-        fontWeight: "600",
+        fontWeight: "700",
     },
-    jobInfo: {
+    jobDetailsRow: {
         flexDirection: "row",
         gap: 16,
+        marginBottom: 16,
     },
-    jobInfoText: {
+    jobDetailItem: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    jobDetailText: {
         fontSize: 13,
         color: "#6B7280",
+    },
+    cardFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: "#F3F4F6",
+    },
+    dateText: {
+        fontSize: 12,
+        color: "#9CA3AF",
     },
 });

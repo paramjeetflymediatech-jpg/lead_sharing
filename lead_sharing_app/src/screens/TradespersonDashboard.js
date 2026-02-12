@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { tradespersonAPI, jobAPI } from "../services/api";
+import LogoutModal from "../components/LogoutModal";
 
 export default function TradespersonDashboard({ navigation }) {
   const { user, logout } = useAuth();
@@ -19,6 +20,7 @@ export default function TradespersonDashboard({ navigation }) {
   const [myLeads, setMyLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -76,20 +78,16 @@ export default function TradespersonDashboard({ navigation }) {
   }
 
   function handleLogout() {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-          } catch (error) {
-            console.error("Logout error:", error);
-          }
-        },
-      },
-    ]);
+    setLogoutModalVisible(true);
+  }
+
+  async function confirmLogout() {
+    setLogoutModalVisible(false);
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   }
 
   if (loading && !refreshing) {
@@ -261,6 +259,11 @@ export default function TradespersonDashboard({ navigation }) {
           ))
         )}
       </View>
+      <LogoutModal
+        visible={logoutModalVisible}
+        onClose={() => setLogoutModalVisible(false)}
+        onLogout={confirmLogout}
+      />
     </ScrollView>
   );
 }

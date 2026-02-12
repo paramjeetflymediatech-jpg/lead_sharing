@@ -66,7 +66,7 @@ export default function TradespersonBrowseTab({ navigation }) {
             {/* Jobs List */}
             <FlatList
                 data={jobs}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
                 renderItem={({ item }) => <JobCard job={item} navigation={navigation} />}
                 contentContainerStyle={styles.listContent}
                 refreshControl={

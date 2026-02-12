@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Text, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Feather } from '@expo/vector-icons';
 import TradespersonHomeTab from "../screens/tradesperson/TradespersonHomeTab";
 import TradespersonBrowseTab from "../screens/tradesperson/TradespersonBrowseTab";
 import TradespersonProfileTab from "../screens/tradesperson/TradespersonProfileTab";
@@ -90,10 +91,10 @@ export default function TradespersonTabs() {
         <>
             <Tab.Navigator
                 screenOptions={{
+                    tabBarShowLabel: false,
                     tabBarActiveTintColor: "#2563EB",
                     tabBarInactiveTintColor: "#9CA3AF",
                     tabBarStyle: styles.tabBar,
-                    tabBarLabelStyle: styles.tabLabel,
                     headerShown: false,
                 }}
             >
@@ -101,10 +102,10 @@ export default function TradespersonTabs() {
                     name="Home"
                     component={HomeStack}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                🏠
-                            </Text>
+                        tabBarIcon: ({ focused, color, size }) => (
+                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                                <Feather name="home" size={24} color={focused ? "#FFFFFF" : color} />
+                            </View>
                         ),
                     }}
                 />
@@ -112,10 +113,10 @@ export default function TradespersonTabs() {
                     name="Browse"
                     component={BrowseStack}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                🔍
-                            </Text>
+                        tabBarIcon: ({ focused, color, size }) => (
+                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                                <Feather name="search" size={24} color={focused ? "#FFFFFF" : color} />
+                            </View>
                         ),
                     }}
                 />
@@ -129,10 +130,10 @@ export default function TradespersonTabs() {
                         },
                     }}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                💬
-                            </Text>
+                        tabBarIcon: ({ focused, color, size }) => (
+                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                                <Feather name="message-square" size={24} color={focused ? "#FFFFFF" : color} />
+                            </View>
                         ),
                     }}
                 />
@@ -140,10 +141,10 @@ export default function TradespersonTabs() {
                     name="Profile"
                     component={ProfileStack}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                👤
-                            </Text>
+                        tabBarIcon: ({ focused, color, size }) => (
+                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                                <Feather name="user" size={24} color={focused ? "#FFFFFF" : color} />
+                            </View>
                         ),
                     }}
                 />
@@ -164,27 +165,40 @@ function EmptyComponent() {
 
 const styles = StyleSheet.create({
     tabBar: {
-        height: Platform.OS === "ios" ? 85 : 80, // Increased for Android
-        paddingBottom: Platform.OS === "ios" ? 28 : 20, // Increased for Android system buttons
-        paddingTop: 8,
-        backgroundColor: "#FFFFFF",
-        borderTopWidth: 1,
-        borderTopColor: "#E5E7EB",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.05,
+        position: 'absolute',
+        bottom: 2,
+        left: 20,
+        right: 20,
+        elevation: 0,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 2,
+        height: 60,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.1,
+                shadowRadius: 10,
+            },
+            android: {
+                elevation: 10,
+            },
+        }),
+        borderTopWidth: 0,
+    },
+    iconContainer: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    activeIconContainer: {
+        backgroundColor: '#2563EB',
+        shadowColor: '#2563EB',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 8,
-    },
-    tabLabel: {
-        fontSize: 12,
-        fontWeight: "600",
-        marginTop: -4,
-    },
-    tabIcon: {
-        fontSize: 24,
-    },
-    tabIconActive: {
-        transform: [{ scale: 1.1 }],
+        elevation: 5,
     },
 });

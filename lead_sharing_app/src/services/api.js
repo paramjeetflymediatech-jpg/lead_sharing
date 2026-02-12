@@ -154,6 +154,17 @@ export const userAPI = {
             body: JSON.stringify(profileData),
         });
     },
+
+    /**
+     * Update current user (User model)
+     * Used for Homeowners and basic user details
+     */
+    updateMe: async (userData) => {
+        return apiCall("/api/me", {
+            method: "PUT",
+            body: JSON.stringify(userData),
+        });
+    },
 };
 
 // ============================================
@@ -387,10 +398,10 @@ export const tradespersonAPI = {
     /**
      * Unlock a lead (spend credit)
      */
-    unlockLead: async (leadId) => {
+    unlockLeadWithDetail: async ({ jobId, message, priceEstimate }) => {
         return apiCall("/api/leads/unlock", {
             method: "POST",
-            body: JSON.stringify({ leadId }),
+            body: JSON.stringify({ jobId, message, priceEstimate }),
         });
     },
 
@@ -400,6 +411,16 @@ export const tradespersonAPI = {
     search: async (filters) => {
         const queryString = new URLSearchParams(filters).toString();
         return apiCall(`/api/tradespeople?${queryString}`);
+    },
+
+    /**
+     * Top up credits
+     */
+    topUpCredits: async (plan) => {
+        return apiCall("/api/topup", {
+            method: "POST",
+            body: JSON.stringify({ plan }),
+        });
     },
 };
 

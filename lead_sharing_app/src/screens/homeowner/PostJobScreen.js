@@ -8,9 +8,14 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { categoryAPI, subcategoryAPI, jobAPI } from "../../services/api";
+import * as ImagePicker from "expo-image-picker";
+import { categoryAPI, subcategoryAPI, jobAPI, userAPI, uploadAPI } from "../../services/api"; // Added userAPI, uploadAPI
+import { Feather } from "@expo/vector-icons";
+import { Image } from "react-native";
 
 export default function PostJobScreen({ navigation }) {
     const [loading, setLoading] = useState(false);
@@ -24,15 +29,22 @@ export default function PostJobScreen({ navigation }) {
         subcategory_id: "",
         description: "",
         property_type: "HOUSE",
+        ownership: "OWNER",
         postcode: "",
+        city: "",
         budget_min: "",
         budget_max: "",
-        start_time: "FLEXIBLE",
-        urgency: "NORMAL",
+        start_time: "WITHIN_2_WEEKS",
+        job_stage: "PLANNING",
+        contactName: "", // Added
+        contactPhone: "", // Added
+        contactEmail: "", // Added
     });
 
+    const [media, setMedia] = useState([]); // Added for images
+
     useEffect(() => {
-        loadCategories();
+        loadInitialData();
     }, []);
 
     useEffect(() => {
@@ -44,15 +56,30 @@ export default function PostJobScreen({ navigation }) {
         }
     }, [formData.category_id]);
 
-    async function loadCategories() {
+    async function loadInitialData() {
         try {
             setLoadingData(true);
-            const data = await categoryAPI.getAll();
-            const catList = Array.isArray(data) ? data : data?.categories || [];
+            const [catData, userData] = await Promise.all([
+                categoryAPI.getAll(),
+                userAPI.getMe().catch(() => null), // Fail silently if not logged in or error
+            ]);
+
+            const catList = Array.isArray(catData) ? catData : catData?.categories || [];
             setCategories(catList);
+
+            // Prefill contact info
+            if (userData) {
+                const user = userData.user || userData;
+                setFormData(prev => ({
+                    ...prev,
+                    contactName: user.name || "",
+                    contactPhone: user.phone || "",
+                    contactEmail: user.email || "",
+                }));
+            }
         } catch (error) {
-            console.error("Error loading categories:", error);
-            Alert.alert("Error", "Failed to load categories");
+            console.error("Error loading initial data:", error);
+            Alert.alert("Error", "Failed to load data");
         } finally {
             setLoadingData(false);
         }
@@ -72,6 +99,37 @@ export default function PostJobScreen({ navigation }) {
         setFormData((prev) => ({ ...prev, [field]: value }));
     }
 
+    const pickImage = async () => {
+        // Request permissions
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+            Alert.alert("Permission required", "Sorry, we need camera roll permissions to make this work!");
+            return;
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const asset = result.assets[0];
+            if (media.length >= 2) {
+                Alert.alert("Limit Reached", "You can only upload up to 2 images.");
+                return;
+            }
+            setMedia([...media, asset]);
+        }
+    };
+
+    const removeImage = (index) => {
+        const newMedia = [...media];
+        newMedia.splice(index, 1);
+        setMedia(newMedia);
+    };
+
     async function handleSubmit() {
         // Validation
         if (!formData.category_id) {
@@ -86,20 +144,78 @@ export default function PostJobScreen({ navigation }) {
             Alert.alert("Error", "Please enter your postcode");
             return;
         }
+        if (!formData.contactName.trim()) {
+            Alert.alert("Error", "Please enter your full name");
+            return;
+        }
+        if (!formData.contactPhone.trim()) {
+            Alert.alert("Error", "Please enter your phone number");
+            return;
+        }
+        if (!formData.contactEmail.trim()) {
+            Alert.alert("Error", "Please enter your email address");
+            return;
+        }
 
         try {
             setLoading(true);
 
+            // Upload images first
+            const uploadedMedia = [];
+            if (media.length > 0) {
+                for (const asset of media) {
+                    const localUri = asset.uri;
+                    const filename = localUri.split('/').pop();
+                    const match = /\.(\w+)$/.exec(filename);
+                    const type = match ? `image/${match[1]}` : `image`;
+
+                    const file = {
+                        uri: localUri,
+                        name: filename,
+                        type: type,
+                    };
+
+                    try {
+                        const uploadRes = await uploadAPI.uploadImage(file);
+                        if (uploadRes && uploadRes.url) {
+                            uploadedMedia.push({ url: uploadRes.url, type: 'IMAGE' }); // Adjust structure based on what backend expects for media array
+                        }
+                    } catch (uploadError) {
+                        console.error("Image upload failed:", uploadError);
+                        Alert.alert("Upload Error", "Failed to upload one or more images.");
+                        setLoading(false);
+                        return;
+                    }
+                }
+            }
+
             // Convert to numbers
+            // detailed description with property type
+            let detailedDescription = formData.description;
+            if (formData.property_type) {
+                detailedDescription += `\n\nProperty Type: ${formData.property_type}`;
+            }
+
             const jobData = {
-                ...formData,
-                category_id: parseInt(formData.category_id),
-                subcategory_id: formData.subcategory_id
-                    ? parseInt(formData.subcategory_id)
-                    : null,
-                budget_min: formData.budget_min ? parseFloat(formData.budget_min) : null,
-                budget_max: formData.budget_max ? parseFloat(formData.budget_max) : null,
+                category: parseInt(formData.category_id),
+                subCategory: formData.subcategory_id ? parseInt(formData.subcategory_id) : null,
+                description: detailedDescription,
+                budgetMin: formData.budget_min ? parseFloat(formData.budget_min) : null,
+                budgetMax: formData.budget_max ? parseFloat(formData.budget_max) : null,
+                startTime: formData.start_time,
+                jobStage: formData.job_stage,
+                ownership: formData.ownership,
+                location: {
+                    postcode: formData.postcode,
+                    city: formData.city,
+                },
+                contactName: formData.contactName, // Added
+                contactPhone: formData.contactPhone, // Added
+                contactEmail: formData.contactEmail, // Added
+                media: uploadedMedia, // Added
             };
+
+            console.log("Submitting Job Payload:", JSON.stringify(jobData, null, 2));
 
             await jobAPI.create(jobData);
 
@@ -126,239 +242,428 @@ export default function PostJobScreen({ navigation }) {
     }
 
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Post a New Job</Text>
-                <Text style={styles.headerSubtitle}>Get quotes from local tradespeople</Text>
-            </View>
-
-            {/* Category */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Category *</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={formData.category_id}
-                        onValueChange={(value) => updateField("category_id", value)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Select a category..." value="" />
-                        {categories.map((cat, index) => (
-                            <Picker.Item key={cat.id || index} label={cat.name} value={cat.id.toString()} />
-                        ))}
-                    </Picker>
-                </View>
-            </View>
-
-            {/* Subcategory */}
-            {subcategories.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={styles.label}>Subcategory</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={formData.subcategory_id}
-                            onValueChange={(value) => updateField("subcategory_id", value)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Select a subcategory..." value="" />
-                            {subcategories.map((sub, index) => (
-                                <Picker.Item key={sub.id || index} label={sub.name} value={sub.id.toString()} />
-                            ))}
-                        </Picker>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+        >
+            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                    </TouchableOpacity>
+                    <View>
+                        <Text style={styles.headerTitle}>Post a New Job</Text>
+                        <Text style={styles.headerSubtitle}>Get quotes from local tradespeople</Text>
                     </View>
                 </View>
-            )}
 
-            {/* Description */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Job Description *</Text>
-                <TextInput
-                    style={styles.textArea}
-                    placeholder="Describe the work you need done..."
-                    multiline
-                    numberOfLines={4}
-                    value={formData.description}
-                    onChangeText={(value) => updateField("description", value)}
-                />
-            </View>
-
-            {/* Property Type */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Property Type</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={formData.property_type}
-                        onValueChange={(value) => updateField("property_type", value)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="House" value="HOUSE" />
-                        <Picker.Item label="Flat/Apartment" value="FLAT" />
-                        <Picker.Item label="Commercial" value="COMMERCIAL" />
-                        <Picker.Item label="Other" value="OTHER" />
-                    </Picker>
-                </View>
-            </View>
-
-            {/* Postcode */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Postcode *</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="e.g. SW1A 1AA"
-                    value={formData.postcode}
-                    onChangeText={(value) => updateField("postcode", value.toUpperCase())}
-                    autoCapitalize="characters"
-                />
-            </View>
-
-            {/* Budget */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Budget Range (Optional)</Text>
-                <View style={styles.row}>
-                    <View style={styles.halfInput}>
-                        <Text style={styles.smallLabel}>Min (£)</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. 100"
-                            keyboardType="numeric"
-                            value={formData.budget_min}
-                            onChangeText={(value) => updateField("budget_min", value)}
-                        />
+                <View style={styles.formContainer}>
+                    {/* Category Selection */}
+                    <View style={styles.sectionHeader}>
+                        <Feather name="grid" size={18} color="#2563EB" />
+                        <Text style={styles.sectionTitle}>Type of Work</Text>
                     </View>
-                    <View style={styles.halfInput}>
-                        <Text style={styles.smallLabel}>Max (£)</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. 500"
-                            keyboardType="numeric"
-                            value={formData.budget_max}
-                            onChangeText={(value) => updateField("budget_max", value)}
-                        />
+
+                    <View style={styles.card}>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Category <Text style={styles.required}>*</Text></Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={formData.category_id}
+                                    onValueChange={(value) => updateField("category_id", value)}
+                                    style={styles.picker}
+                                >
+                                    <Picker.Item label="Select a category..." value="" />
+                                    {categories.map((cat, index) => (
+                                        <Picker.Item key={cat.id || index} label={cat.name} value={cat.id.toString()} />
+                                    ))}
+                                </Picker>
+                            </View>
+                        </View>
+
+                        {subcategories.length > 0 && (
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Subcategory</Text>
+                                <View style={styles.pickerContainer}>
+                                    <Picker
+                                        selectedValue={formData.subcategory_id}
+                                        onValueChange={(value) => updateField("subcategory_id", value)}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="Select a subcategory..." value="" />
+                                        {subcategories.map((sub, index) => (
+                                            <Picker.Item key={sub.id || index} label={sub.name} value={sub.id.toString()} />
+                                        ))}
+                                    </Picker>
+                                </View>
+                            </View>
+                        )}
                     </View>
-                </View>
-            </View>
 
-            {/* Start Time */}
-            <View style={styles.section}>
-                <Text style={styles.label}>When do you need this done?</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={formData.start_time}
-                        onValueChange={(value) => updateField("start_time", value)}
-                        style={styles.picker}
+                    {/* Job Details */}
+                    <View style={styles.sectionHeader}>
+                        <Feather name="file-text" size={18} color="#2563EB" />
+                        <Text style={styles.sectionTitle}>Job Details</Text>
+                    </View>
+
+                    <View style={styles.card}>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Description <Text style={styles.required}>*</Text></Text>
+                            <TextInput
+                                style={styles.textArea}
+                                placeholder="Describe the work you need done..."
+                                placeholderTextColor="#9CA3AF"
+                                multiline
+                                numberOfLines={4}
+                                value={formData.description}
+                                onChangeText={(value) => updateField("description", value)}
+                            />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Photos (Optional)</Text>
+                            <View style={styles.mediaContainer}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                    {media.map((asset, index) => (
+                                        <View key={index} style={styles.imageWrapper}>
+                                            <Image source={{ uri: asset.uri }} style={styles.imagePreview} />
+                                            <TouchableOpacity
+                                                style={styles.removeImageButton}
+                                                onPress={() => removeImage(index)}
+                                            >
+                                                <Feather name="x" size={12} color="#FFF" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                    {media.length < 2 && (
+                                        <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
+                                            <Feather name="plus" size={24} color="#6B7280" />
+                                            <Text style={styles.addImageText}>Add Photo</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Property Type</Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={formData.property_type}
+                                    onValueChange={(value) => updateField("property_type", value)}
+                                    style={styles.picker}
+                                >
+                                    <Picker.Item label="House" value="HOUSE" />
+                                    <Picker.Item label="Flat/Apartment" value="FLAT" />
+                                    <Picker.Item label="Commercial" value="COMMERCIAL" />
+                                    <Picker.Item label="Other" value="OTHER" />
+                                </Picker>
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Ownership Status</Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={formData.ownership}
+                                    onValueChange={(value) => updateField("ownership", value)}
+                                    style={styles.picker}
+                                >
+                                    <Picker.Item label="I own and live at this property" value="OWNER" />
+                                    <Picker.Item label="I am the landlord" value="LANDLORD" />
+                                    <Picker.Item label="I rent, but am authorised" value="AUTHORIZED" />
+                                    <Picker.Item label="I am looking to buy" value="BUYING" />
+                                </Picker>
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Postcode <Text style={styles.required}>*</Text></Text>
+                            <View style={styles.inputWrapper}>
+                                <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="e.g. SW1A 1AA"
+                                    placeholderTextColor="#9CA3AF"
+                                    value={formData.postcode}
+                                    onChangeText={(value) => updateField("postcode", value.toUpperCase())}
+                                    autoCapitalize="characters"
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>City</Text>
+                            <View style={styles.inputWrapper}>
+                                <Feather name="map" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="e.g. London"
+                                    placeholderTextColor="#9CA3AF"
+                                    value={formData.city}
+                                    onChangeText={(value) => updateField("city", value)}
+                                />
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Contact Info */}
+                    <View style={styles.sectionHeader}>
+                        <Feather name="user" size={18} color="#2563EB" />
+                        <Text style={styles.sectionTitle}>Contact Information</Text>
+                    </View>
+
+                    <View style={styles.card}>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Full Name <Text style={styles.required}>*</Text></Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Your Full Name"
+                                placeholderTextColor="#9CA3AF"
+                                value={formData.contactName}
+                                onChangeText={(value) => updateField("contactName", value)}
+                            />
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Phone Number <Text style={styles.required}>*</Text></Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Your Phone Number"
+                                placeholderTextColor="#9CA3AF"
+                                keyboardType="phone-pad"
+                                value={formData.contactPhone}
+                                onChangeText={(value) => updateField("contactPhone", value)}
+                            />
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Email Address <Text style={styles.required}>*</Text></Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Your Email Address"
+                                placeholderTextColor="#9CA3AF"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                value={formData.contactEmail}
+                                onChangeText={(value) => updateField("contactEmail", value)}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Budget & Timing */}
+                    <View style={styles.sectionHeader}>
+                        <Feather name="clock" size={18} color="#2563EB" />
+                        <Text style={styles.sectionTitle}>Budget & Timing</Text>
+                    </View>
+
+                    <View style={styles.card}>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Budget Range (£)</Text>
+                            <View style={styles.row}>
+                                <View style={styles.halfInput}>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Min"
+                                        placeholderTextColor="#9CA3AF"
+                                        keyboardType="numeric"
+                                        value={formData.budget_min}
+                                        onChangeText={(value) => updateField("budget_min", value)}
+                                    />
+                                </View>
+                                <View style={styles.halfInput}>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Max"
+                                        placeholderTextColor="#9CA3AF"
+                                        keyboardType="numeric"
+                                        value={formData.budget_max}
+                                        onChangeText={(value) => updateField("budget_max", value)}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>When do you need the work done?</Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={formData.start_time}
+                                    onValueChange={(value) => updateField("start_time", value)}
+                                    style={styles.picker}
+                                >
+                                    <Picker.Item label="Urgent" value="URGENT" />
+                                    <Picker.Item label="Within 2 Days" value="WITHIN_2_DAYS" />
+                                    <Picker.Item label="Within 2 Weeks" value="WITHIN_2_WEEKS" />
+                                    <Picker.Item label="Within 2 Months" value="WITHIN_2_MONTHS" />
+                                    <Picker.Item label="Flexible" value="FLEXIBLE" />
+                                </Picker>
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Project Stage</Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={formData.job_stage}
+                                    onValueChange={(value) => updateField("job_stage", value)}
+                                    style={styles.picker}
+                                >
+                                    <Picker.Item label="Ready to hire" value="READY_TO_HIRE" />
+                                    <Picker.Item label="Planning" value="PLANNING" />
+                                    <Picker.Item label="Insurance work" value="INSURANCE_WORK" />
+                                </Picker>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Submit Button */}
+                    <TouchableOpacity
+                        style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                        onPress={handleSubmit}
+                        disabled={loading}
                     >
-                        <Picker.Item label="Flexible" value="FLEXIBLE" />
-                        <Picker.Item label="Within 24 hours" value="WITHIN_24_HOURS" />
-                        <Picker.Item label="Within a week" value="WITHIN_A_WEEK" />
-                        <Picker.Item label="Within a month" value="WITHIN_A_MONTH" />
-                        <Picker.Item label="More than a month" value="MORE_THAN_A_MONTH" />
-                    </Picker>
-                </View>
-            </View>
+                        {loading ? (
+                            <ActivityIndicator color="#FFFFFF" />
+                        ) : (
+                            <>
+                                <Feather name="send" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                                <Text style={styles.submitButtonText}>Post Job</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
 
-            {/* Urgency */}
-            <View style={styles.section}>
-                <Text style={styles.label}>Urgency Level</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={formData.urgency}
-                        onValueChange={(value) => updateField("urgency", value)}
-                        style={styles.picker}
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => navigation.goBack()}
                     >
-                        <Picker.Item label="Normal" value="NORMAL" />
-                        <Picker.Item label="Urgent" value="URGENT" />
-                        <Picker.Item label="Emergency" value="EMERGENCY" />
-                    </Picker>
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
                 </View>
-            </View>
 
-            {/* Submit Button */}
-            <TouchableOpacity
-                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-                onPress={handleSubmit}
-                disabled={loading}
-            >
-                {loading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                    <Text style={styles.submitButtonText}>Post Job</Text>
-                )}
-            </TouchableOpacity>
-
-            <View style={{ height: 40 }} />
-        </ScrollView>
+                <View style={{ height: 40 }} />
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     header: {
-        padding: 20,
-        paddingTop: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+        backgroundColor: "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E7EB",
+    },
+    backButton: {
+        marginRight: 16,
+        padding: 8,
+        marginLeft: -8,
     },
     headerTitle: {
-        fontSize: 26,
+        fontSize: 20,
         fontWeight: "700",
-        color: "#1F2937",
+        color: "#111827",
     },
     headerSubtitle: {
-        fontSize: 14,
+        fontSize: 13,
         color: "#6B7280",
-        marginTop: 4,
     },
-    section: {
-        paddingHorizontal: 16,
-        marginBottom: 20,
+    formContainer: {
+        padding: 20,
+    },
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+        marginTop: 8,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#1F2937",
+        marginLeft: 8,
+    },
+    card: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 24,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+    },
+    inputGroup: {
+        marginBottom: 16,
     },
     label: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: "600",
-        color: "#1F2937",
+        color: "#374151",
         marginBottom: 8,
     },
-    smallLabel: {
-        fontSize: 13,
-        fontWeight: "500",
-        color: "#6B7280",
-        marginBottom: 6,
+    required: {
+        color: "#EF4444",
     },
-    input: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 10,
-        padding: 14,
-        fontSize: 15,
-        color: "#1F2937",
+    inputWrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#F9FAFB",
         borderWidth: 1,
         borderColor: "#E5E7EB",
-    },
-    textArea: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 10,
-        padding: 14,
-        fontSize: 15,
-        color: "#1F2937",
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-        minHeight: 100,
-        textAlignVertical: "top",
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        minHeight: 50,
     },
     pickerContainer: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 10,
+        backgroundColor: "#F9FAFB",
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: "#E5E7EB",
         overflow: "hidden",
     },
     picker: {
         height: 50,
+    },
+    inputIcon: {
+        marginRight: 10,
+    },
+    input: {
+        flex: 1,
+        fontSize: 15,
+        color: "#1F2937",
+        paddingVertical: 12,
+        backgroundColor: "#F9FAFB",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        borderRadius: 12,
+        paddingHorizontal: 12,
+    },
+    textArea: {
+        backgroundColor: "#F9FAFB",
+        borderRadius: 12,
+        padding: 12,
+        fontSize: 15,
+        color: "#1F2937",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        minHeight: 100,
+        textAlignVertical: "top",
     },
     row: {
         flexDirection: "row",
@@ -368,24 +673,76 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     submitButton: {
-        backgroundColor: "#2563EB",
-        marginHorizontal: 16,
-        marginTop: 8,
-        borderRadius: 12,
-        padding: 16,
+        flexDirection: "row",
+        justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#2563EB",
+        borderRadius: 12,
+        paddingVertical: 16,
+        marginTop: 12,
         shadowColor: "#2563EB",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 6,
+        elevation: 4,
     },
     submitButtonDisabled: {
-        opacity: 0.6,
+        opacity: 0.7,
     },
     submitButtonText: {
         color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "700",
+    },
+    cancelButton: {
+        alignItems: "center",
+        paddingVertical: 16,
+        marginTop: 8,
+    },
+    cancelButtonText: {
+        color: "#6B7280",
+        fontSize: 15,
+        fontWeight: "600",
+    },
+    mediaContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 8,
+    },
+    imageWrapper: {
+        position: "relative",
+        marginRight: 12,
+    },
+    imagePreview: {
+        width: 100,
+        height: 80,
+        borderRadius: 8,
+        backgroundColor: "#E5E7EB",
+    },
+    removeImageButton: {
+        position: "absolute",
+        top: -8,
+        right: -8,
+        backgroundColor: "#EF4444",
+        borderRadius: 12,
+        padding: 4,
+        zIndex: 1,
+    },
+    addImageButton: {
+        width: 100,
+        height: 80,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#D1D5DB",
+        borderStyle: "dashed",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#F9FAFB",
+    },
+    addImageText: {
+        fontSize: 12,
+        color: "#6B7280",
+        marginTop: 4,
+        fontWeight: "500",
     },
 });

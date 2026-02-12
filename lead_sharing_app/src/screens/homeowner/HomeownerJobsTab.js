@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
     View,
     Text,
@@ -9,6 +10,7 @@ import {
     RefreshControl,
 } from "react-native";
 import { homeownerAPI } from "../../services/api";
+import { Feather } from "@expo/vector-icons";
 
 export default function HomeownerJobsTab({ navigation }) {
     const [jobs, setJobs] = useState([]);
@@ -16,20 +18,28 @@ export default function HomeownerJobsTab({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState("ALL");
 
-    useEffect(() => {
-        loadJobs();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadJobs();
+        }, [])
+    );
 
     async function loadJobs() {
         try {
-            setLoading(true);
+            // Only set loading on initial load, not on refresh/refocus to avoid flickering
+            if (jobs.length === 0) setLoading(true);
+
             const data = await homeownerAPI.getMyJobs();
+            // console.log("MyJobs Response:", JSON.stringify(data, null, 2));
 
             let jobsList = [];
             if (Array.isArray(data)) {
                 jobsList = data;
             } else if (Array.isArray(data?.data)) {
                 jobsList = data.data;
+            } else if (Array.isArray(data?.data?.jobs)) {
+                // Correctly accessing nested jobs array from backend response structure
+                jobsList = data.data.jobs;
             } else if (Array.isArray(data?.jobs)) {
                 jobsList = data.jobs;
             }
@@ -72,7 +82,9 @@ export default function HomeownerJobsTab({ navigation }) {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>My Jobs</Text>
-                <Text style={styles.headerSubtitle}>{jobs.length} total jobs</Text>
+                <Text style={styles.headerSubtitle}>
+                    {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} posted
+                </Text>
             </View>
 
             {/* Filter Tabs */}
@@ -93,7 +105,7 @@ export default function HomeownerJobsTab({ navigation }) {
             {/* Jobs List */}
             <FlatList
                 data={filteredJobs}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => (item?._id ? item._id.toString() : item?.id ? item.id.toString() : index.toString())}
                 renderItem={({ item }) => <JobCard job={item} navigation={navigation} />}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
@@ -101,40 +113,47 @@ export default function HomeownerJobsTab({ navigation }) {
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
-                        <Text style={styles.emptyIcon}>📭</Text>
+                        <View style={styles.emptyIconContainer}>
+                            <Feather name="inbox" size={40} color="#9CA3AF" />
+                        </View>
                         <Text style={styles.emptyTitle}>No jobs found</Text>
                         <Text style={styles.emptyText}>
                             {filter === "ALL" ? "Post your first job to get started" : `No ${filter.toLowerCase()} jobs yet`}
                         </Text>
                     </View>
                 }
+                showsVerticalScrollIndicator={false}
             />
         </View>
     );
 }
 
 function JobCard({ job, navigation }) {
-    const getStatusColor = (status) => {
+    const getStatusInfo = (status) => {
         switch (status) {
-            case "OPEN": return "#10B981";
-            case "HIRED": return "#2563EB";
-            case "COMPLETED": return "#8B5CF6";
-            case "CANCELLED": return "#EF4444";
-            default: return "#6B7280";
+            case "OPEN": return { color: "#10B981", bg: "#D1FAE5", icon: 'check-circle' };
+            case "HIRED": return { color: "#2563EB", bg: "#DBEAFE", icon: 'user-check' };
+            case "COMPLETED": return { color: "#8B5CF6", bg: "#EDE9FE", icon: 'check' };
+            case "CANCELLED": return { color: "#EF4444", bg: "#FEE2E2", icon: 'x' };
+            default: return { color: "#6B7280", bg: "#F3F4F6", icon: 'help-circle' };
         }
     };
+
+    const status = getStatusInfo(job.status);
 
     return (
         <TouchableOpacity
             style={styles.jobCard}
-            onPress={() => navigation?.navigate("JobDetails", { jobId: job.id })}
+            onPress={() => navigation?.navigate("JobDetails", { jobId: job._id || job.id })}
+            activeOpacity={0.8}
         >
             <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle} numberOfLines={2}>
                     {job.description || "Job Description"}
                 </Text>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
-                    <Text style={styles.statusText}>
+                <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+                    <Feather name={status.icon} size={12} color={status.color} style={{ marginRight: 4 }} />
+                    <Text style={[styles.statusText, { color: status.color }]}>
                         {job.status?.charAt(0) + job.status?.slice(1).toLowerCase()}
                     </Text>
                 </View>
@@ -142,29 +161,33 @@ function JobCard({ job, navigation }) {
 
             <View style={styles.jobDetails}>
                 <View style={styles.jobDetail}>
-                    <Text style={styles.detailIcon}>📍</Text>
+                    <Feather name="map-pin" size={14} color="#6B7280" style={{ marginRight: 6 }} />
                     <Text style={styles.detailText}>{job.postcode || "N/A"}</Text>
                 </View>
                 <View style={styles.jobDetail}>
-                    <Text style={styles.detailIcon}>⏰</Text>
-                    <Text style={styles.detailText}>{job.start_time?.replace(/_/g, " ") || "Flexible"}</Text>
+                    <Feather name="clock" size={14} color="#6B7280" style={{ marginRight: 6 }} />
+                    <Text style={styles.detailText}>
+                        {job.start_time ? job.start_time.replace(/_/g, " ").toLowerCase() : "flexible"}
+                    </Text>
                 </View>
             </View>
 
             {job.budget_max && (
-                <View style={styles.budgetContainer}>
-                    <Text style={styles.budgetLabel}>Budget:</Text>
-                    <Text style={styles.budgetValue}>
-                        £{job.budget_min || 0} - £{job.budget_max}
-                    </Text>
+                <View style={styles.budgetRow}>
+                    <View style={styles.budgetBadge}>
+                        <Feather name="credit-card" size={12} color="#4B5563" style={{ marginRight: 6 }} />
+                        <Text style={styles.budgetText}>
+                            £{job.budget_min || 0} - £{job.budget_max}
+                        </Text>
+                    </View>
                 </View>
             )}
 
-            {job.created_at && (
+            <View style={styles.cardFooter}>
                 <Text style={styles.jobDate}>
-                    Posted {new Date(job.created_at).toLocaleDateString()}
+                    Posted {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'recently'}
                 </Text>
-            )}
+            </View>
         </TouchableOpacity>
     );
 }
@@ -172,22 +195,26 @@ function JobCard({ job, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     header: {
-        padding: 20,
-        paddingBottom: 12,
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+        backgroundColor: "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E7EB",
     },
     headerTitle: {
-        fontSize: 26,
-        fontWeight: "700",
-        color: "#1F2937",
+        fontSize: 28,
+        fontWeight: "800",
+        color: "#111827",
     },
     headerSubtitle: {
         fontSize: 14,
@@ -196,13 +223,13 @@ const styles = StyleSheet.create({
     },
     filtersContainer: {
         flexDirection: "row",
-        paddingHorizontal: 16,
-        marginBottom: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
         gap: 8,
     },
     filterTab: {
-        paddingHorizontal: 18,
-        paddingVertical: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 20,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
@@ -213,7 +240,7 @@ const styles = StyleSheet.create({
         borderColor: "#2563EB",
     },
     filterText: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: "600",
         color: "#6B7280",
     },
@@ -221,99 +248,112 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
     listContent: {
-        padding: 16,
+        padding: 20,
         paddingTop: 0,
     },
     emptyState: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 48,
         alignItems: "center",
-        marginTop: 40,
+        marginTop: 60,
+        paddingHorizontal: 40,
     },
-    emptyIcon: {
-        fontSize: 64,
-        marginBottom: 16,
+    emptyIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: "#E5E7EB",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 20,
     },
     emptyTitle: {
-        fontSize: 18,
-        fontWeight: "600",
+        fontSize: 20,
+        fontWeight: "700",
         color: "#1F2937",
         marginBottom: 8,
     },
     emptyText: {
-        fontSize: 14,
+        fontSize: 15,
         color: "#6B7280",
         textAlign: "center",
+        lineHeight: 22,
     },
     jobCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowRadius: 8,
         elevation: 2,
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
     },
     jobHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        marginBottom: 12,
+        marginBottom: 16,
     },
     jobTitle: {
         flex: 1,
         fontSize: 16,
-        fontWeight: "600",
-        color: "#1F2937",
+        fontWeight: "700",
+        color: "#111827",
         marginRight: 12,
+        lineHeight: 22,
     },
     statusBadge: {
-        paddingHorizontal: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 8,
+        borderRadius: 100,
     },
     statusText: {
-        color: "#FFFFFF",
-        fontSize: 12,
-        fontWeight: "600",
+        fontSize: 11,
+        fontWeight: "700",
     },
     jobDetails: {
         flexDirection: "row",
-        gap: 16,
-        marginBottom: 12,
+        gap: 20,
+        marginBottom: 16,
     },
     jobDetail: {
         flexDirection: "row",
         alignItems: "center",
     },
-    detailIcon: {
-        fontSize: 14,
-        marginRight: 6,
-    },
     detailText: {
         fontSize: 14,
-        color: "#6B7280",
+        color: "#4B5563",
+        fontWeight: "500",
     },
-    budgetContainer: {
+    budgetRow: {
+        flexDirection: "row",
+        marginBottom: 16,
+    },
+    budgetBadge: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 8,
+        backgroundColor: "#F3F4F6",
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
     },
-    budgetLabel: {
-        fontSize: 14,
-        color: "#6B7280",
-        marginRight: 6,
-    },
-    budgetValue: {
-        fontSize: 14,
+    budgetText: {
+        fontSize: 13,
         fontWeight: "600",
-        color: "#10B981",
+        color: "#374151",
+    },
+    cardFooter: {
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: "#F9FAFB",
     },
     jobDate: {
         fontSize: 12,
         color: "#9CA3AF",
+        fontStyle: "italic",
     },
 });

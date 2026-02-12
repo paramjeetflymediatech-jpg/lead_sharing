@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Text, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Feather } from "@expo/vector-icons";
 import HomeownerHomeTab from "../screens/homeowner/HomeownerHomeTab";
 import HomeownerJobsTab from "../screens/homeowner/HomeownerJobsTab";
 import HomeownerProfileTab from "../screens/homeowner/HomeownerProfileTab";
@@ -25,7 +26,7 @@ function HomeStack() {
             <Stack.Screen
                 name="PostJob"
                 component={PostJobScreen}
-                options={{ title: "Post a Job" }}
+                options={{ title: "Post a Job", headerShown: false }}
             />
             <Stack.Screen
                 name="JobDetails"
@@ -66,7 +67,7 @@ function ProfileStack() {
             <Stack.Screen
                 name="EditProfile"
                 component={EditProfileScreen}
-                options={{ title: "Edit Profile" }}
+                options={{ title: "Edit Profile", headerShown: false }}
             />
         </Stack.Navigator>
     );
@@ -82,18 +83,16 @@ export default function HomeownerTabs() {
                     tabBarActiveTintColor: "#2563EB",
                     tabBarInactiveTintColor: "#9CA3AF",
                     tabBarStyle: styles.tabBar,
-                    tabBarLabelStyle: styles.tabLabel,
                     headerShown: false,
+                    tabBarShowLabel: false,
                 }}
             >
                 <Tab.Screen
                     name="Home"
                     component={HomeStack}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                🏠
-                            </Text>
+                        tabBarIcon: ({ color, size }) => (
+                            <Feather name="home" size={size} color={color} />
                         ),
                     }}
                 />
@@ -101,10 +100,8 @@ export default function HomeownerTabs() {
                     name="Jobs"
                     component={JobsStack}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                📋
-                            </Text>
+                        tabBarIcon: ({ color, size }) => (
+                            <Feather name="list" size={size} color={color} />
                         ),
                     }}
                 />
@@ -118,10 +115,8 @@ export default function HomeownerTabs() {
                         },
                     }}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                💬
-                            </Text>
+                        tabBarIcon: ({ color, size }) => (
+                            <Feather name="message-square" size={size} color={color} />
                         ),
                     }}
                 />
@@ -129,10 +124,8 @@ export default function HomeownerTabs() {
                     name="Profile"
                     component={ProfileStack}
                     options={{
-                        tabBarIcon: ({ focused }) => (
-                            <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-                                👤
-                            </Text>
+                        tabBarIcon: ({ color, size }) => (
+                            <Feather name="user" size={size} color={color} />
                         ),
                     }}
                 />
@@ -153,27 +146,20 @@ function EmptyComponent() {
 
 const styles = StyleSheet.create({
     tabBar: {
-        height: Platform.OS === "ios" ? 85 : 80, // Increased for Android
-        paddingBottom: Platform.OS === "ios" ? 28 : 20, // Increased for Android system buttons
-        paddingTop: 8,
+        height: Platform.OS === "ios" ? 88 : 64,
+        paddingBottom: Platform.OS === "ios" ? 28 : 10,
+        paddingTop: 10,
         backgroundColor: "#FFFFFF",
-        borderTopWidth: 1,
-        borderTopColor: "#E5E7EB",
+        borderTopWidth: 0,
+        elevation: 8,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     tabLabel: {
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: "600",
-        marginTop: -4,
-    },
-    tabIcon: {
-        fontSize: 24,
-    },
-    tabIconActive: {
-        transform: [{ scale: 1.1 }],
+        marginTop: 4,
     },
 });
