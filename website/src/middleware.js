@@ -5,9 +5,18 @@ import { jwtVerify } from "jose";
 // const secret = ... // Remove top-level
 
 export async function middleware(req) {
-  const token = req.cookies.get("auth_token")?.value;
+  let token = req.cookies.get("auth_token")?.value;
+
+  // Fallback to Authorization header for mobile app
+  if (!token) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    }
+  }
+
   const pathname = req.nextUrl.pathname;
- 
+
 
 
   const JWT_SECRET = process.env.JWT_SECRET;
@@ -113,6 +122,6 @@ export const config = {
     "/api/admin/:path*",
     "/api/me/:path*",
     "/api/auth/update-password",
-     "/api/topup", // Add this line
+    "/api/topup", // Add this line
   ],
 };

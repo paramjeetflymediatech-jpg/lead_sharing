@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, Platform, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -9,7 +9,7 @@ import HomeownerProfileTab from "../screens/homeowner/HomeownerProfileTab";
 import PostJobScreen from "../screens/homeowner/PostJobScreen";
 import JobDetailsScreen from "../screens/homeowner/JobDetailsScreen";
 import EditProfileScreen from "../screens/homeowner/EditProfileScreen";
-import MessagesModal from "../screens/MessagesModal";
+import MessagesListScreen from "../screens/MessagesListScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -74,74 +74,54 @@ function ProfileStack() {
 }
 
 export default function HomeownerTabs() {
-    const [messagesVisible, setMessagesVisible] = useState(false);
-
     return (
-        <>
-            <Tab.Navigator
-                screenOptions={{
-                    tabBarActiveTintColor: "#2563EB",
-                    tabBarInactiveTintColor: "#9CA3AF",
-                    tabBarStyle: styles.tabBar,
-                    headerShown: false,
-                    tabBarShowLabel: false,
+        <Tab.Navigator
+            screenOptions={{
+                tabBarActiveTintColor: "#2563EB",
+                tabBarInactiveTintColor: "#9CA3AF",
+                tabBarStyle: styles.tabBar,
+                headerShown: false,
+                tabBarShowLabel: false,
+            }}
+        >
+            <Tab.Screen
+                name="Home"
+                component={HomeStack}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="home" size={size} color={color} />
+                    ),
                 }}
-            >
-                <Tab.Screen
-                    name="Home"
-                    component={HomeStack}
-                    options={{
-                        tabBarIcon: ({ color, size }) => (
-                            <Feather name="home" size={size} color={color} />
-                        ),
-                    }}
-                />
-                <Tab.Screen
-                    name="Jobs"
-                    component={JobsStack}
-                    options={{
-                        tabBarIcon: ({ color, size }) => (
-                            <Feather name="list" size={size} color={color} />
-                        ),
-                    }}
-                />
-                <Tab.Screen
-                    name="Messages"
-                    component={EmptyComponent}
-                    listeners={{
-                        tabPress: (e) => {
-                            e.preventDefault();
-                            setMessagesVisible(true);
-                        },
-                    }}
-                    options={{
-                        tabBarIcon: ({ color, size }) => (
-                            <Feather name="message-square" size={size} color={color} />
-                        ),
-                    }}
-                />
-                <Tab.Screen
-                    name="Profile"
-                    component={ProfileStack}
-                    options={{
-                        tabBarIcon: ({ color, size }) => (
-                            <Feather name="user" size={size} color={color} />
-                        ),
-                    }}
-                />
-            </Tab.Navigator>
-
-            <MessagesModal
-                visible={messagesVisible}
-                onClose={() => setMessagesVisible(false)}
             />
-        </>
+            <Tab.Screen
+                name="Jobs"
+                component={JobsStack}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="list" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Messages"
+                component={MessagesListScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="message-square" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Profile"
+                component={ProfileStack}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="user" size={size} color={color} />
+                    ),
+                }}
+            />
+        </Tab.Navigator>
     );
-}
-
-// Empty component for Messages tab (since we use modal)
-function EmptyComponent() {
-    return null;
 }
 
 const styles = StyleSheet.create({
@@ -156,10 +136,5 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-    },
-    tabLabel: {
-        fontSize: 10,
-        fontWeight: "600",
-        marginTop: 4,
     },
 });

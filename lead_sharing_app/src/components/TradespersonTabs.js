@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import React from "react";
+import { View, StyleSheet, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Feather } from '@expo/vector-icons';
@@ -10,7 +10,7 @@ import JobDetailsScreen from "../screens/tradesperson/JobDetailsScreen";
 import MyLeadsScreen from "../screens/tradesperson/MyLeadsScreen";
 import EditProfileScreen from "../screens/tradesperson/EditProfileScreen";
 import BuyCreditsScreen from "../screens/tradesperson/BuyCreditsScreen";
-import MessagesModal from "../screens/MessagesModal";
+import MessagesListScreen from "../screens/MessagesListScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -85,82 +85,62 @@ function ProfileStack() {
 }
 
 export default function TradespersonTabs() {
-    const [messagesVisible, setMessagesVisible] = useState(false);
-
     return (
-        <>
-            <Tab.Navigator
-                screenOptions={{
-                    tabBarShowLabel: false,
-                    tabBarActiveTintColor: "#2563EB",
-                    tabBarInactiveTintColor: "#9CA3AF",
-                    tabBarStyle: styles.tabBar,
-                    headerShown: false,
+        <Tab.Navigator
+            screenOptions={{
+                tabBarShowLabel: false,
+                tabBarActiveTintColor: "#2563EB",
+                tabBarInactiveTintColor: "#9CA3AF",
+                tabBarStyle: styles.tabBar,
+                headerShown: false,
+            }}
+        >
+            <Tab.Screen
+                name="Home"
+                component={HomeStack}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                            <Feather name="home" size={24} color={focused ? "#FFFFFF" : color} />
+                        </View>
+                    ),
                 }}
-            >
-                <Tab.Screen
-                    name="Home"
-                    component={HomeStack}
-                    options={{
-                        tabBarIcon: ({ focused, color, size }) => (
-                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                                <Feather name="home" size={24} color={focused ? "#FFFFFF" : color} />
-                            </View>
-                        ),
-                    }}
-                />
-                <Tab.Screen
-                    name="Browse"
-                    component={BrowseStack}
-                    options={{
-                        tabBarIcon: ({ focused, color, size }) => (
-                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                                <Feather name="search" size={24} color={focused ? "#FFFFFF" : color} />
-                            </View>
-                        ),
-                    }}
-                />
-                <Tab.Screen
-                    name="Messages"
-                    component={EmptyComponent}
-                    listeners={{
-                        tabPress: (e) => {
-                            e.preventDefault();
-                            setMessagesVisible(true);
-                        },
-                    }}
-                    options={{
-                        tabBarIcon: ({ focused, color, size }) => (
-                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                                <Feather name="message-square" size={24} color={focused ? "#FFFFFF" : color} />
-                            </View>
-                        ),
-                    }}
-                />
-                <Tab.Screen
-                    name="Profile"
-                    component={ProfileStack}
-                    options={{
-                        tabBarIcon: ({ focused, color, size }) => (
-                            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                                <Feather name="user" size={24} color={focused ? "#FFFFFF" : color} />
-                            </View>
-                        ),
-                    }}
-                />
-            </Tab.Navigator>
-
-            <MessagesModal
-                visible={messagesVisible}
-                onClose={() => setMessagesVisible(false)}
             />
-        </>
+            <Tab.Screen
+                name="Browse"
+                component={BrowseStack}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                            <Feather name="search" size={24} color={focused ? "#FFFFFF" : color} />
+                        </View>
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Messages"
+                component={MessagesListScreen}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                            <Feather name="message-square" size={24} color={focused ? "#FFFFFF" : color} />
+                        </View>
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Profile"
+                component={ProfileStack}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                            <Feather name="user" size={24} color={focused ? "#FFFFFF" : color} />
+                        </View>
+                    ),
+                }}
+            />
+        </Tab.Navigator>
     );
-}
-
-// Empty component for Messages tab (since we use modal)
-function EmptyComponent() {
-    return null;
 }
 
 const styles = StyleSheet.create({

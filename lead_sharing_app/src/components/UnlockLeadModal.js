@@ -14,6 +14,7 @@ import {
     ScrollView
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import AlertModal from './AlertModal';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +29,8 @@ export default function UnlockLeadModal({
     const [opacity] = useState(new Animated.Value(0));
     const [message, setMessage] = useState('');
     const [priceEstimate, setPriceEstimate] = useState('');
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
 
     useEffect(() => {
         if (visible) {
@@ -47,6 +50,7 @@ export default function UnlockLeadModal({
         } else {
             setMessage('');
             setPriceEstimate('');
+            setAlertVisible(false);
             scale.setValue(0);
             opacity.setValue(0);
         }
@@ -54,7 +58,8 @@ export default function UnlockLeadModal({
 
     const handleUnlock = () => {
         if (!message.trim() || !priceEstimate.trim()) {
-            alert("Please provide a price estimate and a short message.");
+            setAlertMessage("Please provide a price estimate and a short message.");
+            setAlertVisible(true);
             return;
         }
         onUnlock({ message, priceEstimate });
@@ -139,6 +144,14 @@ export default function UnlockLeadModal({
                     </ScrollView>
                 </Animated.View>
             </KeyboardAvoidingView>
+
+            <AlertModal
+                visible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title="Input Required"
+                message={alertMessage}
+                type="warning"
+            />
         </Modal>
     );
 }

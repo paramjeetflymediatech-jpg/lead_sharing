@@ -10,7 +10,7 @@ import {
     Dimensions,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { tradespersonAPI, jobAPI } from "../../services/api";
+import { tradespersonAPI, jobAPI, userAPI } from "../../services/api";
 import { Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -29,12 +29,29 @@ export default function TradespersonHomeTab({ navigation }) {
     async function loadData() {
         try {
             setLoading(true);
-            const [profileData, jobsData] = await Promise.all([
+            const [profileData, jobsData, userData, leadsData] = await Promise.all([
                 tradespersonAPI.getProfile().catch(() => null),
                 jobAPI.getAll().catch(() => ({})),
+                userAPI.getMe().catch(() => null),
+                tradespersonAPI.getMyLeads().catch(() => ({})),
             ]);
 
-            setProfile(profileData);
+            // Combine data, prioritizing getMe() for credits
+            const credits = userData?.credits ??
+                userData?.tradespersonProfile?.credits ??
+                userData?.user?.credits ??
+                profileData?.credits ??
+                0;
+
+            const leadsStats = leadsData?.data?.stats || leadsData?.stats || { total: 0 };
+
+            const combinedProfile = {
+                ...profileData,
+                credits: credits,
+                user: userData?.user || userData
+            };
+
+            setProfile(combinedProfile);
 
             let jobs = [];
             if (Array.isArray(jobsData)) {
@@ -121,13 +138,13 @@ export default function TradespersonHomeTab({ navigation }) {
                 <View style={styles.statsGrid}>
                     <StatCard
                         icon="briefcase"
-                        value={0}
+                        value={profile?.unlockedLeadsCount || 0}
                         label="My Leads"
                         color="#F59E0B"
                     />
                     <StatCard
                         icon="unlock"
-                        value={0}
+                        value={profile?.unlockedLeadsCount || 0}
                         label="Unlocked"
                         color="#10B981"
                     />
@@ -200,7 +217,7 @@ function JobCard({ job, credits, navigation }) {
     return (
         <TouchableOpacity
             style={styles.jobCard}
-            onPress={() => navigation.navigate("JobDetails", { jobId: job.id })}
+            onPress={() => navigation.navigate("JobDetails", { jobId: job._id })}
             activeOpacity={0.7}
         >
             <View style={styles.jobHeader}>

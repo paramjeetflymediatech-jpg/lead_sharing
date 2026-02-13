@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { jobAPI, tradespersonAPI } from "../../services/api";
 import UnlockLeadModal from "../../components/UnlockLeadModal";
+import MessagesModal from "../../screens/MessagesModal";
+import SuccessModal from "../../components/SuccessModal";
 
 export default function JobDetailsScreen({ route, navigation }) {
     const { jobId } = route.params;
@@ -17,21 +19,23 @@ export default function JobDetailsScreen({ route, navigation }) {
     const [loading, setLoading] = useState(true);
     const [unlocking, setUnlocking] = useState(false);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
+    const [showMessageModal, setShowMessageModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false); // Added for success modal
 
     useEffect(() => {
         loadJobDetails();
     }, [jobId]);
 
-    async function loadJobDetails() {
+    async function loadJobDetails(showLoader = true) {
         try {
-            setLoading(true);
+            if (showLoader) setLoading(true);
             const jobData = await jobAPI.getById(jobId);
             setJob(jobData);
         } catch (error) {
             console.error("Error loading job details:", error);
             Alert.alert("Error", "Failed to load job details");
         } finally {
-            setLoading(false);
+            if (showLoader) setLoading(false);
         }
     }
 
@@ -42,18 +46,20 @@ export default function JobDetailsScreen({ route, navigation }) {
     async function handleUnlockConfirm({ message, priceEstimate }) {
         try {
             setUnlocking(true);
+            console.log("Unlocking lead with:", { jobId, message, priceEstimate });
             await tradespersonAPI.unlockLeadWithDetail({
                 jobId,
                 message,
-                priceEstimate
+                priceEstimate // Backend expects string (calls .trim())
             });
 
             // Close modal first
             setShowUnlockModal(false);
 
             // Show success styling (or simple alert for now)
-            Alert.alert("Success", "Lead unlocked! Your quote has been sent.");
-            loadJobDetails();
+            // Alert.alert("Success", "Lead unlocked! Your quote has been sent.");
+            setShowSuccessModal(true);
+            loadJobDetails(false); // Silent reload to update UI in background
         } catch (error) {
             Alert.alert("Error", error.message || "Failed to unlock lead");
         } finally {
@@ -205,15 +211,43 @@ export default function JobDetailsScreen({ route, navigation }) {
             )}
 
             {isUnlocked && (
-                <TouchableOpacity
-                    style={styles.quoteButton}
-                    onPress={handleSubmitQuote}
-                >
-                    <Text style={styles.quoteButtonText}>Submit Quote</Text>
-                </TouchableOpacity>
+                <View style={styles.actionRow}>
+                    <TouchableOpacity
+                        style={styles.quoteButton}
+                        onPress={handleSubmitQuote}
+                    >
+                        <Text style={styles.quoteButtonText}>Submit Quote</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.messageButton}
+                        onPress={() => setShowMessageModal(true)}
+                    >
+                        <Text style={styles.messageButtonText}>Message Homeowner</Text>
+                    </TouchableOpacity>
+                </View>
             )}
 
+            <MessagesModal
+                visible={showMessageModal}
+                onClose={() => setShowMessageModal(false)}
+                jobId={job._id}
+                homeownerId={job.homeowner?.id}
+                jobTitle={job.description}
+            />
+
             <View style={{ height: 40 }} />
+
+            <SuccessModal
+                visible={showSuccessModal}
+                title="Lead Unlocked!"
+                subtitle="You can now view the homeowner's contact details and send them a message."
+                buttonText="View Contact"
+                onClose={() => {
+                    setShowSuccessModal(false);
+                    navigation.navigate('JobDetails', { jobId });
+                }}
+            />
         </ScrollView>
     );
 }
@@ -364,6 +398,24 @@ const styles = StyleSheet.create({
     },
     quoteButtonText: {
         color: "#FFFFFF",
+        fontSize: 17,
+        fontWeight: "700",
+    },
+    actionRow: {
+        paddingHorizontal: 16,
+        gap: 12,
+    },
+    messageButton: {
+        backgroundColor: "#FFFFFF",
+        borderWidth: 2,
+        borderColor: "#2563EB",
+        borderRadius: 12,
+        padding: 16,
+        alignItems: "center",
+        marginTop: 12,
+    },
+    messageButtonText: {
+        color: "#2563EB",
         fontSize: 17,
         fontWeight: "700",
     },

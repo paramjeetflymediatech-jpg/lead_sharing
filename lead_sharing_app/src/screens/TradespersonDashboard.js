@@ -10,8 +10,11 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { tradespersonAPI, jobAPI } from "../services/api";
+import { tradespersonAPI, jobAPI, userAPI } from "../services/api";
 import LogoutModal from "../components/LogoutModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function TradespersonDashboard({ navigation }) {
   const { user, logout } = useAuth();
@@ -22,22 +25,30 @@ export default function TradespersonDashboard({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadDashboard();
+    }, [])
+  );
 
   async function loadDashboard() {
     try {
       setLoading(true);
 
       // Load profile, available jobs, and my leads in parallel
-      const [profileData, jobsData, leadsData] = await Promise.all([
-        tradespersonAPI.getProfile().catch(() => null),
+      const [meData, jobsData, leadsData] = await Promise.all([
+        userAPI.getMe().catch(() => null),
         jobAPI.getAll().catch(() => ({})),
         tradespersonAPI.getMyLeads().catch(() => ({})),
       ]);
 
-      setProfile(profileData);
+      // Handle Profile Data from userAPI.getMe()
+      if (meData?.success && meData?.tradespersonProfile) {
+        setProfile(meData.tradespersonProfile);
+      } else {
+        console.log("Failed to load profile or not found", meData);
+        setProfile(null);
+      }
 
       // Handle different API response formats for jobs
       let jobs = [];

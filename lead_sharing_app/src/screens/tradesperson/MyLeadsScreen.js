@@ -26,7 +26,18 @@ export default function MyLeadsScreen() {
         try {
             setLoading(true);
             const data = await tradespersonAPI.getMyLeads();
-            const leadsList = Array.isArray(data) ? data : data?.leads || [];
+
+            let leadsList = [];
+            if (data?.data?.leads) {
+                leadsList = data.data.leads;
+            } else if (Array.isArray(data?.data)) {
+                leadsList = data.data;
+            } else if (Array.isArray(data?.leads)) {
+                leadsList = data.leads;
+            } else if (Array.isArray(data)) {
+                leadsList = data;
+            }
+
             setLeads(leadsList);
         } catch (error) {
             console.error("Error loading leads:", error);
@@ -108,18 +119,26 @@ function LeadCard({ lead }) {
         }
     };
 
+    const job = lead.job || {};
+
+    // The backend provides contact details in job info
+    const contactName = job.contactName || lead.homeowner_name || "Homeowner";
+    const contactEmail = job.contactEmail || lead.homeowner_email;
+    const contactPhone = job.contactPhone || lead.homeowner_phone;
+
     return (
         <View style={styles.leadCard}>
             {/* Header: Description & Status */}
             <View style={styles.cardHeader}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.leadTitle} numberOfLines={1}>
-                        {lead.job_description || "Job Description"}
+                        {job.title || job.description || lead.job_description || "Job Request"}
                     </Text>
                     <View style={styles.dateContainer}>
                         <Feather name="calendar" size={12} color="#9CA3AF" style={{ marginRight: 4 }} />
                         <Text style={styles.dateText}>
-                            {lead.unlocked_at ? new Date(lead.unlocked_at).toLocaleDateString() : 'Unknown date'}
+                            {lead.unlockedAt ? new Date(lead.unlockedAt).toLocaleDateString() :
+                                lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'New'}
                         </Text>
                     </View>
                 </View>
@@ -135,13 +154,13 @@ function LeadCard({ lead }) {
             <View style={styles.detailsRow}>
                 <View style={styles.detailItem}>
                     <Feather name="map-pin" size={14} color="#6B7280" style={{ marginRight: 6 }} />
-                    <Text style={styles.detailText}>{lead.postcode || "Unknown Location"}</Text>
+                    <Text style={styles.detailText}>{job.location || job.postcode || lead.postcode || "Remote"}</Text>
                 </View>
-                {lead.budget_max && (
+                {(job.budgetMax || lead.budget_max) && (
                     <View style={[styles.detailItem, { marginLeft: 16 }]}>
                         <Text style={styles.currencySymbol}>£</Text>
                         <Text style={styles.detailText}>
-                            {lead.budget_min || 0} - {lead.budget_max}
+                            {job.budgetMin || lead.budget_min || 0} - {job.budgetMax || lead.budget_max}
                         </Text>
                     </View>
                 )}
@@ -154,32 +173,32 @@ function LeadCard({ lead }) {
                 <View style={styles.homeownerInfo}>
                     <View style={styles.avatarPlaceholder}>
                         <Text style={styles.avatarText}>
-                            {lead.homeowner_name ? lead.homeowner_name.charAt(0).toUpperCase() : "H"}
+                            {contactName.charAt(0).toUpperCase()}
                         </Text>
                     </View>
                     <View>
                         <Text style={styles.homeownerName}>
-                            {lead.homeowner_name || "Homeowner"}
+                            {contactName}
                         </Text>
                         <Text style={styles.homeownerLabel}>Contact details unlocked</Text>
                     </View>
                 </View>
 
                 <View style={styles.actionButtons}>
-                    {lead.homeowner_phone && (
+                    {contactPhone && contactPhone !== 'Not provided' && (
                         <TouchableOpacity
                             style={[styles.actionButton, styles.callButton]}
-                            onPress={handleCall}
+                            onPress={() => Linking.openURL(`tel:${contactPhone}`)}
                         >
                             <Feather name="phone" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
                             <Text style={styles.actionButtonText}>Call</Text>
                         </TouchableOpacity>
                     )}
 
-                    {lead.homeowner_email && (
+                    {contactEmail && contactEmail !== 'Not provided' && (
                         <TouchableOpacity
                             style={[styles.actionButton, styles.emailButton]}
-                            onPress={handleEmail}
+                            onPress={() => Linking.openURL(`mailto:${contactEmail}`)}
                         >
                             <Feather name="mail" size={16} color="#4B5563" style={{ marginRight: 6 }} />
                             <Text style={[styles.actionButtonText, { color: '#4B5563' }]}>Email</Text>

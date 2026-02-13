@@ -84,6 +84,7 @@ export async function GET(req, { params }) {
       createdAt: job.createdAt,
       homeowner: {
         name: job.homeowner?.name || "Homeowner",
+        id: job.homeowner?._id || job.homeowner,
       },
       leadCount: leadCount,
       maxLeads: 3,

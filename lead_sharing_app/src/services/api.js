@@ -422,6 +422,30 @@ export const tradespersonAPI = {
             body: JSON.stringify({ plan }),
         });
     },
+
+    /**
+     * Get all conversations
+     */
+    getConversations: async () => {
+        return apiCall("/api/tradesperson/conversations");
+    },
+
+    /**
+     * Get conversation messages
+     */
+    getConversation: async (conversationId) => {
+        return apiCall(`/api/tradesperson/messages/${conversationId}`);
+    },
+
+    /**
+     * Send message to homeowner
+     */
+    sendMessage: async (conversationId, message) => {
+        return apiCall(`/api/tradesperson/messages/${conversationId}`, {
+            method: "POST",
+            body: JSON.stringify({ message }),
+        });
+    },
 };
 
 // ============================================
@@ -450,6 +474,11 @@ export const uploadAPI = {
 
         if (!response.ok) {
             throw new Error(data.message || "Upload failed");
+        }
+
+        // Prepend API_BASE_URL if URL is relative
+        if (data.url && data.url.startsWith('/')) {
+            data.url = `${API_BASE_URL}${data.url}`;
         }
 
         return data;

@@ -14,6 +14,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { categoryAPI, subcategoryAPI, jobAPI, userAPI, uploadAPI } from "../../services/api"; // Added userAPI, uploadAPI
+import SuccessModal from "../../components/SuccessModal";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "react-native";
 
@@ -22,6 +23,7 @@ export default function PostJobScreen({ navigation }) {
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
     const [loadingData, setLoadingData] = useState(true);
+    const [showSuccessModal, setShowSuccessModal] = useState(false); // Added for success modal
 
     // Form state
     const [formData, setFormData] = useState({
@@ -219,12 +221,13 @@ export default function PostJobScreen({ navigation }) {
 
             await jobAPI.create(jobData);
 
-            Alert.alert("Success", "Job posted successfully!", [
-                {
-                    text: "OK",
-                    onPress: () => navigation.goBack(),
-                },
-            ]);
+            // Alert.alert("Success", "Job posted successfully!", [
+            //     {
+            //         text: "OK",
+            //         onPress: () => navigation.goBack(),
+            //     },
+            // ]);
+            setShowSuccessModal(true);
         } catch (error) {
             console.error("Error posting job:", error);
             Alert.alert("Error", error.message || "Failed to post job");
@@ -541,6 +544,16 @@ export default function PostJobScreen({ navigation }) {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
+
+            <SuccessModal
+                visible={showSuccessModal}
+                title="Success!"
+                subtitle="Your job has been posted successfully. Tradespeople will be in touch soon."
+                onClose={() => {
+                    setShowSuccessModal(false);
+                    navigation.goBack();
+                }}
+            />
         </KeyboardAvoidingView>
     );
 }

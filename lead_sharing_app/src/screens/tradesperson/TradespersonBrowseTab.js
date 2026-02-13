@@ -88,7 +88,7 @@ function JobCard({ job, navigation }) {
     return (
         <TouchableOpacity
             style={styles.jobCard}
-            onPress={() => navigation.navigate("JobDetails", { jobId: job.id })}
+            onPress={() => navigation.navigate("JobDetails", { jobId: job._id })}
         >
             <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle} numberOfLines={2}>

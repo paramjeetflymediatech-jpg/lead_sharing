@@ -7,8 +7,7 @@ import {
     TouchableOpacity,
     Dimensions,
 } from "react-native";
-
-const { height } = Dimensions.get("window");
+import { normalize, hp, wp } from "../utils/responsive";
 
 export default function WelcomeScreen({ navigation }) {
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#1149C7",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 60,
+        paddingVertical: hp(8), // Responsive vertical padding
     },
     logoContainer: {
         flex: 1,
@@ -80,53 +79,55 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     logoText: {
-        fontSize: 48,
+        fontSize: normalize(44), // Scaled font size
         fontWeight: "700",
         color: "#FFFFFF",
         letterSpacing: 2,
         marginBottom: 8,
     },
     tagline: {
-        fontSize: 16,
+        fontSize: normalize(15), // Scaled tagline size
         color: "#E3F2FD",
         fontWeight: "500",
         letterSpacing: 1,
+        textAlign: "center",
+        paddingHorizontal: wp(10),
     },
     bottomContainer: {
         width: "100%",
-        paddingHorizontal: 32,
+        paddingHorizontal: wp(8), // Responsive horizontal padding
         alignItems: "center",
     },
     getStartedButton: {
         backgroundColor: "#FFFFFF",
-        paddingVertical: 16,
-        paddingHorizontal: 60,
+        paddingVertical: hp(2), // Consistently scaled height
         borderRadius: 30,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 8,
-        marginBottom: 24,
+        marginBottom: hp(3),
         width: "100%",
         alignItems: "center",
     },
     getStartedText: {
         color: "#1149C7",
-        fontSize: 18,
+        fontSize: normalize(17),
         fontWeight: "700",
     },
     loginContainer: {
         flexDirection: "row",
         alignItems: "center",
+        marginBottom: hp(2),
     },
     loginPrompt: {
         color: "#E3F2FD",
-        fontSize: 15,
+        fontSize: normalize(14),
     },
     loginLink: {
         color: "#FFFFFF",
-        fontSize: 15,
+        fontSize: normalize(14),
         fontWeight: "700",
         textDecorationLine: "underline",
     },
