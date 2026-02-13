@@ -612,11 +612,10 @@ export default function HomeownerJobsPage() {
                 <Link
                   key={s || "ALL"}
                   href={`/homeowner/jobs${s ? `?status=${s}` : ""}`}
-                  className={`py-3 border-b-2 ${
-                    status === s || (!status && !s)
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-500"
-                  }`}
+                  className={`py-3 border-b-2 ${status === s || (!status && !s)
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-500"
+                    }`}
                 >
                   {s || "All Jobs"}
                 </Link>
@@ -626,76 +625,106 @@ export default function HomeownerJobsPage() {
 
           {/* Jobs */}
           <div className="space-y-6">
-            {jobs.map((job) => (
-              <div key={job._id} className="bg-white dark:bg-zinc-800 rounded-2xl p-5 sm:p-6 shadow">
+            {jobs.length > 0 ? (
+              jobs.map((job) => (
+                <div key={job._id} className="bg-white dark:bg-zinc-800 rounded-2xl p-5 sm:p-6 shadow">
+                  <div className="flex flex-col lg:flex-row gap-6 justify-between">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        <span className="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-full">
+                          {job.category?.name}
+                        </span>
+                        <span className="px-3 py-1 text-xs bg-gray-100 rounded-full">
+                          {formatStatus(job.status)}
+                        </span>
+                      </div>
 
-                <div className="flex flex-col lg:flex-row gap-6 justify-between">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <span className="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-full">
-                        {job.category?.name}
-                      </span>
-                      <span className="px-3 py-1 text-xs bg-gray-100 rounded-full">
-                        {formatStatus(job.status)}
-                      </span>
+                      <h3 className="text-lg sm:text-xl font-bold">
+                        {job.subCategory?.name}
+                      </h3>
+
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mt-2 line-clamp-2">
+                        {job.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-gray-500 mt-4">
+                        <span>📍 {job.location?.city}</span>
+                        <span>📅 {formatDate(job.createdAt)}</span>
+                        <span>💰 ₹{job.budgetMin} - ₹{job.budgetMax}</span>
+                        <span className="font-semibold text-blue-600">
+                          💬 {job.leadCount} Quotes
+                        </span>
+                      </div>
                     </div>
 
-                    <h3 className="text-lg sm:text-xl font-bold">
-                      {job.subCategory?.name}
-                    </h3>
-
-                    <p className="text-sm text-gray-600 dark:text-zinc-400 mt-2 line-clamp-2">
-                      {job.description}
-                    </p>
-
-                    <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-gray-500 mt-4">
-                      <span>📍 {job.location?.city}</span>
-                      <span>📅 {formatDate(job.createdAt)}</span>
-                      <span>💰 ₹{job.budgetMin} - ₹{job.budgetMax}</span>
-                      <span className="font-semibold text-blue-600">
-                        💬 {job.leadCount} Quotes
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-wrap lg:flex-col gap-2 w-full lg:w-auto">
-                    <Link
-                      href={`/homeowner/jobs/${job._id}`}
-                      className="px-4 py-2 bg-gray-100 rounded-xl text-sm font-semibold flex items-center gap-2"
-                    >
-                      <EyeIcon className="h-4 w-4" /> View
-                    </Link>
-
-                    {canEditJob(job) && (
+                    {/* Actions */}
+                    <div className="flex flex-wrap lg:flex-col gap-2 w-full lg:w-auto">
                       <Link
-                        href={`/homeowner/jobs/${job._id}/edit`}
-                        className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold flex items-center gap-2"
+                        href={`/homeowner/jobs/${job._id}`}
+                        className="px-4 py-2 bg-gray-100 rounded-xl text-sm font-semibold flex items-center gap-2"
                       >
-                        <PencilIcon className="h-4 w-4" /> Edit
+                        <EyeIcon className="h-4 w-4" /> View
                       </Link>
-                    )}
 
-                    <button
-                      onClick={() => openDeleteModal(job)}
-                      className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-semibold flex items-center gap-2"
-                    >
-                      <TrashIcon className="h-4 w-4" /> Delete
-                    </button>
+                      {canEditJob(job) && (
+                        <Link
+                          href={`/homeowner/jobs/${job._id}/edit`}
+                          className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-semibold flex items-center gap-2"
+                        >
+                          <PencilIcon className="h-4 w-4" /> Edit
+                        </Link>
+                      )}
+
+                      <button
+                        onClick={() => openDeleteModal(job)}
+                        className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-semibold flex items-center gap-2"
+                      >
+                        <TrashIcon className="h-4 w-4" /> Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {job.leadCount > 0 && job.status === "OPEN" && (
-                  <Link
-                    href={`/homeowner/jobs/${job._id}#quotes`}
-                    className="mt-4 block w-full text-center px-6 py-3 bg-gradient-to-r from-[#155DFC] to-indigo-600 text-white rounded-xl font-bold"
-                  >
-                    <ChatBubbleLeftRightIcon className="h-5 w-5 inline mr-2" />
-                    View Quotes
-                  </Link>
-                )}
+                  {job.leadCount > 0 && job.status === "OPEN" && (
+                    <Link
+                      href={`/homeowner/jobs/${job._id}#quotes`}
+                      className="mt-4 block w-full text-center px-6 py-3 bg-gradient-to-r from-[#155DFC] to-indigo-600 text-white rounded-xl font-bold"
+                    >
+                      <ChatBubbleLeftRightIcon className="h-5 w-5 inline mr-2" />
+                      View Quotes
+                    </Link>
+                  )}
+                </div>
+              ))
+            ) : summary.totalJobs === 0 ? (
+              /* Case 1: No jobs created at all */
+              <div className="text-center py-20 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl border border-gray-100 dark:border-zinc-700">
+                <div className="text-7xl mb-6">📋</div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                  No Jobs Posted Yet
+                </h3>
+                <p className="text-gray-600 dark:text-zinc-400 mb-8 max-w-sm mx-auto">
+                  Post your first job to start receiving quotes from local trusted tradespeople.
+                </p>
+                <Link
+                  href="/jobs"
+                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#155DFC] to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/30"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Post New Job
+                </Link>
               </div>
-            ))}
+            ) : (
+              /* Case 2: Filtered view is empty, but user has other jobs */
+              <div className="text-center py-16 bg-white dark:bg-zinc-800 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-700">
+                <div className="text-5xl mb-4 grayscale opacity-50">📋</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  No {(formatStatus(status) || "matching").toLowerCase()} jobs found
+                </h3>
+                <p className="text-gray-500 dark:text-zinc-400">
+                  You don't have any jobs in the "{formatStatus(status) || 'selected'}" status right now.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -722,7 +751,7 @@ export default function HomeownerJobsPage() {
         </div>
       )} */}
 
-       {
+      {
         deleteModalOpen && jobToDelete && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">

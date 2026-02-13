@@ -127,7 +127,7 @@ export default function PaymentsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
+      {/* <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
           <Link href="/tradesperson" className="flex items-center gap-2 shrink-0">
             <div className="h-10 w-10 rounded-lg bg-[#155DFC] flex items-center justify-center text-white">
@@ -153,9 +153,9 @@ export default function PaymentsPage() {
             </Link>
           </div>
         </div>
-      </header>
+      </header> */}
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">

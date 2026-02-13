@@ -114,7 +114,7 @@ function JobCard({ job, navigation }) {
                 <View style={styles.budgetRow}>
                     <Text style={styles.budgetIcon}>💰</Text>
                     <Text style={styles.budgetText}>
-                        Budget: £{job.budget_min || 0} - £{job.budget_max}
+                        Budget: ${job.budget_min || 0} - ${job.budget_max}
                     </Text>
                 </View>
             )}

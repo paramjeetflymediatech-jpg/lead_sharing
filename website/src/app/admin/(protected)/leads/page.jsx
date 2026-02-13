@@ -6,7 +6,7 @@ import {
     FunnelIcon,
     MapPinIcon,
     ClockIcon,
-    CurrencyPoundIcon,
+    CurrencyDollarIcon,
     CheckBadgeIcon,
     UserGroupIcon
 } from "@heroicons/react/24/outline";
@@ -145,7 +145,7 @@ export default function AdminLeadsPage() {
                                             </div>
                                             {lead.priceEstimate && (
                                                 <div className="text-xs font-bold text-green-600 mt-1">
-                                                    Est: £{lead.priceEstimate}
+                                                    Est: ${lead.priceEstimate}
                                                 </div>
                                             )}
                                         </td>
@@ -219,7 +219,7 @@ export default function AdminLeadsPage() {
                                 {lead.priceEstimate && (
                                     <div className="flex justify-between">
                                         <span className="text-zinc-400">Estimate:</span>
-                                        <span className="font-bold text-green-600">£{lead.priceEstimate}</span>
+                                        <span className="font-bold text-green-600">${lead.priceEstimate}</span>
                                     </div>
                                 )}
                             </div>

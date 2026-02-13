@@ -103,8 +103,8 @@ export default function TradespersonConversationPage() {
     }
 
     return (
-        <div className="flex flex-col h-screen bg-zinc-50 dark:bg-zinc-900">
-            {/* Header */}
+        <div className="flex flex-col h-[calc(100vh-8rem)] lg:h-[calc(100vh-10rem)] bg-zinc-50 dark:bg-zinc-900 ">
+
             <div className="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 px-4 py-4">
                 <div className="max-w-4xl mx-auto">
                     <Link

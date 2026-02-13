@@ -120,19 +120,19 @@
 // export const PLANS = {
 //   starter: {
 //     name: "Starter Pack",
-//     amount: 9.99, // £9.99
+//     amount: 9.99, // $9.99
 //     credits: 10,
 //     description: "Perfect for getting started"
 //   },
 //   pro: {
 //     name: "Professional Pack",
-//     amount: 19.99, // £19.99
+//     amount: 19.99, // $19.99
 //     credits: 25,
 //     description: "For growing businesses"
 //   },
 //   business: {
 //     name: "Business Pack",
-//     amount: 39.99, // £39.99
+//     amount: 39.99, // $39.99
 //     credits: 60,
 //     description: "Maximum value for busy professionals"
 //   },
@@ -179,7 +179,7 @@
 //       line_items: [
 //         {
 //           price_data: {
-//             currency: "gbp", // Changed from "inr" to "gbp"
+//             currency: "cad", // Changed from "inr" to "gbp"
 //             product_data: {
 //               name: selectedPlan.name,
 //               description: `${selectedPlan.credits} Credits`,
@@ -187,7 +187,7 @@
 //                 planType: plan
 //               }
 //             },
-//             unit_amount: Math.round(selectedPlan.amount * 100), // Convert to pence
+//             unit_amount: Math.round(selectedPlan.amount * 100), // Convert to cents
 //           },
 //           quantity: 1,
 //         },
@@ -282,7 +282,7 @@
 //       line_items: [
 //         {
 //           price_data: {
-//             currency: "gbp",
+//             currency: "cad",
 //             product_data: {
 //               name: selectedPlan.name,
 //             },
@@ -309,7 +309,7 @@
 //       stripeSessionId: session.id,
 //       plan,
 //       amount: selectedPlan.amount,
-//       currency: "GBP",
+//       currency: "CAD",
 //       credits: selectedPlan.credits,
 //       status: "pending",
 //     });
@@ -383,7 +383,7 @@
 //       line_items: [
 //         {
 //           price_data: {
-//             currency: "gbp",
+//             currency: "cad",
 //             product_data: {
 //               name: selectedPlan.name,
 //             },
@@ -409,7 +409,7 @@
 //       stripeSessionId: session.id,
 //       plan,
 //       amount: selectedPlan.amount,
-//       currency: "GBP",
+//       currency: "CAD",
 //       credits: selectedPlan.credits,
 //       status: "pending",
 //     });
@@ -474,7 +474,7 @@ export async function POST(req) {
       line_items: [
         {
           price_data: {
-            currency: "gbp",
+            currency: "cad",
             product_data: { name: selectedPlan.name },
             unit_amount: Math.round(selectedPlan.amount * 100),
           },
@@ -498,7 +498,7 @@ export async function POST(req) {
       stripeSessionId: session.id,
       plan,
       amount: selectedPlan.amount,
-      currency: "GBP",
+      currency: "CAD",
       credits: selectedPlan.credits,
       status: "pending",
     });

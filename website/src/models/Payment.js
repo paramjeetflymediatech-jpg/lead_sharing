@@ -138,7 +138,7 @@ export const Payment = {
       stripePaymentIntentId = null,
       plan,
       amount,
-      currency = "GBP",
+      currency = "CAD",
       credits,
       status = "pending",
     } = data;

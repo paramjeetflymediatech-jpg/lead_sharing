@@ -15,26 +15,25 @@ export async function GET(req) {
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { success: true, user: null, message: "Guest session" },
+        { status: 200 }
       );
     }
 
     // 👤 User
-    const user = await User.findById(userId);
-    //
-    // ;
+    const userRaw = await User.findById(userId);
 
-    if (user) {
-      delete user.password;
-    }
-
-    if (!user) {
+    if (!userRaw) {
       return NextResponse.json(
         { success: false, message: "User not found" },
         { status: 404 }
       );
     }
+
+    // Clean user object
+    const user = { ...userRaw };
+    delete user.password;
+    if (typeof user.lean === "function") delete user.lean;
 
     let tradespersonProfile = null;
 

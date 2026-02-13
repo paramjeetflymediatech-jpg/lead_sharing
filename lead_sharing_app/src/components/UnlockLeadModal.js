@@ -93,7 +93,7 @@ export default function UnlockLeadModal({
                         </Text>
 
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Price Estimate (£)</Text>
+                            <Text style={styles.label}>Price Estimate ($)</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. 150 - 200"

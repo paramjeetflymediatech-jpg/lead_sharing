@@ -151,12 +151,12 @@ export default function BuyCreditsScreen({ navigation }) {
                 <View style={styles.statsRow}>
                     <View style={styles.statItem}>
                         <Text style={styles.statLabel}>Avg Value</Text>
-                        <Text style={styles.statValue}>£{averagePerCredit}</Text>
+                        <Text style={styles.statValue}>${averagePerCredit}</Text>
                         <Text style={styles.statSub}>per credit</Text>
                     </View>
                     <View style={[styles.statItem, styles.statBorder]}>
                         <Text style={styles.statLabel}>Best Value</Text>
-                        <Text style={styles.statValue}>£{businessPerCredit}</Text>
+                        <Text style={styles.statValue}>${businessPerCredit}</Text>
                         <Text style={styles.statSub}>Business plan</Text>
                     </View>
                     <View style={styles.statItem}>
@@ -199,7 +199,7 @@ export default function BuyCreditsScreen({ navigation }) {
 
                             <View style={styles.priceRow}>
                                 <View style={styles.priceContainer}>
-                                    <Text style={styles.priceSymbol}>£</Text>
+                                    <Text style={styles.priceSymbol}>$</Text>
                                     <Text style={styles.priceAmount}>{plan.price}</Text>
                                     <Text style={styles.pricePeriod}>one-time</Text>
                                 </View>
@@ -210,7 +210,7 @@ export default function BuyCreditsScreen({ navigation }) {
                                     <Text style={styles.creditsBadgeText}>{plan.credits} Credits</Text>
                                 </View>
                                 <Text style={styles.perCreditText}>
-                                    £{(plan.price / plan.credits).toFixed(2)} per credit
+                                    ${(plan.price / plan.credits).toFixed(2)} per credit
                                 </Text>
                             </View>
 

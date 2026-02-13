@@ -238,7 +238,7 @@ function JobCard({ job, credits, navigation }) {
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.detailItem}>
-                    <Text style={styles.currencySymbol}>£</Text>
+                    <Text style={styles.currencySymbol}>$</Text>
                     <Text style={styles.detailText}>
                         {job.budget_min ? `${job.budget_min} - ${job.budget_max}` : "Budget N/A"}
                     </Text>

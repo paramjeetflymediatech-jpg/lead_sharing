@@ -6,10 +6,11 @@ import {
     FunnelIcon,
     MapPinIcon,
     ClockIcon,
-    CurrencyPoundIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    BriefcaseIcon
+    CurrencyDollarIcon,
+    CheckBadgeIcon,
+    UserGroupIcon,
+    BriefcaseIcon,
+    XCircleIcon
 } from "@heroicons/react/24/outline";
 
 import Pagination from "../../../../components/Pagination";
@@ -177,7 +178,7 @@ export default function AdminJobsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1 text-zinc-900 dark:text-white font-medium">
-                                                <CurrencyPoundIcon className="w-4 h-4 text-zinc-400" />
+                                                <CurrencyDollarIcon className="w-4 h-4 text-zinc-400" />
                                                 {job.budgetMin} - {job.budgetMax}
                                             </div>
                                         </td>
@@ -236,7 +237,7 @@ export default function AdminJobsPage() {
                                 <div className="flex justify-between">
                                     <span className="text-zinc-400">Budget:</span>
                                     <div className="flex items-center font-medium gap-1 text-zinc-900 dark:text-white">
-                                        <CurrencyPoundIcon className="w-3 h-3 text-zinc-400" />
+                                        <CurrencyDollarIcon className="w-3 h-3 text-zinc-400" />
                                         {job.budgetMin} - {job.budgetMax}
                                     </div>
                                 </div>
@@ -327,7 +328,7 @@ export default function AdminJobsPage() {
                                         </div>
                                         <div>
                                             <p className="text-xs text-zinc-500">Budget Range</p>
-                                            <p className="text-sm font-medium text-zinc-900 dark:text-white">£{selectedJob.budgetMin} - £{selectedJob.budgetMax}</p>
+                                            <p className="text-sm font-medium text-zinc-900 dark:text-white">${selectedJob.budgetMin} - ${selectedJob.budgetMax}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-zinc-500">Start Time</p>

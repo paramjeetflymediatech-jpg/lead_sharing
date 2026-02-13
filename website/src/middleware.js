@@ -17,38 +17,45 @@ export async function middleware(req) {
 
   const pathname = req.nextUrl.pathname;
 
+  // 1. Identify if the route is whitelisted for public access
+  const isWhitelistedApi =
+    pathname === "/api/tradesperson/search" ||
+    pathname.startsWith("/api/profile") ||
+    pathname.startsWith("/api/me") ||
+    pathname.startsWith("/api/tradespeople/") ||
+    pathname.startsWith("/api/tradesperson/ratings");
 
+  // 2. If whitelisted and NO token, proceed as Guest immediately
+  if (isWhitelistedApi && !token) {
+    // For profile and me, only allow GET public access for guests
+    if ((pathname === "/api/profile" || pathname === "/api/me") && req.method !== "GET") {
+      // Fall through to 401
+    } else {
+      return NextResponse.next();
+    }
+  }
 
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!JWT_SECRET) {
-    // Log error but don't crash build unless runtime
     console.error("JWT_SECRET is not defined");
-    return NextResponse.json(
-      { message: "Server configuration error" },
-      { status: 500 }
-    );
+    if (isWhitelistedApi) return NextResponse.next();
+    return NextResponse.json({ message: "Server configuration error" }, { status: 500 });
   }
+
   const secret = new TextEncoder().encode(JWT_SECRET);
 
+  // 3. If no token and NOT whitelisted, 401
   if (!token) {
-    return NextResponse.json(
-      { message: "Authentication required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authentication required" }, { status: 401 });
   }
 
   try {
     const { payload } = await jwtVerify(token, secret);
+    const userId = payload.userId || payload.id; // Support both naming conventions
+    const role = payload.role;
 
-    const userId = payload.userId;
-    const role = payload.role; // HOMEOWNER | TRADESPERSON | ADMIN
-
-    // ❌ Invalid role
     if (!["HOMEOWNER", "TRADESPERSON", "ADMIN"].includes(role)) {
-      return NextResponse.json(
-        { message: "Invalid role" },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Invalid role" }, { status: 403 });
     }
 
     /* ======================
@@ -56,45 +63,26 @@ export async function middleware(req) {
     ======================= */
 
     // 🛠️ Only HOMEOWNER can CREATE job
-    if (
-      pathname === "/api/jobs" &&
-      req.method === "POST" &&
-      role !== "HOMEOWNER"
-    ) {
-      return NextResponse.json(
-        { message: "Only homeowner can create job" },
-        { status: 403 }
-      );
+    if (pathname === "/api/jobs" && req.method === "POST" && role !== "HOMEOWNER") {
+      return NextResponse.json({ message: "Only homeowner can create job" }, { status: 403 });
     }
 
     // 🏠 HOMEOWNER routes - only homeowners can access
     if (pathname.startsWith("/api/homeowner/") && role !== "HOMEOWNER") {
-      return NextResponse.json(
-        { message: "Only homeowners can access this resource" },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Only homeowners can access this resource" }, { status: 403 });
     }
 
     // 🔓 Only TRADESPERSON can unlock lead
-    if (
-      pathname.startsWith("/api/leads/unlock") &&
-      role !== "TRADESPERSON"
-    ) {
-      return NextResponse.json(
-        { message: "Only tradesperson can unlock lead" },
-        { status: 403 }
-      );
+    if (pathname.startsWith("/api/leads/unlock") && role !== "TRADESPERSON") {
+      return NextResponse.json({ message: "Only tradesperson can unlock lead" }, { status: 403 });
     }
 
     // 🛡️ Admin APIs only ADMIN
     if (pathname.startsWith("/api/admin") && role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Admin access only" },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Admin access only" }, { status: 403 });
     }
 
-    // ✅ Forward user info to APIs
+    // ✅ Forward user info to APIs (even whitelisted ones so header knows they are logged in)
     const headers = new Headers(req.headers);
     headers.set("x-user-id", userId);
     headers.set("x-user-role", role);
@@ -103,11 +91,13 @@ export async function middleware(req) {
       request: { headers },
     });
   } catch (error) {
+    // If JWT fails but it's a whitelisted route, let it through as Guest
+    if (isWhitelistedApi) {
+      return NextResponse.next();
+    }
+
     console.error("Token verification failed:", error.message);
-    return NextResponse.json(
-      { message: "Invalid or expired token" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Invalid or expired token" }, { status: 401 });
   }
 }
 

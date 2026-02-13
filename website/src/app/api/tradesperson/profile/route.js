@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 // import { connectToDatabase } from "@/lib/mongodb";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
+import { User } from "@/models/User";
 
 export async function PUT(req) {
   try {
@@ -21,8 +22,8 @@ export async function PUT(req) {
         phone,
         postcode,
         bio,
-        skills: Array.isArray(skills) ? skills : skills.split(",").map(s => s.trim()),
-        serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : serviceAreas.split(",").map(s => s.trim()),
+        skills: Array.isArray(skills) ? skills : (skills ? skills.split(",").map(s => s.trim()) : []),
+        serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : (serviceAreas ? serviceAreas.split(",").map(s => s.trim()) : []),
         profileImage, // SAVE IT
         updatedAt: Date.now(),
       },
@@ -37,8 +38,6 @@ export async function PUT(req) {
 }
 
 // Keep GET as is, but duplicate here for complete file replacement since we can't patch easily
-import { User } from "@/models/User";
-
 export async function GET(req) {
   try {
     // await connectToDatabase();

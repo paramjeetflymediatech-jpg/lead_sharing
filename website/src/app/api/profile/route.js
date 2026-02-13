@@ -13,23 +13,24 @@ export async function GET(req) {
 
         if (!userId) {
             return NextResponse.json(
-                { success: false, message: "Unauthorized" },
-                { status: 401 }
+                { success: true, data: null, message: "Guest session" },
+                { status: 200 }
             );
         }
 
-        const user = await User.findById(userId);
-        if (user) {
-            delete user.password;
-            // Removed  usage
-        }
-
-        if (!user) {
+        // 👤 User
+        const userRaw = await User.findById(userId);
+        if (!userRaw) {
             return NextResponse.json(
                 { success: false, message: "User not found" },
                 { status: 404 }
             );
         }
+
+        // Clean user object for serialization
+        const user = { ...userRaw };
+        delete user.password;
+        if (typeof user.lean === "function") delete user.lean;
 
         let profile = null;
         if (role === "TRADESPERSON") {
@@ -38,7 +39,7 @@ export async function GET(req) {
 
         return NextResponse.json({
             success: true,
-            data: { ...user, profile }, // Ensure data structure matches what frontend expects (data.data)
+            data: { ...user, profile },
             user,
             profile,
         });

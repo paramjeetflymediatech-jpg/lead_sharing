@@ -51,6 +51,18 @@ export default function Header() {
     fetchUser();
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
   const fetchUser = async () => {
     try {
       const res = await fetch("/api/profile", {
@@ -96,7 +108,7 @@ export default function Header() {
   });
   const [activeAdviceCategory, setActiveAdviceCategory] = useState("Homeowner Advice");
 
-  const [activeRegion, setActiveRegion] = useState("Greater London");
+  const [activeRegion, setActiveRegion] = useState("Ontario");
 
   /* const LOCATION_DATA moved to constants */
 
@@ -410,7 +422,7 @@ export default function Header() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-white z-[999] overflow-y-auto border-t border-gray-100 shadow-xl">
+        <div className="lg:hidden fixed inset-0 top-16 bg-white z-[999] overflow-y-auto scrollbar-hide border-t border-gray-100 shadow-xl">
           <div className="flex flex-col min-h-[calc(100vh-4rem)] p-4">
 
             {/* Menu Items Section */}

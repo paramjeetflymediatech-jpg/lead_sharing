@@ -14,7 +14,7 @@ export async function generateMetadata({ params }) {
         description: blog.seoDescription || blog.excerpt,
         robots: blog.seoRobots || "index, follow",
         alternates: {
-            canonical: blog.canonicalUrl || `https://leadsharing.co.uk/blog/${blog.slug}`,
+            canonical: blog.canonicalUrl || `https://leadsharing.ca/blog/${blog.slug}`,
         },
         openGraph: {
             title: blog.ogTitle || blog.seoTitle || blog.title,

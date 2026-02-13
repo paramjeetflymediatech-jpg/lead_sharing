@@ -20,9 +20,9 @@ export default function TradespersonSearch({ onCancel, onReturnToJob }) {
       return;
     }
 
-    const postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
+    const postcodeRegex = /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ][ -]?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i;
     if (!postcodeRegex.test(postcode)) {
-      toast.error("Please enter a valid UK postcode (e.g., SW1A 1AA)", {
+      toast.error("Please enter a valid Canadian postal code (e.g., A1A 1A1)", {
         position: "top-center",
       });
       return;
@@ -42,8 +42,9 @@ export default function TradespersonSearch({ onCancel, onReturnToJob }) {
       setShowResults(true);
 
       if (data.count === 0) {
-        toast.info("No tradespeople found in your area", {
+        toast("No tradespeople found in your area", {
           position: "top-center",
+          icon: "ℹ️",
         });
       }
     } catch (err) {
@@ -90,7 +91,7 @@ export default function TradespersonSearch({ onCancel, onReturnToJob }) {
                   type="text"
                   value={postcode}
                   onChange={(e) => setPostcode(e.target.value.toUpperCase())}
-                  placeholder="SW1A 1AA"
+                  placeholder="A1A 1A1"
                   className="w-full p-3 border-2 border-gray-300 rounded-lg uppercase"
                 />
 

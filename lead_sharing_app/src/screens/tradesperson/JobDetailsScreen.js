@@ -141,7 +141,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                         <View style={styles.detailContent}>
                             <Text style={styles.detailLabel}>Budget</Text>
                             <Text style={styles.detailValue}>
-                                £{job.budget_min || 0} - £{job.budget_max}
+                                ${job.budget_min || 0} - ${job.budget_max}
                             </Text>
                         </View>
                     </View>

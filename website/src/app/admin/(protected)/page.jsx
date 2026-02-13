@@ -5,7 +5,7 @@ import {
     UserGroupIcon,
     BriefcaseIcon,
     ClipboardDocumentCheckIcon,
-    CurrencyPoundIcon
+    CurrencyDollarIcon
 } from "@heroicons/react/24/outline";
 
 export default function AdminDashboard() {
@@ -69,8 +69,8 @@ export default function AdminDashboard() {
         },
         {
             title: "Revenue",
-            value: `£${stats.revenue || 0}`,
-            icon: CurrencyPoundIcon,
+            value: `$${stats.revenue || 0}`,
+            icon: CurrencyDollarIcon,
             color: "orange",
             detail: "Total platform revenue"
         }

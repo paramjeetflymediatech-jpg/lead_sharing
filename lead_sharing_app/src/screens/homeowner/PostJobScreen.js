@@ -386,7 +386,7 @@ export default function PostJobScreen({ navigation }) {
                                 <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="e.g. SW1A 1AA"
+                                    placeholder="e.g. A1A 1A1"
                                     placeholderTextColor="#9CA3AF"
                                     value={formData.postcode}
                                     onChangeText={(value) => updateField("postcode", value.toUpperCase())}
@@ -401,7 +401,7 @@ export default function PostJobScreen({ navigation }) {
                                 <Feather name="map" size={20} color="#9CA3AF" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="e.g. London"
+                                    placeholder="e.g. Toronto"
                                     placeholderTextColor="#9CA3AF"
                                     value={formData.city}
                                     onChangeText={(value) => updateField("city", value)}
@@ -460,7 +460,7 @@ export default function PostJobScreen({ navigation }) {
 
                     <View style={styles.card}>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Budget Range (£)</Text>
+                            <Text style={styles.label}>Budget Range ($)</Text>
                             <View style={styles.row}>
                                 <View style={styles.halfInput}>
                                     <TextInput

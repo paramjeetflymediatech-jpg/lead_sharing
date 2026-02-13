@@ -22,10 +22,10 @@ const VALIDATION_RULES = {
     MAX: 100000,
   },
   PHONE: {
-    PATTERN: /^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/,
+    PATTERN: /^(\+1\s?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/,
   },
   POSTCODE: {
-    PATTERN: /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i,
+    PATTERN: /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
   }
 };
 
@@ -40,17 +40,10 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
   const handleSearch = async (e) => {
     e.preventDefault();
 
-    if (!postcode.trim()) {
-      toast.error("Please enter a postcode", {
-        position: "top-center",
-      });
-      return;
-    }
+    const trimmedPostcode = postcode.trim();
 
-    // Basic UK postcode validation
-    const postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
-    if (!postcodeRegex.test(postcode)) {
-      toast.error("Please enter a valid UK postcode (e.g., SW1A 1AA)", {
+    if (!trimmedPostcode) {
+      toast.error("Please enter a search criteria (Postcode or Name)", {
         position: "top-center",
       });
       return;
@@ -58,7 +51,14 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
 
     try {
       setSearching(true);
-      const response = await fetch(`/api/tradesperson/search?postcode=${encodeURIComponent(postcode)}`);
+      // Dynamic Search: If it's a postcode format, use postcode param. 
+      // Otherwise, use query param for name/company search.
+      const postcodeRegex = /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
+      const url = postcodeRegex.test(trimmedPostcode)
+        ? `/api/tradesperson/search?postcode=${encodeURIComponent(trimmedPostcode)}`
+        : `/api/tradesperson/search?q=${encodeURIComponent(trimmedPostcode)}`;
+
+      const response = await fetch(url);
       const data = await response.json();
 
       if (!response.ok) {
@@ -69,13 +69,14 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
       setShowResults(true);
 
       if (data.count === 0) {
-        toast.info("No tradespeople found in your area", {
+        toast("No professionals found matching your search", {
           position: "top-center",
+          icon: "ℹ️",
         });
       }
     } catch (error) {
       console.error("Search error:", error);
-      toast.error(error.message || "Failed to search tradespeople", {
+      toast.error(error.message || "Failed to search professionals", {
         position: "top-center",
       });
       setTradespeople([]);
@@ -102,9 +103,9 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">rated people</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">All care pros</h1>
           <p className="text-gray-600">
-            Find trusted tradespeople in your area
+            Find trusted care pros in your area
           </p>
         </div>
 
@@ -123,18 +124,17 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
               <form onSubmit={handleSearch} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Enter your postcode
+                    Enter postcode, name or expertise
                   </label>
                   <input
                     type="text"
                     value={postcode}
-                    onChange={(e) => setPostcode(e.target.value.toUpperCase())}
-                    placeholder="SW1A 1AA"
-                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition uppercase"
-                    pattern="^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$"
+                    onChange={(e) => setPostcode(e.target.value)}
+                    placeholder="e.g. A1A 1A1 or Plumbing"
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition"
                   />
                   <p className="mt-1 text-xs text-gray-500">
-                    UK postcode format (e.g., SW1A 1AA)
+                    Search by Canadian postcode or tradesperson
                   </p>
                 </div>
 
@@ -143,7 +143,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
                   disabled={searching}
                   className="w-full bg-[#1149C7] hover:bg-[#0d38a0] text-white font-bold py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {searching ? "Searching..." : "Yes, show me tradespeople"}
+                  {searching ? "Searching..." : "Search for tradespeople"}
                 </button>
               </form>
 
@@ -240,7 +240,7 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
 
                             {/* Company Info */}
                             <div className="flex-grow">
-                              <h3 className="text-xl font-bold text-gray-900 mb-1">
+                              <h3 className="text-xl font-bold text-gray-900 mb-1 text-start">
                                 {trade.companyName}
                               </h3>
 
@@ -248,11 +248,19 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
                               <div className="flex items-center gap-2 mb-2">
                                 <div className="flex">
                                   {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="text-yellow-400">★</div>
+                                    <div
+                                      key={i}
+                                      className={i < Math.round(trade.average_rating || trade.averageRating || 5) ? "text-yellow-400" : "text-gray-300"}
+                                    >
+                                      ★
+                                    </div>
                                   ))}
                                 </div>
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {(trade.average_rating || trade.averageRating || 5).toFixed(1)}
+                                </span>
                                 <span className="text-sm text-gray-600">
-                                  {trade.ratingCount || 27} ratings
+                                  ({trade.total_ratings || trade.totalRatings || 0} {(trade.total_ratings || trade.totalRatings || 0) === 1 ? 'rating' : 'ratings'})
                                 </span>
                               </div>
 
@@ -474,11 +482,11 @@ export default function JobCreationForm() {
     const maxBudget = Number(max);
 
     if (minBudget < VALIDATION_RULES.BUDGET.MIN) {
-      return `Minimum budget must be at least £${VALIDATION_RULES.BUDGET.MIN}`;
+      return `Minimum budget must be at least $${VALIDATION_RULES.BUDGET.MIN}`;
     }
 
     if (maxBudget > VALIDATION_RULES.BUDGET.MAX) {
-      return `Maximum budget cannot exceed £${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}`;
+      return `Maximum budget cannot exceed $${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}`;
     }
 
     if (minBudget >= maxBudget) {
@@ -486,7 +494,7 @@ export default function JobCreationForm() {
     }
 
     if (maxBudget - minBudget < 100) {
-      return "Budget range should be at least £100";
+      return "Budget range should be at least $100";
     }
 
     return null;
@@ -648,7 +656,7 @@ export default function JobCreationForm() {
           return false;
         }
         if (!VALIDATION_RULES.POSTCODE.PATTERN.test(form.postcode)) {
-          toast.error("Please enter a valid UK postcode (e.g., SW1A 1AA)", {
+          toast.error("Please enter a valid Canadian postal code (e.g., A1A 1A1)", {
             position: "top-center",
           });
           return false;
@@ -662,19 +670,8 @@ export default function JobCreationForm() {
           });
           return false;
         }
-        if (!form.contactPhone.trim()) {
-          toast.error("Please enter a phone number", {
-            position: "top-center",
-          });
-          return false;
-        }
-        if (!VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone)) {
-          toast.error("Please enter a valid UK phone number (e.g., 07700 900000)", {
-            position: "top-center",
-            duration: 4000,
-          });
-          return false;
-        }
+        // Phone validation removed as per request
+        return true;
         if (!form.contactEmail.trim() || !form.contactEmail.includes('@')) {
           toast.error("Please enter a valid email address", {
             position: "top-center",
@@ -1009,7 +1006,7 @@ export default function JobCreationForm() {
 
       {/* Modal for Steps 2-6 with Blue Theme */}
       {isOpen && currentStep > 1 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4 overflow-y-auto ">
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl my-4 sm:my-8 max-h-[95vh] flex flex-col">
 
             {/* Header with Blue Theme */}
@@ -1214,7 +1211,7 @@ export default function JobCreationForm() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Minimum Budget (£)
+                          Minimum Budget ($)
                         </label>
                         <input
                           type="number"
@@ -1227,12 +1224,12 @@ export default function JobCreationForm() {
                           max={VALIDATION_RULES.BUDGET.MAX}
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                          Minimum: £{VALIDATION_RULES.BUDGET.MIN}
+                          Minimum: ${VALIDATION_RULES.BUDGET.MIN}
                         </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Maximum Budget (£)
+                          Maximum Budget ($)
                         </label>
                         <input
                           type="number"
@@ -1245,14 +1242,14 @@ export default function JobCreationForm() {
                           max={VALIDATION_RULES.BUDGET.MAX}
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                          Maximum: £{VALIDATION_RULES.BUDGET.MAX.toLocaleString()}
+                          Maximum: ${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}
                         </p>
                       </div>
                     </div>
                     {form.budgetMin && form.budgetMax && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <p className="text-sm text-gray-700">
-                          Budget range: <span className="font-semibold text-[#1149C7]">£{Number(form.budgetMin).toLocaleString()} - £{Number(form.budgetMax).toLocaleString()}</span>
+                          Budget range: <span className="font-semibold text-[#1149C7]">${Number(form.budgetMin).toLocaleString()} - ${Number(form.budgetMax).toLocaleString()}</span>
                         </p>
                       </div>
                     )}
@@ -1281,11 +1278,11 @@ export default function JobCreationForm() {
                         value={form.postcode}
                         onChange={handleChange}
                         className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition uppercase text-sm sm:text-base"
-                        placeholder="SW1A 1AA"
-                        pattern="[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}"
+                        placeholder="A1A 1A1"
+                        pattern="[ABCEGHJKLMNPRSTVXY][0-9][ABCEGHJKLMNPRSTVWXYZ]\s?[0-9][ABCEGHJKLMNPRSTVWXYZ][0-9]"
                       />
                       <p className="mt-1 text-xs text-gray-500">
-                        UK postcode format (e.g., SW1A 1AA)
+                        Canadian postal code format (e.g., A1A 1A1)
                       </p>
                     </div>
 
@@ -1299,7 +1296,7 @@ export default function JobCreationForm() {
                         value={form.city}
                         onChange={handleChange}
                         className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
-                        placeholder="London"
+                        placeholder="Toronto"
                       />
                     </div>
 
@@ -1381,7 +1378,7 @@ export default function JobCreationForm() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
+                        Phone Number (Optional)
                       </label>
                       <input
                         type="tel"
@@ -1389,12 +1386,10 @@ export default function JobCreationForm() {
                         value={form.contactPhone}
                         onChange={handleChange}
                         className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg focus:border-[#1149C7] focus:ring-2 focus:ring-blue-100 transition text-sm sm:text-base"
-                        placeholder="07700 900000"
-                        required
-                        pattern="^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$"
+                      // pattern removed
                       />
                       <p className="mt-1 text-xs text-gray-500">
-                        UK mobile format (e.g., 07700 900000)
+                        Canadian phone format
                       </p>
                       {getDisplayPhone() && (
                         <p className="text-xs text-gray-500 mt-1">

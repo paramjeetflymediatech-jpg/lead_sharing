@@ -18,9 +18,9 @@ export default function TradespersonJobsList({ jobs, profileId }) {
 
   const formatBudget = (min, max) => {
     if (!min && !max) return "Budget not specified";
-    if (min && max) return `£${min} - £${max}`;
-    if (max) return `Up to £${max}`;
-    if (min) return `From £${min}`;
+    if (min && max) return `$${min} - $${max}`;
+    if (max) return `Up to $${max}`;
+    if (min) return `From $${min}`;
     return "Budget not specified";
   };
 
@@ -40,7 +40,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
     const date = new Date(dateString);
     const now = new Date();
     const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffHours < 1) return "Just now";
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffHours < 168) return `${Math.floor(diffHours / 24)}d ago`;
@@ -58,7 +58,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
 
   const handleUnlockLead = async () => {
     if (!selectedJob) return;
-    
+
     if (!message.trim()) {
       showAlert("Please enter a message for the homeowner", "error");
       return;
@@ -91,7 +91,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
         setShowUnlockModal(false);
         setMessage("");
         setPriceEstimate("");
-        
+
         // Refresh the page to show updated lead status
         setTimeout(() => window.location.reload(), 1500);
       } else {
@@ -117,18 +117,18 @@ export default function TradespersonJobsList({ jobs, profileId }) {
               {job.subCategory}
             </span>
           </div>
-          
+
           {/* Make the job title clickable */}
           <Link href={`/tradesperson/job/${job.id}`}>
             <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2 hover:text-[#155DFC] dark:hover:text-[#155DFC] transition-colors cursor-pointer">
               {job.category} - {job.subCategory}
             </h3>
           </Link>
-          
+
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-2">
             {job.description}
           </p>
-          
+
           <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +159,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
 
           {/* Add "View Details" link */}
           <div className="mt-3">
-            <Link 
+            <Link
               href={`/tradesperson/job/${job.id}`}
               className="inline-flex items-center gap-1 text-xs font-bold text-[#155DFC] hover:underline"
             >
@@ -174,15 +174,14 @@ export default function TradespersonJobsList({ jobs, profileId }) {
 
         <div className="flex flex-col items-end gap-3">
           {/* Lead Status Badge */}
-          <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-            job.leadCount >= job.maxLeads 
-              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" 
-              : job.leadCount > 0 
+          <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${job.leadCount >= job.maxLeads
+              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+              : job.leadCount > 0
                 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                 : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-          }`}>
-            {job.leadCount >= job.maxLeads 
-              ? "Full" 
+            }`}>
+            {job.leadCount >= job.maxLeads
+              ? "Full"
               : `${job.leadCount}/${job.maxLeads} leads`}
           </div>
 
@@ -207,11 +206,10 @@ export default function TradespersonJobsList({ jobs, profileId }) {
               <button
                 onClick={() => handleUnlockClick(job)}
                 disabled={unlockingJobId === job.id}
-                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                  unlockingJobId === job.id
+                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${unlockingJobId === job.id
                     ? "bg-zinc-300 text-zinc-500 cursor-not-allowed"
                     : "bg-[#155DFC] text-white hover:bg-[#155DFC]/90 shadow-sm"
-                }`}
+                  }`}
               >
                 {unlockingJobId === job.id ? "Processing..." : "Unlock Lead"}
               </button>
@@ -247,11 +245,10 @@ export default function TradespersonJobsList({ jobs, profileId }) {
     <>
       {/* Alert Message */}
       {alert.show && (
-        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg ${
-          alert.type === "success" 
-            ? "bg-green-600 text-white" 
+        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg ${alert.type === "success"
+            ? "bg-green-600 text-white"
             : "bg-red-600 text-white"
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {alert.type === "success" ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,7 +329,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
                   type="text"
                   value={priceEstimate}
                   onChange={(e) => setPriceEstimate(e.target.value)}
-                  placeholder="e.g., £500-£750 or Fixed price £600"
+                  placeholder="e.g., $500-$750 or Fixed price $600"
                   className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#155DFC] focus:border-transparent outline-none"
                   required
                 />
@@ -351,11 +348,10 @@ export default function TradespersonJobsList({ jobs, profileId }) {
                 <button
                   onClick={handleUnlockLead}
                   disabled={!message.trim() || !priceEstimate.trim() || unlockingJobId}
-                  className={`flex-1 px-4 py-3 font-bold rounded-xl transition-all ${
-                    !message.trim() || !priceEstimate.trim() || unlockingJobId
+                  className={`flex-1 px-4 py-3 font-bold rounded-xl transition-all ${!message.trim() || !priceEstimate.trim() || unlockingJobId
                       ? "bg-zinc-300 text-zinc-500 cursor-not-allowed"
                       : "bg-[#155DFC] text-white hover:bg-[#155DFC]/90"
-                  }`}
+                    }`}
                 >
                   {unlockingJobId ? "Processing..." : "Unlock Lead (1 Credit)"}
                 </button>

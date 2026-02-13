@@ -130,7 +130,7 @@ export default function EditProfileScreen({ navigation }) {
                             <Feather name="phone" size={20} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="e.g. 07700 900000"
+                                placeholder="e.g. 416-555-0123"
                                 placeholderTextColor="#9CA3AF"
                                 keyboardType="phone-pad"
                                 value={formData.phone}
@@ -163,7 +163,7 @@ export default function EditProfileScreen({ navigation }) {
                             <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="e.g. SW1A 1AA"
+                                placeholder="e.g. A1A 1A1"
                                 placeholderTextColor="#9CA3AF"
                                 value={formData.postcode}
                                 onChangeText={(value) => updateField("postcode", value.toUpperCase())}

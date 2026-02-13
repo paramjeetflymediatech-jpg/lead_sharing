@@ -32,9 +32,9 @@
 
 //   const formatBudget = (min, max) => {
 //     if (!min && !max) return "Budget not specified";
-//     if (min && max) return `£${min} - £${max}`;
-//     if (max) return `Up to £${max}`;
-//     if (min) return `From £${min}`;
+//     if (min && max) return `$${min} - $${max}`;
+//     if (max) return `Up to $${max}`;
+//     if (min) return `From $${min}`;
 //     return "Budget not specified";
 //   };
 
@@ -351,21 +351,21 @@ export default function MyLeadsPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // First, check if user is logged in
       const userRes = await fetch("/api/me", {
         credentials: "include",
       });
-      
+
       if (!userRes.ok) {
         router.push("/auth/login");
         return;
       }
-      
+
       const userData = await userRes.json();
 
-      console.log("UserData",userData)
-      
+      console.log("UserData", userData)
+
       // Check if user is a tradesperson (your API returns tradespersonProfile)
       if (!userData?.tradespersonProfile) {
         router.push("/auth/login");
@@ -382,7 +382,7 @@ export default function MyLeadsPage() {
       const leadsRes = await fetch("/api/leads/my", {
         credentials: "include",
       });
-      
+
       if (!leadsRes.ok) {
         throw new Error("Failed to load leads");
       }
@@ -400,9 +400,9 @@ export default function MyLeadsPage() {
 
   const formatBudget = (min, max) => {
     if (!min && !max) return "Budget not specified";
-    if (min && max) return `£${min} - £${max}`;
-    if (max) return `Up to £${max}`;
-    if (min) return `From £${min}`;
+    if (min && max) return `$${min} - $${max}`;
+    if (max) return `Up to $${max}`;
+    if (min) return `From $${min}`;
     return "Budget not specified";
   };
 
@@ -430,7 +430,7 @@ export default function MyLeadsPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <header className="sticky top-0 z-[1] border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
+      {/* <header className="sticky top-0 z-[1] border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
           <Link href="/tradesperson" className="flex items-center gap-2 shrink-0">
             <div className="h-10 w-15 rounded-lg bg-[#155DFC] flex items-center justify-center text-white font-bold">
@@ -455,9 +455,9 @@ export default function MyLeadsPage() {
             </Link>
           </div>
         </div>
-      </header>
+      </header> */}
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-6">
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold text-black mb-2">
             Your Unlocked Leads
@@ -494,13 +494,12 @@ export default function MyLeadsPage() {
               >
                 {/* Lead Status Badge */}
                 <div className="flex justify-end mb-4">
-                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-                    lead.status === 'HIRED' 
-                      ? 'bg-green-100 text-green-800' 
-                      : lead.status === 'REJECTED'
+                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${lead.status === 'HIRED'
+                    ? 'bg-green-100 text-green-800'
+                    : lead.status === 'REJECTED'
                       ? 'bg-red-100 text-red-800'
                       : 'bg-blue-100 text-blue-800'
-                  }`}>
+                    }`}>
                     {lead.status}
                   </span>
                 </div>
@@ -551,13 +550,12 @@ export default function MyLeadsPage() {
                     <p className="text-xs font-bold text-zinc-500 uppercase mb-2">
                       Job Status
                     </p>
-                    <p className={`text-sm font-semibold ${
-                      lead.job.isHired 
-                        ? 'text-green-600' 
-                        : lead.job.status === 'OPEN' 
-                        ? 'text-blue-600' 
+                    <p className={`text-sm font-semibold ${lead.job.isHired
+                      ? 'text-green-600'
+                      : lead.job.status === 'OPEN'
+                        ? 'text-blue-600'
                         : 'text-zinc-600'
-                    }`}>
+                      }`}>
                       {lead.job.status}
                       {lead.job.isHired && " ✓"}
                     </p>
@@ -568,7 +566,7 @@ export default function MyLeadsPage() {
                       Your Estimate
                     </p>
                     <p className="text-sm font-semibold text-green-600">
-                      {lead.priceEstimate ? `£${lead.priceEstimate}` : "Not provided"}
+                      {lead.priceEstimate ? `$${lead.priceEstimate}` : "Not provided"}
                     </p>
                   </div>
                 </div>

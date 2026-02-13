@@ -177,7 +177,7 @@ function JobCard({ job, navigation }) {
                     <View style={styles.budgetBadge}>
                         <Feather name="credit-card" size={12} color="#4B5563" style={{ marginRight: 6 }} />
                         <Text style={styles.budgetText}>
-                            £{job.budget_min || 0} - £{job.budget_max}
+                            ${job.budget_min || 0} - ${job.budget_max}
                         </Text>
                     </View>
                 </View>

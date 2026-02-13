@@ -413,15 +413,14 @@ export default function TradespersonProfileDetail({ profileId }) {
                   {profile.serviceAreas?.join(", ")} • {profile.postcode}
                 </p>
 
-                {/* Ratings */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <span
                         key={i}
-                        className={`text-xl ${i < Math.round(averageRating)
-                            ? 'text-yellow-400'
-                            : 'text-gray-300'
+                        className={`text-xl ${i < Math.round(averageRating || 5)
+                          ? 'text-yellow-400'
+                          : 'text-gray-300'
                           }`}
                       >
                         ★
@@ -433,7 +432,7 @@ export default function TradespersonProfileDetail({ profileId }) {
                   </span>
                   {totalRatings > 0 && (
                     <span className="text-gray-600">
-                      {totalRatings === 1 ? '1 rating' : `${totalRatings} ratings`}
+                      ({totalRatings} {totalRatings === 1 ? 'rating' : 'ratings'})
                     </span>
                   )}
                 </div>
@@ -523,8 +522,8 @@ export default function TradespersonProfileDetail({ profileId }) {
                                 <span
                                   key={i}
                                   className={`text-sm ${i < review.rating
-                                      ? 'text-yellow-400'
-                                      : 'text-gray-300'
+                                    ? 'text-yellow-400'
+                                    : 'text-gray-300'
                                     }`}
                                 >
                                   ★

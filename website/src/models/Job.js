@@ -591,8 +591,8 @@ export const Job = {
     } = data;
 
     const [result] = await pool.query(
-      `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status, media) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         description,
         homeowner,
@@ -608,7 +608,8 @@ export const Job = {
         jobStage || 'PLANNING',
         ownership || 'OWN',
         startTime || 'FLEXIBLE',
-        status
+        status,
+        JSON.stringify(media)
       ]
     );
 
@@ -729,39 +730,57 @@ export const Job = {
 
   async deleteOne(query) {
     const params = [];
-    let sql = 'DELETE FROM jobs WHERE 1=1';
+    if (!query._id) return { deletedCount: 0 };
 
-    if (query._id) {
-      sql += ' AND id = ?';
-      params.push(query._id);
-    }
-    if (query.homeowner) {
-      sql += ' AND homeowner_id = ?';
-      params.push(query.homeowner);
-    }
+    const jobId = query._id;
 
-    const [result] = await pool.query(sql, params);
-    return {
-      deletedCount: result.affectedRows
-    };
+    try {
+      // 1. Delete messages related to this job
+      await pool.query('DELETE FROM messages WHERE job_id = ?', [jobId]);
+
+      // 2. Delete tradesperson_ratings related to this job
+      await pool.query('DELETE FROM tradesperson_ratings WHERE job_id = ?', [jobId]);
+
+      // 3. Delete leads related to this job
+      await pool.query('DELETE FROM leads WHERE job_id = ?', [jobId]);
+
+      // 4. Finally delete the job itself
+      let sql = 'DELETE FROM jobs WHERE id = ?';
+      const [result] = await pool.query(sql, [jobId]);
+
+      return {
+        deletedCount: result.affectedRows
+      };
+    } catch (error) {
+      console.error('Error in Job.deleteOne (cascade):', error);
+      throw error;
+    }
   },
 
   async deleteMany(query) {
+    // Basic implementation for deleteMany - could be optimized with transaction if needed
     const params = [];
-    let sql = 'DELETE FROM jobs WHERE 1=1';
+    let findSql = 'SELECT id FROM jobs WHERE 1=1';
 
     if (query.status) {
-      sql += ' AND status = ?';
+      findSql += ' AND status = ?';
       params.push(query.status);
     }
     if (query.homeowner) {
-      sql += ' AND homeowner_id = ?';
+      findSql += ' AND homeowner_id = ?';
       params.push(query.homeowner);
     }
 
-    const [result] = await pool.query(sql, params);
+    const [rows] = await pool.query(findSql, params);
+    let totalDeleted = 0;
+
+    for (const row of rows) {
+      const res = await this.deleteOne({ _id: row.id });
+      totalDeleted += res.deletedCount;
+    }
+
     return {
-      deletedCount: result.affectedRows
+      deletedCount: totalDeleted
     };
   }
 };

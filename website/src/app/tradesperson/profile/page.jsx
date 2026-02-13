@@ -208,7 +208,7 @@ export default function ProfilePage() {
                                     value={profile.postcode}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:ring-2 focus:ring-[#1149C7] focus:border-transparent outline-none transition-all"
-                                    placeholder="e.g. SW1A 1AA"
+                                    placeholder="e.g. A1A 1A1"
                                 />
                             </div>
                         </div>

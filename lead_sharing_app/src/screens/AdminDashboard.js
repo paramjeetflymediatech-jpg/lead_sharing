@@ -572,7 +572,7 @@ function DashboardScreen({ stats }) {
                     />
                     <StatCard
                         title="Revenue"
-                        value={`£${stats.revenue}`}
+                        value={`$${stats.revenue}`}
                         subtitle="Platform"
                         icon="💰"
                         color="#8B5CF6"
@@ -880,7 +880,7 @@ function RevenueScreen({ revenue }) {
         <>
             <View style={styles.revenueCard}>
                 <Text style={styles.revenueIcon}>💰</Text>
-                <Text style={styles.revenueAmount}>£{revenue}</Text>
+                <Text style={styles.revenueAmount}>${revenue}</Text>
                 <Text style={styles.revenueLabel}>Total Platform Revenue</Text>
             </View>
 
@@ -888,20 +888,20 @@ function RevenueScreen({ revenue }) {
                 <Text style={styles.summaryTitle}>Revenue Breakdown</Text>
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Total Earnings</Text>
-                    <Text style={styles.summaryValue}>£{revenue}</Text>
+                    <Text style={styles.summaryValue}>${revenue}</Text>
                 </View>
                 <View style={styles.summaryDivider} />
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>This Month</Text>
                     <Text style={styles.summaryValue}>
-                        £{Math.floor(revenue * 0.3)}
+                        ${Math.floor(revenue * 0.3)}
                     </Text>
                 </View>
                 <View style={styles.summaryDivider} />
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Last Month</Text>
                     <Text style={styles.summaryValue}>
-                        £{Math.floor(revenue * 0.25)}
+                        ${Math.floor(revenue * 0.25)}
                     </Text>
                 </View>
             </View>

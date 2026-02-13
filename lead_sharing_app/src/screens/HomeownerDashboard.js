@@ -311,7 +311,7 @@ function JobCard({ job, onPress }) {
           <View style={styles.jobDetail}>
             <Text style={styles.jobDetailIcon}>💰</Text>
             <Text style={styles.jobDetailText}>
-              £{job.budget_min || 0} - £{job.budget_max}
+              ${job.budget_min || 0} - ${job.budget_max}
             </Text>
           </View>
         )}

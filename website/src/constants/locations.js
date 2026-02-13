@@ -1,18 +1,16 @@
 export const LOCATION_DATA = {
-    "Greater London": ["Central London", "East London", "North London", "South East London", "South West London", "West London", "North West London", "All Greater London"],
-    "South East": ["Berkshire", "Buckinghamshire", "East Sussex", "Hampshire", "Isle of Wight", "Kent", "Oxfordshire", "Surrey", "West Sussex", "All South East"],
-    "South West": ["Bristol", "Cornwall", "Devon", "Dorset", "Gloucestershire", "Somerset", "Wiltshire", "All South West"],
-    "East of England": ["Bedfordshire", "Cambridgeshire", "Essex", "Hertfordshire", "Norfolk", "Suffolk", "All East of England"],
-    "West Midlands": ["Herefordshire", "Shropshire", "Staffordshire", "Warwickshire", "West Midlands", "Worcestershire", "All West Midlands"],
-    "East Midlands": ["Derbyshire", "Leicestershire", "Lincolnshire", "Northamptonshire", "Nottinghamshire", "Rutland", "All East Midlands"],
-    "Yorkshire & the Humber": ["East Riding of Yorkshire", "North Yorkshire", "South Yorkshire", "West Yorkshire", "All Yorkshire & the Humber"],
-    "North West": ["Cheshire", "Cumbria", "Greater Manchester", "Lancashire", "Merseyside", "All North West"],
-    "North East": ["County Durham", "Northumberland", "Tyne and Wear", "All North East"],
-    "North Wales": ["Clwyd", "Gwynedd", "All North Wales"],
-    "South Wales": ["Dyfed", "Gwent", "Mid Glamorgan", "South Glamorgan", "West Glamorgan", "All South Wales"],
-    "West Wales": ["Powys", "All West Wales"],
-    "Southern Scotland": ["Borders", "Dumfries and Galloway", "Lothian", "Strathclyde", "All Southern Scotland"],
-    "Central Scotland": ["Central", "Fife", "Tayside", "All Central Scotland"],
-    "Highlands and Islands (Scotland)": ["Grampian", "Highland", "Orkney", "Shetland", "Western Isles", "All Highlands and Islands"],
-    "Northern Ireland": ["Antrim", "Armagh", "Down", "Fermanagh", "Londonderry", "Tyrone", "All Northern Ireland"]
+    "Alberta": ["Calgary", "Edmonton", "Red Deer", "Lethbridge", "Medicine Hat", "Fort McMurray", "Grande Prairie", "Airdrie", "All Alberta"],
+    "British Columbia": ["Vancouver", "Victoria", "Surrey", "Burnaby", "Richmond", "Coquitlam", "Kelowna", "Abbotsford", "All British Columbia"],
+    "Manitoba": ["Winnipeg", "Brandon", "Steinbach", "Thompson", "Portage la Prairie", "All Manitoba"],
+    "New Brunswick": ["Moncton", "Saint John", "Fredericton", "Dieppe", "Miramichi", "All New Brunswick"],
+    "Newfoundland and Labrador": ["St. John's", "Conception Bay South", "Mount Pearl", "Paradise", "Corner Brook", "All Newfoundland and Labrador"],
+    "Nova Scotia": ["Halifax", "Sydney", "Truro", "New Glasgow", "Glace Bay", "All Nova Scotia"],
+    "Ontario": ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton", "London", "Markham", "Vaughan", "Kitchener", "Windsor", "All Ontario"],
+    "Prince Edward Island": ["Charlottetown", "Summerside", "Stratford", "Cornwall", "All Prince Edward Island"],
+    "Quebec": ["Montreal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Levis", "Saguenay", "All Quebec"],
+    "Saskatchewan": ["Saskatoon", "Regina", "Prince Albert", "Moose Jaw", "Swift Current", "All Saskatchewan"],
+    "Northwest Territories": ["Yellowknife", "All Northwest Territories"],
+    "Nunavut": ["Iqaluit", "All Nunavut"],
+    "Yukon": ["Whitehorse", "All Yukon"]
 };
+

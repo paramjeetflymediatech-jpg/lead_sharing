@@ -1585,6 +1585,7 @@ import {
 import "@/models/Category";
 import "@/models/SubCategory";
 import "@/models/User";
+import PaymentSuccessModal from "./components/PaymentSuccessModal";
 
 // Add this line to fix searchParams issue
 export const dynamic = 'force-dynamic';
@@ -1712,37 +1713,9 @@ export default async function TradespersonDashboard({ searchParams }) {
     return (
       <div className="space-y-8">
         {/* Payment Success Notification */}
-        {paymentSuccess && (
-          <div className="bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 text-white rounded-3xl p-6 shadow-2xl shadow-green-500/30 animate-in slide-in-from-top duration-500">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">Payment Successful! 🎉</h3>
-                  <p className="text-green-100/90 text-lg">
-                    Your credits have been added to your account. Start unlocking job leads now!
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Link
-                  href="/tradesperson/leads"
-                  className="px-6 py-3 bg-white text-green-700 font-bold rounded-xl hover:bg-green-50 transition-all hover:shadow-lg flex items-center gap-2"
-                >
-                  View Leads
-                  <span className="text-lg">→</span>
-                </Link>
-                <Link
-                  href="/tradesperson"
-                  className="px-6 py-3 bg-white/20 text-white font-bold rounded-xl hover:bg-white/30 transition-all border border-white/30"
-                >
-                  Close
-                </Link>
-              </div>
-            </div>
-          </div>
+        {/* Payment Success Notification */}
+        {paymentSuccess && params?.session_id && (
+          <PaymentSuccessModal sessionId={params.session_id} />
         )}
 
         {/* Welcome Section with Profile Image */}

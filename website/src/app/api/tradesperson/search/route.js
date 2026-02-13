@@ -1,106 +1,144 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../../config/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const postcode = searchParams.get("postcode");
+    const query = searchParams.get("query") || searchParams.get("q"); // Text search
+    const skill = searchParams.get("skill") || searchParams.get("category");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") || "1");
+    const offset = (page - 1) * limit;
 
-    console.log("🔍 SEARCH REQUEST - Postcode:", postcode);
+    console.log("🔍 SEARCH REQUEST:", { postcode, query, skill, limit, page });
 
-    if (!postcode) {
-      return NextResponse.json(
-        { message: "Postcode is required" },
-        { status: 400 }
-      );
-    }
+    // If no search criteria provided, return defaults or empty?
+    // Let's return defaults (all) if nothing provided, but let's be careful about volume.
+    // For now, fetching all is fine as per previous logic.
 
-    // Normalize: remove spaces and uppercase
-    const normalized = postcode.replace(/\s+/g, "").toUpperCase();
-    console.log("🔍 Normalized postcode:", normalized);
-
-    // Extract outward code (e.g., "SW1A" from "SW1A1AA")
-    const outwardCode = normalized.match(/^[A-Z]{1,2}\d[A-Z\d]?/)?.[0];
-    console.log("🔍 Outward code:", outwardCode);
-
-    // SIMPLE QUERY - Just get ALL profiles and filter in JS
+    // 1. Fetch potential matches from DB
+    // We join with users to get full name if needed, though profiles should have most data.
     const [allRows] = await pool.query(`
       SELECT 
-        id,
-        user_id,
-        company_name,
-        profile_image,
-        bio,
-        phone,
-        postcode,
-        skills,
-        service_areas,
-        average_rating,
-        total_ratings,
-        created_at,
-        updated_at
-      FROM tradesperson_profiles
+        tp.id,
+        tp.user_id,
+        tp.company_name,
+        tp.profile_image,
+        tp.bio,
+        tp.phone,
+        tp.postcode,
+        tp.skills,
+        tp.service_areas,
+        tp.average_rating,
+        tp.total_ratings,
+        tp.created_at,
+        tp.updated_at,
+        u.name as user_full_name,
+        u.email as user_email
+      FROM tradesperson_profiles tp
+      LEFT JOIN users u ON tp.user_id = u.id
     `);
 
-    console.log("📊 Total profiles in database:", allRows.length);
+    console.log("📊 Total profiles scanned:", allRows.length);
 
-    // Filter in JavaScript (more reliable than SQL with postcode formats)
-    const filteredRows = allRows.filter(row => {
-      const dbPostcode = (row.postcode || "").replace(/\s+/g, "").toUpperCase();
-      
-      // Exact match
-      if (dbPostcode === normalized) {
-        console.log("✅ EXACT MATCH:", row.company_name, "-", row.postcode);
-        return true;
-      }
-      
-      // Outward code match (e.g., SW1A matches SW1A1AA)
-      if (outwardCode && dbPostcode.startsWith(outwardCode)) {
-        console.log("✅ AREA MATCH:", row.company_name, "-", row.postcode);
-        return true;
-      }
-      
-      return false;
+    let filteredRows = allRows;
+
+    // 2. Filter by Postcode (if provided)
+    if (postcode) {
+      const normalizedPostcode = postcode.replace(/\s+/g, "").toUpperCase();
+      const outwardCode = normalizedPostcode.match(/^[A-Z]{1,2}\d[A-Z\d]?/)?.[0];
+
+      filteredRows = filteredRows.filter(row => {
+        const dbPostcode = (row.postcode || "").replace(/\s+/g, "").toUpperCase();
+        // Exact match OR Outward code match
+        if (dbPostcode === normalizedPostcode) return true;
+        if (outwardCode && dbPostcode.startsWith(outwardCode)) return true;
+        return false;
+      });
+    }
+
+    // 3. Filter by Text Query (Name, Bio, etc.)
+    if (query) {
+      const lowerQuery = query.toLowerCase();
+      filteredRows = filteredRows.filter(row => {
+        const company = (row.company_name || "").toLowerCase();
+        const bio = (row.bio || "").toLowerCase();
+        const name = (row.user_full_name || "").toLowerCase();
+
+        // Also search in skills array string
+        const skillsStr = (row.skills || "").toLowerCase();
+
+        return company.includes(lowerQuery) ||
+          bio.includes(lowerQuery) ||
+          name.includes(lowerQuery) ||
+          skillsStr.includes(lowerQuery);
+      });
+    }
+
+    // 4. Filter by Specific Skill
+    if (skill) {
+      const lowerSkill = skill.toLowerCase();
+      filteredRows = filteredRows.filter(row => {
+        if (!row.skills) return false;
+        try {
+          // Handle both JSON string or if it's somehow already an object (should be string from DB)
+          const skillsArray = typeof row.skills === 'string' ? JSON.parse(row.skills) : row.skills;
+          if (Array.isArray(skillsArray)) {
+            return skillsArray.some(s => s.toLowerCase().includes(lowerSkill));
+          }
+          return false;
+        } catch (e) {
+          return false;
+        }
+      });
+    }
+
+    // 5. Sort results
+    // Default sort: Rating DESC, then Total Ratings DESC
+    filteredRows.sort((a, b) => {
+      const ratingA = parseFloat(a.average_rating || 0);
+      const ratingB = parseFloat(b.average_rating || 0);
+      if (ratingB !== ratingA) return ratingB - ratingA;
+      return (b.total_ratings || 0) - (a.total_ratings || 0);
     });
 
-    console.log("✅ Filtered results:", filteredRows.length);
+    // 6. Pagination
+    const totalCount = filteredRows.length;
+    const paginatedRows = filteredRows.slice(offset, offset + limit);
 
-    const data = filteredRows.map(row => ({
-      _id: row.id,
-      user: row.user_id,
-      companyName: row.company_name,
+    // 7. Format Response
+    const data = paginatedRows.map(row => ({
+      id: row.id,
+      _id: row.id, // Compatibility for frontend
+      userId: row.user_id,
+      companyName: row.company_name || row.user_full_name || "Professional",
       profileImage: row.profile_image,
       bio: row.bio,
       phone: row.phone,
       postcode: row.postcode,
-      skills: row.skills ? JSON.parse(row.skills) : [],
-      serviceAreas: row.service_areas ? JSON.parse(row.service_areas) : [],
-      average_rating: row.average_rating || 0,
-      total_ratings: row.total_ratings || 0,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      skills: row.skills ? (typeof row.skills === 'string' ? JSON.parse(row.skills) : row.skills) : [],
+      serviceAreas: row.service_areas ? (typeof row.service_areas === 'string' ? JSON.parse(row.service_areas) : row.service_areas) : [],
+      averageRating: row.average_rating || 0,
+      totalRatings: row.total_ratings || 0,
+      memberSince: row.created_at,
+      verified: true
     }));
-
-    // Sort by rating
-    data.sort((a, b) => {
-      if (b.average_rating !== a.average_rating) {
-        return b.average_rating - a.average_rating;
-      }
-      return b.total_ratings - a.total_ratings;
-    });
-
-    console.log("📤 Sending response:", data.length, "results");
 
     return NextResponse.json({
       success: true,
-      count: data.length,
-      data: data.slice(0, 20) // Limit to 20 results
+      count: totalCount,
+      page,
+      limit,
+      data
     });
 
   } catch (error) {
     console.error("❌ SEARCH ERROR:", error);
     return NextResponse.json(
-      { message: "Server error", error: error.message },
+      { success: false, message: "Server error", error: error.message },
       { status: 500 }
     );
   }

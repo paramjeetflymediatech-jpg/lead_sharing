@@ -19,10 +19,10 @@
 //     MAX: 100000,
 //   },
 //   PHONE: {
-//     PATTERN: /^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/,
+//     PATTERN: /^(\+1\s?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/,
 //   },
 //   POSTCODE: {
-//     PATTERN: /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i,
+//     PATTERN: /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
 //   }
 // };
 
@@ -159,11 +159,11 @@
 //     const maxBudget = Number(max);
 
 //     if (minBudget < VALIDATION_RULES.BUDGET.MIN) {
-//       return `Minimum budget must be at least £${VALIDATION_RULES.BUDGET.MIN}`;
+//       return `Minimum budget must be at least $${VALIDATION_RULES.BUDGET.MIN}`;
 //     }
 
 //     if (maxBudget > VALIDATION_RULES.BUDGET.MAX) {
-//       return `Maximum budget cannot exceed £${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}`;
+//       return `Maximum budget cannot exceed $${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}`;
 //     }
 
 //     if (minBudget >= maxBudget) {
@@ -171,7 +171,7 @@
 //     }
 
 //     if (maxBudget - minBudget < 100) {
-//       return "Budget range should be at least £100";
+//       return "Budget range should be at least $100";
 //     }
 
 //     return null;
@@ -309,7 +309,7 @@
 //       });
 //       isValid = false;
 //     } else if (!VALIDATION_RULES.POSTCODE.PATTERN.test(form.postcode)) {
-//       toast.error("Please enter a valid UK postcode (e.g., SW1A 1AA)", {
+//       toast.error("Please enter a valid Canadian postal code (e.g., A1A 1A1)", {
 //         position: "top-right",
 //       });
 //       isValid = false;
@@ -351,7 +351,7 @@
 //       });
 //       isValid = false;
 //     } else if (!VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone)) {
-//       toast.error("Please enter a valid UK phone number (e.g., 07700 900000)", {
+//       toast.error("Please enter a valid Canadian phone number (e.g., 416-555-0123)", {
 //         position: "top-right",
 //         duration: 4000,
 //       });
@@ -739,7 +739,7 @@
 //                 <div className="grid md:grid-cols-2 gap-4 pl-10">
 //                   <div>
 //                     <label className="block text-sm font-medium text-gray-700 mb-2">
-//                       Minimum Budget (£) *
+//                       Minimum Budget ($) *
 //                     </label>
 //                     <input
 //                       type="number"
@@ -754,7 +754,7 @@
 //                   </div>
 //                   <div>
 //                     <label className="block text-sm font-medium text-gray-700 mb-2">
-//                       Maximum Budget (£) *
+//                       Maximum Budget ($) *
 //                     </label>
 //                     <input
 //                       type="number"
@@ -772,7 +772,7 @@
 //                   <div className="pl-10 mt-4">
 //                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 inline-block">
 //                       <p className="text-sm text-gray-700">
-//                         Budget range: <span className="font-semibold text-green-700">£{Number(form.budgetMin).toLocaleString()} - £{Number(form.budgetMax).toLocaleString()}</span>
+//                         Budget range: <span className="font-semibold text-green-700">${Number(form.budgetMin).toLocaleString()} - ${Number(form.budgetMax).toLocaleString()}</span>
 //                       </p>
 //                     </div>
 //                   </div>
@@ -970,10 +970,10 @@ const VALIDATION_RULES = {
     MAX: 100000,
   },
   PHONE: {
-    PATTERN: /^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/,
+    PATTERN: /^(\+1\s?)?\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$/,
   },
   POSTCODE: {
-    PATTERN: /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i,
+    PATTERN: /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ][ -]?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i,
   }
 };
 
@@ -1110,11 +1110,11 @@ export default function AdminJobCreationForm() {
     const maxBudget = Number(max);
 
     if (minBudget < VALIDATION_RULES.BUDGET.MIN) {
-      return `Minimum budget must be at least £${VALIDATION_RULES.BUDGET.MIN}`;
+      return `Minimum budget must be at least $${VALIDATION_RULES.BUDGET.MIN}`;
     }
 
     if (maxBudget > VALIDATION_RULES.BUDGET.MAX) {
-      return `Maximum budget cannot exceed £${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}`;
+      return `Maximum budget cannot exceed $${VALIDATION_RULES.BUDGET.MAX.toLocaleString()}`;
     }
 
     if (minBudget >= maxBudget) {
@@ -1122,7 +1122,7 @@ export default function AdminJobCreationForm() {
     }
 
     if (maxBudget - minBudget < 100) {
-      return "Budget range should be at least £100";
+      return "Budget range should be at least $100";
     }
 
     return null;
@@ -1260,7 +1260,7 @@ export default function AdminJobCreationForm() {
       });
       isValid = false;
     } else if (!VALIDATION_RULES.POSTCODE.PATTERN.test(form.postcode)) {
-      toast.error("Please enter a valid UK postcode (e.g., SW1A 1AA)", {
+      toast.error("Please enter a valid Canadian postal code (e.g., A1A 1A1)", {
         position: "top-right",
       });
       isValid = false;
@@ -1296,18 +1296,7 @@ export default function AdminJobCreationForm() {
     }
 
     // Contact phone validation
-    if (!form.contactPhone.trim()) {
-      toast.error("Please enter a phone number", {
-        position: "top-right",
-      });
-      isValid = false;
-    } else if (!VALIDATION_RULES.PHONE.PATTERN.test(form.contactPhone)) {
-      toast.error("Please enter a valid UK phone number (e.g., 07700 900000)", {
-        position: "top-right",
-        duration: 4000,
-      });
-      isValid = false;
-    }
+    // Phone validation removed as per request
 
     // Contact email validation
     if (!form.contactEmail.trim()) {
@@ -1690,7 +1679,7 @@ export default function AdminJobCreationForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-0 md:pl-10">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Minimum Budget (£) *
+                      Minimum Budget ($) *
                     </label>
                     <input
                       type="number"
@@ -1705,7 +1694,7 @@ export default function AdminJobCreationForm() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Maximum Budget (£) *
+                      Maximum Budget ($) *
                     </label>
                     <input
                       type="number"
@@ -1723,7 +1712,7 @@ export default function AdminJobCreationForm() {
                   <div className="pl-0 md:pl-10 mt-4">
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 inline-block">
                       <p className="text-sm text-gray-700">
-                        Budget range: <span className="font-semibold text-green-700">£{Number(form.budgetMin).toLocaleString()} - £{Number(form.budgetMax).toLocaleString()}</span>
+                        Budget range: <span className="font-semibold text-green-700">${Number(form.budgetMin).toLocaleString()} - ${Number(form.budgetMax).toLocaleString()}</span>
                       </p>
                     </div>
                   </div>
@@ -1749,7 +1738,7 @@ export default function AdminJobCreationForm() {
                       value={form.postcode}
                       onChange={handleChange}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] transition"
-                      placeholder="SW1A 1AA"
+                      placeholder="A1A 1A1"
                       required
                     />
                   </div>
@@ -1763,7 +1752,7 @@ export default function AdminJobCreationForm() {
                       value={form.city}
                       onChange={handleChange}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] transition"
-                      placeholder="London"
+                      placeholder="Toronto"
                     />
                   </div>
                   <div>
@@ -1828,7 +1817,7 @@ export default function AdminJobCreationForm() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
+                      Phone Number (Optional)
                     </label>
                     <input
                       type="tel"
@@ -1836,8 +1825,7 @@ export default function AdminJobCreationForm() {
                       value={form.contactPhone}
                       onChange={handleChange}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1149C7] focus:border-[#1149C7] transition"
-                      placeholder="+44 7700 900000"
-                      required
+                      placeholder="(416) 123-4567"
                     />
                   </div>
                   <div>

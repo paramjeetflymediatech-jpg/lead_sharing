@@ -417,57 +417,57 @@ export default function LeadsharingHome({ location }) {
 
             {/* --- APP DOWNLOAD SECTION --- */}
             {/* Mobile Responsive: Reduced padding on mobile */}
-<section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-[#1149C7] text-white">
-    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-12">
+            <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-[#1149C7] text-white">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-12">
 
-        {/* TEXT — 1st on mobile, LEFT on desktop */}
-        <div className="order-1 flex-1 text-center md:text-left">
-            <h2 className="text-lg xs:text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
-                Track quotes and chat with pros on the go.
-            </h2>
+                    {/* TEXT — 1st on mobile, LEFT on desktop */}
+                    <div className="order-1 flex-1 text-center md:text-left">
+                        <h2 className="text-lg xs:text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
+                            Track quotes and chat with pros on the go.
+                        </h2>
 
-            <p className="text-sm xs:text-base sm:text-lg md:text-lg lg:text-xl text-white/90">
-                Available on the Apple store and Google play
-            </p>
-        </div>
+                        <p className="text-sm xs:text-base sm:text-lg md:text-lg lg:text-xl text-white/90">
+                            Available on the Apple store and Google play
+                        </p>
+                    </div>
 
-        {/* QR CODE — 2nd on mobile, RIGHT on desktop */}
-        <div className="order-2 md:order-3 flex-1 flex justify-center">
-            <div className="bg-white p-2.5 xs:p-3 sm:p-4 rounded-md xs:rounded-lg">
-                <div className="w-28 h-28 xs:w-32 xs:h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-48 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-[10px] xs:text-xs sm:text-sm">
-                    QRCode Placeholder
+                    {/* QR CODE — 2nd on mobile, RIGHT on desktop */}
+                    <div className="order-2 md:order-3 flex-1 flex justify-center">
+                        <div className="bg-white p-2.5 xs:p-3 sm:p-4 rounded-md xs:rounded-lg">
+                            <div className="w-28 h-28 xs:w-32 xs:h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-48 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-[10px] xs:text-xs sm:text-sm">
+                                QRCode Placeholder
+                            </div>
+                            <p className="text-black text-center mt-1.5 xs:mt-2 font-bold text-[10px] xs:text-xs sm:text-sm">
+                                Scan me to download!
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* BUTTONS — 3rd on mobile, UNDER TEXT on desktop */}
+                    <div className="order-3 md:order-2 flex-1 flex justify-center md:justify-start">
+                        <div className="flex flex-col xs:flex-row gap-2.5 xs:gap-3 sm:gap-4 w-full max-w-[200px]">
+                            <button className="bg-black text-white px-3.5 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 rounded-md xs:rounded-lg flex items-center justify-center hover:bg-gray-900 transition">
+                                <span className="text-[10px] xs:text-xs leading-tight text-left">
+                                    Download on the<br />
+                                    <span className="text-sm xs:text-base sm:text-lg font-bold">
+                                        App Store
+                                    </span>
+                                </span>
+                            </button>
+
+                            <button className="bg-black text-white px-3.5 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 rounded-md xs:rounded-lg flex items-center justify-center hover:bg-gray-900 transition">
+                                <span className="text-[10px] xs:text-xs leading-tight text-left">
+                                    GET IT ON<br />
+                                    <span className="text-sm xs:text-base sm:text-lg font-bold">
+                                        Google Play
+                                    </span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
-                <p className="text-black text-center mt-1.5 xs:mt-2 font-bold text-[10px] xs:text-xs sm:text-sm">
-                    Scan me to download!
-                </p>
-            </div>
-        </div>
-
-        {/* BUTTONS — 3rd on mobile, UNDER TEXT on desktop */}
-        <div className="order-3 md:order-2 flex-1 flex justify-center md:justify-start">
-            <div className="flex flex-col xs:flex-row gap-2.5 xs:gap-3 sm:gap-4 w-full max-w-[200px]">
-                <button className="bg-black text-white px-3.5 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 rounded-md xs:rounded-lg flex items-center justify-center hover:bg-gray-900 transition">
-                    <span className="text-[10px] xs:text-xs leading-tight text-left">
-                        Download on the<br />
-                        <span className="text-sm xs:text-base sm:text-lg font-bold">
-                            App Store
-                        </span>
-                    </span>
-                </button>
-
-                <button className="bg-black text-white px-3.5 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 rounded-md xs:rounded-lg flex items-center justify-center hover:bg-gray-900 transition">
-                    <span className="text-[10px] xs:text-xs leading-tight text-left">
-                        GET IT ON<br />
-                        <span className="text-sm xs:text-base sm:text-lg font-bold">
-                            Google Play
-                        </span>
-                    </span>
-                </button>
-            </div>
-        </div>
-
-    </div>
-</section>
+            </section>
 
             {/* --- CHECKLIST SECTION --- */}
             {/* Mobile Responsive: Reduced padding on mobile */}

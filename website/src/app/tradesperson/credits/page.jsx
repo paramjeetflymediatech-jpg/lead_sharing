@@ -127,7 +127,7 @@
 // //                     </div>
 // //                     <div>
 // //                       <div className="text-sm font-medium text-blue-100/80">Average Value</div>
-// //                       <div className="text-2xl font-bold">  £0.99</div>
+// //                       <div className="text-2xl font-bold">  $0.99</div>
 // //                       <div className="text-xs text-blue-100/60">per credit</div>
 // //                     </div>
 // //                   </div>
@@ -584,7 +584,7 @@
 //                   </div>
 //                   <div className="flex gap-2">
 //                     <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">
-//                       £{averagePerCredit}/credit
+//                       ${averagePerCredit}/credit
 //                     </div>
 //                     <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">
 //                       Lifetime access
@@ -602,7 +602,7 @@
 //                     </div>
 //                     <div>
 //                       <div className="text-sm font-medium text-blue-100/80">Average Value</div>
-//                       <div className="text-2xl font-bold">£{averagePerCredit}</div>
+//                       <div className="text-2xl font-bold">${averagePerCredit}</div>
 //                       <div className="text-xs text-blue-100/60">per credit</div>
 //                     </div>
 //                   </div>
@@ -615,7 +615,7 @@
 //                     </div>
 //                     <div>
 //                       <div className="text-sm font-medium text-blue-100/80">Best Value</div>
-//                       <div className="text-2xl font-bold">£{businessPerCredit}</div>
+//                       <div className="text-2xl font-bold">${businessPerCredit}</div>
 //                       <div className="text-xs text-blue-100/60">Business plan</div>
 //                     </div>
 //                   </div>
@@ -733,7 +733,7 @@
 //                       <div className="mb-6">
 //                         <div className="flex items-baseline gap-2 mb-2">
 //                           <span className="text-5xl font-black text-zinc-900 dark:text-white">
-//                             £{plan.amount}
+//                             ${plan.amount}
 //                           </span>
 //                           <span className="text-zinc-500 dark:text-zinc-400">
 //                             one-time
@@ -744,7 +744,7 @@
 //                             {plan.credits} Credits
 //                           </div>
 //                           <div className="text-sm text-zinc-500 dark:text-zinc-400">
-//                             £{perCreditPrice} per credit
+//                             ${perCreditPrice} per credit
 //                           </div>
 //                         </div>
 //                       </div>
@@ -1067,7 +1067,7 @@
 //                     </div>
 //                     <div>
 //                       <div className="text-sm font-medium text-blue-100/80">Average Value</div>
-//                       <div className="text-2xl font-bold">  £0.99</div>
+//                       <div className="text-2xl font-bold">  $0.99</div>
 //                       <div className="text-xs text-blue-100/60">per credit</div>
 //                     </div>
 //                   </div>
@@ -1499,7 +1499,7 @@ export default async function CreditsPage() {
           </div> */}
 
 
-            {/* Pricing Plans Section */}
+          {/* Pricing Plans Section */}
           <div className="mb-20">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-zinc-900 dark:text-white mb-4">
@@ -1551,7 +1551,7 @@ export default async function CreditsPage() {
                       <div className="mb-6">
                         <div className="flex items-baseline gap-2 mb-2">
                           <span className="text-5xl font-black text-zinc-900 dark:text-white">
-                            £{plan.amount}
+                            ${plan.amount}
                           </span>
                           <span className="text-zinc-500 dark:text-zinc-400">
                             one-time
@@ -1562,7 +1562,7 @@ export default async function CreditsPage() {
                             {plan.credits} Credits
                           </div>
                           <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                            £{perCreditPrice} per credit
+                            ${perCreditPrice} per credit
                           </div>
                         </div>
                       </div>
@@ -1641,7 +1641,7 @@ export default async function CreditsPage() {
                   </div>
                   <div className="flex gap-2">
                     <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">
-                      £{averagePerCredit}/credit
+                      ${averagePerCredit}/credit
                     </div>
                     <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">
                       Lifetime access
@@ -1659,7 +1659,7 @@ export default async function CreditsPage() {
                     </div>
                     <div>
                       <div className="text-sm font-medium text-blue-100/80">Average Value</div>
-                      <div className="text-2xl font-bold">£{averagePerCredit}</div>
+                      <div className="text-2xl font-bold">${averagePerCredit}</div>
                       <div className="text-xs text-blue-100/60">per credit</div>
                     </div>
                   </div>
@@ -1672,7 +1672,7 @@ export default async function CreditsPage() {
                     </div>
                     <div>
                       <div className="text-sm font-medium text-blue-100/80">Best Value</div>
-                      <div className="text-2xl font-bold">£{businessPerCredit}</div>
+                      <div className="text-2xl font-bold">${businessPerCredit}</div>
                       <div className="text-xs text-blue-100/60">Business plan</div>
                     </div>
                   </div>

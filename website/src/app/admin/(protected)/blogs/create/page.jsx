@@ -108,8 +108,8 @@ export default function CreateBlogPage() {
                             type="button"
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors ${activeTab === tab.id
-                                    ? "text-[#1149C7] border-b-2 border-[#1149C7] bg-blue-50/30"
-                                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                ? "text-[#1149C7] border-b-2 border-[#1149C7] bg-blue-50/30"
+                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                                 }`}
                         >
                             <tab.icon className="w-5 h-5" />
@@ -274,7 +274,7 @@ export default function CreateBlogPage() {
                                         name="canonical_url"
                                         value={formData.canonical_url}
                                         onChange={handleChange}
-                                        placeholder="https://leadsharing.co.uk/blog/post"
+                                        placeholder="https://leadsharing.ca/blog/post"
                                         className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
                                     />
                                 </div>
@@ -286,7 +286,7 @@ export default function CreateBlogPage() {
                                 <div className="flex flex-col gap-1">
                                     <p className="text-[14px] text-[#202124]">Leadsharing</p>
                                     <p className="text-[14px] text-zinc-500 mb-1 truncate">
-                                        https://leadsharing.co.uk/blog/{formData.slug || "..."}
+                                        https://leadsharing.ca/blog/{formData.slug || "..."}
                                     </p>
                                     <h3 className="text-[20px] text-[#1a0dab] hover:underline cursor-pointer leading-tight truncate">
                                         {formData.seo_title || formData.title || "Your Page Title"}
@@ -335,7 +335,7 @@ export default function CreateBlogPage() {
                                     name="og_image"
                                     value={formData.og_image}
                                     onChange={handleChange}
-                                    placeholder="https://leadsharing.co.uk/social-image.jpg"
+                                    placeholder="https://leadsharing.ca/social-image.jpg"
                                     className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
                                 />
                             </div>

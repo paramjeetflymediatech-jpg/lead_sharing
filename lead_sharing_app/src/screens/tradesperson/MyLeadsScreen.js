@@ -158,7 +158,7 @@ function LeadCard({ lead }) {
                 </View>
                 {(job.budgetMax || lead.budget_max) && (
                     <View style={[styles.detailItem, { marginLeft: 16 }]}>
-                        <Text style={styles.currencySymbol}>£</Text>
+                        <Text style={styles.currencySymbol}>$</Text>
                         <Text style={styles.detailText}>
                             {job.budgetMin || lead.budget_min || 0} - {job.budgetMax || lead.budget_max}
                         </Text>

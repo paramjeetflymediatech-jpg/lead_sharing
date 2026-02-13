@@ -132,7 +132,6 @@ export async function POST(req) {
       !body.jobStage ||
       !body.ownership ||
       !body.contactName ||
-      !body.contactPhone ||
       !body.contactEmail
     ) {
       return NextResponse.json(
