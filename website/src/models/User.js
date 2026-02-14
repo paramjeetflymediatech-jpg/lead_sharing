@@ -1,5 +1,7 @@
 
-import pool from '../../config/db';
+import pool from '../../config/db.js';
+import { Job } from './Job.js';
+import { Payment } from './Payment.js';
 
 const userToMongoStyle = (row) => {
   if (!row) return null;
@@ -178,8 +180,63 @@ export const User = {
   },
 
   async findByIdAndDelete(id) {
-    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
-    return result.affectedRows > 0;
+    try {
+      // 0. Get Tradesperson Profile ID first (if exists)
+      const [profiles] = await pool.query('SELECT id FROM tradesperson_profiles WHERE user_id = ?', [id]);
+      const profileId = profiles[0]?.id;
+
+      // 1. Delete messages (both sent and received)
+      await pool.query('DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?', [id, id]);
+
+      // 2. Delete tradesperson_ratings
+      // As homeowner (using user_id)
+      await pool.query('DELETE FROM tradesperson_ratings WHERE homeowner_id = ?', [id]);
+
+      // As tradesperson (using profile_id)
+      if (profileId) {
+        await pool.query('DELETE FROM tradesperson_ratings WHERE tradesperson_id = ?', [profileId]);
+      }
+
+      // 3. Delete leads (as tradesperson - using profile_id)
+      if (profileId) {
+        await pool.query('DELETE FROM leads WHERE tradesperson_id = ?', [profileId]);
+      }
+
+      // 4. Delete payments (associated with user)
+      await Payment.deleteByUserId(id);
+
+      // 5. Delete jobs (as homeowner)
+      const [jobs] = await pool.query('SELECT id FROM jobs WHERE homeowner_id = ?', [id]);
+      if (jobs.length > 0) {
+        // Use Job model for cascading delete
+        const jobIds = jobs.map(j => j.id);
+        // We can't easily use Job.deleteMany with array of IDs if it expects query object for mongo style
+        // But Job.deleteMany implementation in Job.js iterates over rows found by query.
+        // Let's just use loop here to be safe and use Job model logic
+        for (const job of jobs) {
+          await Job.deleteOne({ _id: job.id });
+        }
+      }
+
+      // 6. Nullify hired_tradesperson_id in jobs if this user was hired (as tradesperson - using profile_id)
+      if (profileId) {
+        await pool.query('UPDATE jobs SET hired_tradesperson_id = NULL WHERE hired_tradesperson_id = ?', [profileId]);
+      }
+
+      // 7. Delete tradesperson_profiles
+      await pool.query('DELETE FROM tradesperson_profiles WHERE user_id = ?', [id]);
+
+      // 8. Delete associated media (local files)
+      // Note: Admin route handles file cleanup via getAssociatedMedia. 
+      // Here we focus on DB cleanup. File cleanup should ideally be handled by a service or job.
+
+      // 9. Finally delete the user
+      const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error in User.findByIdAndDelete (manual cascade):', error);
+      throw error;
+    }
   },
 
   async getAssociatedMedia(id) {

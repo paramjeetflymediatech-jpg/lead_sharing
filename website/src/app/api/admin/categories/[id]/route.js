@@ -37,10 +37,10 @@ export async function DELETE(req, { params }) {
         }
 
         // Check if used in subcategories
-        const hasSubs = await SubCategory.findOne({ category: id });
-        if (hasSubs) {
-            return NextResponse.json({ message: "Cannot delete category with existing subcategories" }, { status: 400 });
-        }
+        // const hasSubs = await SubCategory.findOne({ category: id });
+        // if (hasSubs) {
+        //     return NextResponse.json({ message: "Cannot delete category with existing subcategories" }, { status: 400 });
+        // }
 
         const success = await Category.findByIdAndDelete(id);
 

@@ -102,7 +102,7 @@
 
 
 
-import pool from "../../config/db";
+import pool from "../../config/db.js";
 
 const subCategoryToMongoStyle = (row) => {
   if (!row) return null;
@@ -140,10 +140,10 @@ export const SubCategory = {
       ...subCategoryToMongoStyle(row),
       category: row.category_name
         ? {
-            _id: row.category_id,
-            name: row.category_name,
-            slug: row.category_slug,
-          }
+          _id: row.category_id,
+          name: row.category_name,
+          slug: row.category_slug,
+        }
         : row.category_id,
     }));
   },
@@ -176,10 +176,10 @@ export const SubCategory = {
       ...subCategoryToMongoStyle(row),
       category: row.category_name
         ? {
-            _id: row.category_id,
-            name: row.category_name,
-            slug: row.category_slug,
-          }
+          _id: row.category_id,
+          name: row.category_name,
+          slug: row.category_slug,
+        }
         : row.category_id,
     };
   },

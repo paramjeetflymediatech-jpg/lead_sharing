@@ -100,7 +100,7 @@
 
 
 // src/models/Payment.js
-import pool from "../../config/db";
+import pool from "../../config/db.js";
 
 /**
  * Convert MySQL row → Mongo-like object
@@ -232,4 +232,15 @@ export const Payment = {
 
     return result.affectedRows > 0;
   },
+
+  /**
+   * Delete all payments for a user
+   */
+  async deleteByUserId(userId) {
+    const [result] = await pool.query(
+      "DELETE FROM payments WHERE user_id = ?",
+      [userId]
+    );
+    return { deletedCount: result.affectedRows };
+  }
 };
