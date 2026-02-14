@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import LogoutModal from "../LogoutModal";
+import { Feather } from '@expo/vector-icons';
 
 export default function AdminLayout({
     children,
@@ -55,11 +56,7 @@ export default function AdminLayout({
                     style={styles.menuButton}
                     onPress={() => setMenuVisible(true)}
                 >
-                    <View style={styles.menuIcon}>
-                        <View style={styles.menuLine} />
-                        <View style={styles.menuLine} />
-                        <View style={styles.menuLine} />
-                    </View>
+                    <Feather name="menu" size={24} color="#1E293B" />
                 </TouchableOpacity>
 
                 <View style={styles.headerCenter}>
@@ -68,9 +65,6 @@ export default function AdminLayout({
                 </View>
 
                 <View style={styles.headerRight}>
-                    <View style={styles.notificationBadge}>
-                        <Text style={styles.badgeText}>3</Text>
-                    </View>
                     <View style={styles.avatar}>
                         <Text style={styles.avatarText}>
                             {user?.name?.charAt(0) || "A"}
@@ -96,15 +90,11 @@ export default function AdminLayout({
                     style={styles.navItem}
                     onPress={() => handleMenuPress("Dashboard")}
                 >
-                    <Text
-                        style={
-                            activeScreen === "Dashboard"
-                                ? styles.navIconActive
-                                : styles.navIcon
-                        }
-                    >
-                        🏠
-                    </Text>
+                    <Feather
+                        name="grid"
+                        size={22}
+                        color={activeScreen === "Dashboard" ? "#2563EB" : "#94A3B8"}
+                    />
                     <Text
                         style={
                             activeScreen === "Dashboard"
@@ -120,13 +110,11 @@ export default function AdminLayout({
                     style={styles.navItem}
                     onPress={() => handleMenuPress("Users")}
                 >
-                    <Text
-                        style={
-                            activeScreen === "Users" ? styles.navIconActive : styles.navIcon
-                        }
-                    >
-                        👥
-                    </Text>
+                    <Feather
+                        name="users"
+                        size={22}
+                        color={activeScreen === "Users" ? "#2563EB" : "#94A3B8"}
+                    />
                     <Text
                         style={
                             activeScreen === "Users"
@@ -145,7 +133,7 @@ export default function AdminLayout({
                         onPress={onCreatePress}
                     >
                         <View style={styles.centerButtonInner}>
-                            <Text style={styles.centerButtonIcon}>+</Text>
+                            <Feather name="plus" size={28} color="#FFFFFF" />
                         </View>
                     </TouchableOpacity>
                 )}
@@ -154,13 +142,11 @@ export default function AdminLayout({
                     style={styles.navItem}
                     onPress={() => handleMenuPress("Jobs")}
                 >
-                    <Text
-                        style={
-                            activeScreen === "Jobs" ? styles.navIconActive : styles.navIcon
-                        }
-                    >
-                        🏗️
-                    </Text>
+                    <Feather
+                        name="briefcase"
+                        size={22}
+                        color={activeScreen === "Jobs" ? "#2563EB" : "#94A3B8"}
+                    />
                     <Text
                         style={
                             activeScreen === "Jobs" ? styles.navLabelActive : styles.navLabel
@@ -174,15 +160,11 @@ export default function AdminLayout({
                     style={styles.navItem}
                     onPress={() => handleMenuPress("Settings")}
                 >
-                    <Text
-                        style={
-                            activeScreen === "Settings"
-                                ? styles.navIconActive
-                                : styles.navIcon
-                        }
-                    >
-                        ⚙️
-                    </Text>
+                    <Feather
+                        name="settings"
+                        size={22}
+                        color={activeScreen === "Settings" ? "#2563EB" : "#94A3B8"}
+                    />
                     <Text
                         style={
                             activeScreen === "Settings"
@@ -197,7 +179,7 @@ export default function AdminLayout({
 
             {/* Sidebar Menu Modal */}
             <Modal
-                animationType="slide"
+                animationType="fade"
                 transparent={true}
                 visible={menuVisible}
                 onRequestClose={() => setMenuVisible(false)}
@@ -210,63 +192,57 @@ export default function AdminLayout({
                     />
                     <View style={styles.sidebar}>
                         <View style={styles.sidebarHeader}>
-                            <Text style={styles.sidebarTitle}>Leadsharing</Text>
+                            <Text style={styles.sidebarTitle}>All Care Pros</Text>
                             <TouchableOpacity onPress={() => setMenuVisible(false)}>
-                                <Text style={styles.closeButton}>✕</Text>
+                                <Feather name="x" size={24} color="#64748B" />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView style={styles.menuList}>
                             <MenuItem
-                                icon="🏠"
+                                icon="grid"
                                 label="Dashboard"
                                 active={activeScreen === "Dashboard"}
                                 onPress={() => handleMenuPress("Dashboard")}
                             />
                             <MenuItem
-                                icon="👥"
+                                icon="users"
                                 label="Users"
                                 active={activeScreen === "Users"}
                                 onPress={() => handleMenuPress("Users")}
                             />
                             <MenuItem
-                                icon="📂"
+                                icon="layers"
                                 label="Categories"
                                 active={activeScreen === "Categories"}
                                 onPress={() => handleMenuPress("Categories")}
                             />
                             <MenuItem
-                                icon="📑"
+                                icon="list"
                                 label="Subcategories"
                                 active={activeScreen === "Subcategories"}
                                 onPress={() => handleMenuPress("Subcategories")}
                             />
                             <MenuItem
-                                icon="🏗️"
+                                icon="briefcase"
                                 label="Jobs"
                                 active={activeScreen === "Jobs"}
                                 onPress={() => handleMenuPress("Jobs")}
                             />
                             <MenuItem
-                                icon="📋"
+                                icon="file-text"
                                 label="Leads"
                                 active={activeScreen === "Leads"}
                                 onPress={() => handleMenuPress("Leads")}
                             />
                             <MenuItem
-                                icon="💰"
+                                icon="dollar-sign"
                                 label="Revenue"
                                 active={activeScreen === "Revenue"}
                                 onPress={() => handleMenuPress("Revenue")}
                             />
-                            {/* <MenuItem
-                                icon="🔍"
-                                label="SEO Management"
-                                active={activeScreen === "SEO Management"}
-                                onPress={() => handleMenuPress("SEO Management")}
-                            /> */}
                             <MenuItem
-                                icon="⚙️"
+                                icon="settings"
                                 label="Settings"
                                 active={activeScreen === "Settings"}
                                 onPress={() => handleMenuPress("Settings")}
@@ -277,7 +253,7 @@ export default function AdminLayout({
                             style={styles.signOutButton}
                             onPress={() => handleMenuPress("Sign Out")}
                         >
-                            <Text style={styles.signOutIcon}>🚪</Text>
+                            <Feather name="log-out" size={20} color="#EF4444" style={styles.signOutIconStyle} />
                             <Text style={styles.signOutText}>Sign Out</Text>
                         </TouchableOpacity>
                     </View>
@@ -300,7 +276,12 @@ function MenuItem({ icon, label, active, onPress }) {
             style={[styles.menuItem, active && styles.menuItemActive]}
             onPress={onPress}
         >
-            <Text style={styles.menuIcon2}>{icon}</Text>
+            <Feather
+                name={icon}
+                size={20}
+                color={active ? "#2563EB" : "#475569"}
+                style={styles.menuIcon2}
+            />
             <Text style={[styles.menuLabel, active && styles.menuLabelActive]}>
                 {label}
             </Text>
@@ -328,17 +309,6 @@ const styles = StyleSheet.create({
         height: 40,
         justifyContent: "center",
         alignItems: "center",
-    },
-    menuIcon: {
-        width: 24,
-        height: 24,
-        justifyContent: "space-around",
-    },
-    menuLine: {
-        width: 24,
-        height: 3,
-        backgroundColor: "#1E293B",
-        borderRadius: 2,
     },
     headerCenter: {
         flex: 1,
@@ -398,7 +368,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: "#E2E8F0",
         paddingVertical: 8,
-        paddingBottom: Platform.OS === 'android' ? 20 : 20,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 20,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,
@@ -410,23 +380,16 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingVertical: 4,
     },
-    navIcon: {
-        fontSize: 24,
-        marginBottom: 4,
-        opacity: 0.5,
-    },
-    navIconActive: {
-        fontSize: 24,
-        marginBottom: 4,
-    },
     navLabel: {
         fontSize: 11,
         color: "#64748B",
+        marginTop: 4,
     },
     navLabelActive: {
         fontSize: 11,
         color: "#2563EB",
         fontWeight: "600",
+        marginTop: 4,
     },
     modalOverlay: {
         flex: 1,
@@ -434,7 +397,7 @@ const styles = StyleSheet.create({
     },
     modalBackground: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
     },
     sidebar: {
         width: 280,
@@ -459,11 +422,6 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#2563EB",
     },
-    closeButton: {
-        fontSize: 24,
-        color: "#64748B",
-        fontWeight: "300",
-    },
     menuList: {
         flex: 1,
         paddingVertical: 8,
@@ -480,7 +438,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#EFF6FF",
     },
     menuIcon2: {
-        fontSize: 20,
         marginRight: 12,
         width: 24,
         textAlign: "center",
@@ -500,12 +457,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 16,
         marginHorizontal: 12,
-        marginBottom: 20,
+        marginBottom: 24,
         borderTopWidth: 1,
         borderTopColor: "#E2E8F0",
     },
-    signOutIcon: {
-        fontSize: 20,
+    signOutIconStyle: {
         marginRight: 12,
         width: 24,
         textAlign: "center",
@@ -517,7 +473,7 @@ const styles = StyleSheet.create({
     },
     centerButton: {
         position: "relative",
-        top: -20,
+        top: -24,
         alignItems: "center",
         justifyContent: "center",
         width: 64,
@@ -537,10 +493,5 @@ const styles = StyleSheet.create({
         borderWidth: 4,
         borderColor: "#FFFFFF",
     },
-    centerButtonIcon: {
-        fontSize: 28,
-        color: "#FFFFFF",
-        fontWeight: "300",
-        lineHeight: 28,
-    },
 });
+

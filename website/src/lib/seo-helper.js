@@ -1,13 +1,10 @@
-// import { connectToDatabase } from '@/lib/mongodb';
 import { Seo } from '@/models/Seo';
 
 export async function getSeoMetadata(path) {
     try {
-        // Ensure DB connection
-        // await connectToDatabase();
-
         // Fetch SEO data for the specific path
         const seoData = await Seo.findOne({ pageName: path });
+        console.log(`[SEO DEBUG] Fetching metadata for path: ${path}. Found: ${seoData ? 'YES' : 'NO'}`);
 
         // Default metadata if no custom SEO is found
         if (!seoData) {
@@ -53,7 +50,6 @@ export async function getSeoMetadata(path) {
 
 export async function getSeoSchema(path) {
     try {
-        // await connectToDatabase();
         const seoData = await Seo.findOne({ pageName: path });
         return seoData?.schemaMarkup || null;
     } catch (error) {

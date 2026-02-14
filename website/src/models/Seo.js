@@ -125,7 +125,8 @@ export const Seo = {
     },
 
     async findByIdAndDelete(id) {
-        await pool.query('DELETE FROM seo_pages WHERE id = ?', [id]);
+        const [result] = await pool.query('DELETE FROM seo_pages WHERE id = ?', [id]);
+        return result.affectedRows > 0;
     }
 };
 

@@ -3,7 +3,6 @@ import { Seo } from '@/models/Seo';
 
 export async function GET() {
     try {
-        // await connectToDatabase();
         const seoPages = await Seo.find({});
         return NextResponse.json(seoPages);
     } catch (error) {
@@ -13,7 +12,6 @@ export async function GET() {
 
 export async function POST(req) {
     try {
-        // await connectToDatabase();
         const body = await req.json();
         const { pageName } = body;
 

@@ -15,6 +15,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import AdminLayout from "../components/admin/AdminLayout";
 import { adminAPI } from "../services/api";
+import { Feather } from "@expo/vector-icons";
 
 export default function AdminDashboard({ navigation }) {
     const [activeScreen, setActiveScreen] = useState("Dashboard");
@@ -550,14 +551,14 @@ function DashboardScreen({ stats }) {
                         title="Users"
                         value={stats.totalUsers}
                         subtitle={`${stats.totalHomeowners} HO • ${stats.totalTradespeople} TP`}
-                        icon="👥"
+                        icon="users"
                         color="#2563EB"
                     />
                     <StatCard
                         title="Jobs"
                         value={stats.totalJobs}
                         subtitle="Total posted"
-                        icon="🏗️"
+                        icon="briefcase"
                         color="#10B981"
                     />
                 </View>
@@ -567,14 +568,14 @@ function DashboardScreen({ stats }) {
                         title="Leads"
                         value={stats.totalLeads}
                         subtitle="Unlocked"
-                        icon="📋"
+                        icon="file-text"
                         color="#F59E0B"
                     />
                     <StatCard
                         title="Revenue"
                         value={`$${stats.revenue}`}
                         subtitle="Platform"
-                        icon="💰"
+                        icon="dollar-sign"
                         color="#8B5CF6"
                     />
                 </View>
@@ -613,7 +614,7 @@ function UsersScreen({ users, searchQuery, onSearchChange, onEdit, onDelete }) {
     return (
         <>
             <View style={styles.searchContainer}>
-                <Text style={styles.searchIcon}>🔍</Text>
+                <Feather name="search" size={20} color="#94A3B8" style={styles.searchIconStyle} />
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search users..."
@@ -629,7 +630,7 @@ function UsersScreen({ users, searchQuery, onSearchChange, onEdit, onDelete }) {
 
             {filteredUsers.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>👥</Text>
+                    <Feather name="users" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
                     <Text style={styles.emptyText}>No users found</Text>
                 </View>
             ) : (
@@ -666,13 +667,15 @@ function UsersScreen({ users, searchQuery, onSearchChange, onEdit, onDelete }) {
                                 style={styles.actionButton}
                                 onPress={() => onEdit(user)}
                             >
-                                <Text style={styles.actionButtonText}>✏️ Edit</Text>
+                                <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
+                                <Text style={styles.actionButtonText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.deleteButton]}
                                 onPress={() => onDelete(user)}
                             >
-                                <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
+                                <Feather name="trash-2" size={14} color="#EF4444" style={styles.buttonIcon} />
+                                <Text style={styles.deleteButtonText}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -694,14 +697,14 @@ function CategoriesScreen({ categories, onEdit, onDelete }) {
 
             {categories.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>📂</Text>
+                    <Feather name="layers" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
                     <Text style={styles.emptyText}>No categories found</Text>
                 </View>
             ) : (
                 categories.map((category, index) => (
                     <View key={category._id || index} style={styles.card}>
                         <View style={styles.cardHeader}>
-                            <Text style={styles.categoryIcon}>📂</Text>
+                            <Feather name="layers" size={24} color="#64748B" style={styles.categoryIconStyles} />
                             <View style={styles.cardContent}>
                                 <Text style={styles.cardTitle}>{category.name}</Text>
                                 {category.description && (
@@ -716,13 +719,15 @@ function CategoriesScreen({ categories, onEdit, onDelete }) {
                                 style={styles.actionButton}
                                 onPress={() => onEdit(category)}
                             >
-                                <Text style={styles.actionButtonText}>✏️ Edit</Text>
+                                <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
+                                <Text style={styles.actionButtonText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.deleteButton]}
                                 onPress={() => onDelete(category)}
                             >
-                                <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
+                                <Feather name="trash-2" size={14} color="#EF4444" style={styles.buttonIcon} />
+                                <Text style={styles.deleteButtonText}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -744,14 +749,14 @@ function SubcategoriesScreen({ subcategories, onEdit, onDelete }) {
 
             {subcategories.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>📑</Text>
+                    <Feather name="list" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
                     <Text style={styles.emptyText}>No subcategories found</Text>
                 </View>
             ) : (
                 subcategories.map((subcat, index) => (
                     <View key={subcat._id || index} style={styles.card}>
                         <View style={styles.cardHeader}>
-                            <Text style={styles.categoryIcon}>📑</Text>
+                            <Feather name="list" size={24} color="#64748B" style={styles.categoryIconStyles} />
                             <View style={styles.cardContent}>
                                 <Text style={styles.cardTitle}>{subcat.name}</Text>
                                 <Text style={styles.cardSubtitle}>
@@ -764,13 +769,15 @@ function SubcategoriesScreen({ subcategories, onEdit, onDelete }) {
                                 style={styles.actionButton}
                                 onPress={() => onEdit(subcat)}
                             >
-                                <Text style={styles.actionButtonText}>✏️ Edit</Text>
+                                <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
+                                <Text style={styles.actionButtonText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.deleteButton]}
                                 onPress={() => onDelete(subcat)}
                             >
-                                <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
+                                <Feather name="trash-2" size={14} color="#EF4444" style={styles.buttonIcon} />
+                                <Text style={styles.deleteButtonText}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -790,14 +797,14 @@ function JobsScreen({ jobs }) {
 
             {jobs.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>🏗️</Text>
+                    <Feather name="briefcase" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
                     <Text style={styles.emptyText}>No jobs found</Text>
                 </View>
             ) : (
                 jobs.map((job, index) => (
                     <View key={job._id || index} style={styles.card}>
                         <View style={styles.cardHeader}>
-                            <Text style={styles.categoryIcon}>🏗️</Text>
+                            <Feather name="briefcase" size={24} color="#64748B" style={styles.categoryIconStyle} />
                             <View style={styles.cardContent}>
                                 <Text style={styles.cardTitle} numberOfLines={2}>
                                     {job.description || job.title || "Job"}
@@ -844,25 +851,25 @@ function LeadsScreen({ leads }) {
 
             {leads.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>📋</Text>
+                    <Feather name="file-text" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
                     <Text style={styles.emptyText}>No leads found</Text>
                 </View>
             ) : (
                 leads.map((lead, index) => (
                     <View key={lead._id || index} style={styles.card}>
                         <View style={styles.cardHeader}>
-                            <Text style={styles.categoryIcon}>📋</Text>
+                            <Feather name="file-text" size={24} color="#64748B" style={styles.categoryIconStyle} />
                             <View style={styles.cardContent}>
                                 <Text style={styles.cardTitle}>
-                                    Lead #{lead._id?.slice(-6) || index + 1}
+                                    Lead #{lead._id ? String(lead._id).slice(-6) : index + 1}
                                 </Text>
                                 <Text style={styles.cardSubtitle}>
                                     {lead.isUnlocked ? "Unlocked" : "Locked"} | Job:{" "}
-                                    {lead.job?.description?.slice(0, 30) || "N/A"}
+                                    {lead.job?.description ? String(lead.job.description).slice(0, 30) : "N/A"}
                                 </Text>
                             </View>
                             {lead.isUnlocked && (
-                                <Text style={styles.unlockIcon}>🔓</Text>
+                                <Feather name="unlock" size={20} color="#10B981" />
                             )}
                         </View>
                     </View>
@@ -879,7 +886,7 @@ function RevenueScreen({ revenue }) {
     return (
         <>
             <View style={styles.revenueCard}>
-                <Text style={styles.revenueIcon}>💰</Text>
+                <Feather name="dollar-sign" size={48} color="#2563EB" style={styles.revenueIconStyle} />
                 <Text style={styles.revenueAmount}>${revenue}</Text>
                 <Text style={styles.revenueLabel}>Total Platform Revenue</Text>
             </View>
@@ -917,7 +924,7 @@ function SEOScreen() {
         <>
             <Text style={styles.screenTitle}>SEO Management</Text>
             <View style={styles.infoCard}>
-                <Text style={styles.infoIcon}>🔍</Text>
+                <Feather name="search" size={48} color="#2563EB" style={styles.infoIconStyle} />
                 <Text style={styles.infoTitle}>SEO Settings</Text>
                 <Text style={styles.infoText}>
                     Manage meta tags, descriptions, and search engine optimization settings for your platform.
@@ -936,39 +943,39 @@ function SettingsScreen() {
             <Text style={styles.screenTitle}>Platform Settings</Text>
 
             <TouchableOpacity style={styles.settingItem}>
-                <Text style={styles.settingIcon}>🔔</Text>
+                <Feather name="bell" size={24} color="#2563EB" style={styles.settingIconStyle} />
                 <View style={styles.settingContent}>
                     <Text style={styles.settingTitle}>Notifications</Text>
                     <Text style={styles.settingSubtitle}>Manage notification preferences</Text>
                 </View>
-                <Text style={styles.settingArrow}>›</Text>
+                <Feather name="chevron-right" size={20} color="#94A3B8" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.settingItem}>
-                <Text style={styles.settingIcon}>🌐</Text>
+                <Feather name="globe" size={24} color="#2563EB" style={styles.settingIconStyle} />
                 <View style={styles.settingContent}>
                     <Text style={styles.settingTitle}>General Settings</Text>
                     <Text style={styles.settingSubtitle}>Platform configuration</Text>
                 </View>
-                <Text style={styles.settingArrow}>›</Text>
+                <Feather name="chevron-right" size={20} color="#94A3B8" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.settingItem}>
-                <Text style={styles.settingIcon}>🔒</Text>
+                <Feather name="lock" size={24} color="#2563EB" style={styles.settingIconStyle} />
                 <View style={styles.settingContent}>
                     <Text style={styles.settingTitle}>Security</Text>
                     <Text style={styles.settingSubtitle}>Privacy and security settings</Text>
                 </View>
-                <Text style={styles.settingArrow}>›</Text>
+                <Feather name="chevron-right" size={20} color="#94A3B8" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.settingItem}>
-                <Text style={styles.settingIcon}>💳</Text>
+                <Feather name="credit-card" size={24} color="#2563EB" style={styles.settingIconStyle} />
                 <View style={styles.settingContent}>
                     <Text style={styles.settingTitle}>Payment Settings</Text>
                     <Text style={styles.settingSubtitle}>Configure payment options</Text>
                 </View>
-                <Text style={styles.settingArrow}>›</Text>
+                <Feather name="chevron-right" size={20} color="#94A3B8" />
             </TouchableOpacity>
         </>
     );
@@ -979,8 +986,8 @@ function SettingsScreen() {
 // ============================================
 function StatCard({ title, value, subtitle, icon, color }) {
     return (
-        <View style={[styles.statCard, { borderLeftColor: color }]}>
-            <Text style={styles.statIcon}>{icon}</Text>
+        <View style={[styles.statCard, { borderLeftColor: color, backgroundColor: `${color}08` }]}>
+            <Feather name={icon} size={24} color={color} style={styles.statIconStyle} />
             <Text style={styles.statValue}>{value}</Text>
             <Text style={styles.statTitle}>{title}</Text>
             {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
@@ -1007,8 +1014,8 @@ function UserFormModal({ visible, editing, formData, onFormChange, onSave, onClo
                         <Text style={styles.modalTitle}>
                             {editing ? "Edit User" : "Create User"}
                         </Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <Text style={styles.modalClose}>✕</Text>
+                        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                            <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
                     </View>
 
@@ -1088,8 +1095,8 @@ function CategoryFormModal({ visible, editing, formData, onFormChange, onSave, o
                         <Text style={styles.modalTitle}>
                             {editing ? "Edit Category" : "Create Category"}
                         </Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <Text style={styles.modalClose}>✕</Text>
+                        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                            <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
                     </View>
 
@@ -1133,8 +1140,8 @@ function SubcategoryFormModal({ visible, editing, formData, categories, onFormCh
                         <Text style={styles.modalTitle}>
                             {editing ? "Edit Subcategory" : "Create Subcategory"}
                         </Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <Text style={styles.modalClose}>✕</Text>
+                        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                            <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
                     </View>
 
@@ -1224,13 +1231,14 @@ const styles = StyleSheet.create({
         padding: 16,
         borderLeftWidth: 4,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowRadius: 8,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: "#F1F5F9",
     },
-    statIcon: {
-        fontSize: 28,
+    statIconStyle: {
         marginBottom: 8,
     },
     statValue: {
@@ -1304,8 +1312,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    searchIcon: {
-        fontSize: 20,
+    searchIconStyle: {
         marginRight: 12,
     },
     searchInput: {
@@ -1319,10 +1326,12 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 12,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowRadius: 8,
         elevation: 2,
+        borderWidth: 1,
+        borderColor: "#F1F5F9",
     },
     cardHeader: {
         flexDirection: "row",
@@ -1355,8 +1364,8 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#FFFFFF",
     },
-    categoryIcon: {
-        fontSize: 32,
+    categoryIconStyles: {
+        marginRight: 4,
     },
     roleBadge: {
         paddingHorizontal: 12,
@@ -1379,14 +1388,13 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
     unlockIcon: {
-        fontSize: 24,
+        marginLeft: 8,
     },
     emptyState: {
         alignItems: "center",
         paddingVertical: 60,
     },
-    emptyIcon: {
-        fontSize: 64,
+    emptyIconStyle: {
         marginBottom: 16,
     },
     emptyText: {
@@ -1405,8 +1413,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    revenueIcon: {
-        fontSize: 64,
+    revenueIconStyle: {
         marginBottom: 16,
     },
     revenueAmount: {
@@ -1430,8 +1437,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    infoIcon: {
-        fontSize: 48,
+    infoIconStyle: {
         marginBottom: 16,
     },
     infoTitle: {
@@ -1459,8 +1465,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    settingIcon: {
-        fontSize: 28,
+    settingIconStyle: {
         marginRight: 16,
     },
     settingContent: {
@@ -1598,6 +1603,31 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         color: "#64748B",
+    },
+    // Icon styles
+    searchIconStyle: {
+        marginRight: 12,
+    },
+    emptyIconStyle: {
+        marginBottom: 16,
+    },
+    buttonIcon: {
+        marginRight: 4,
+    },
+    categoryIconStyle: {
+        marginRight: 4,
+    },
+    revenueIconStyle: {
+        marginBottom: 16,
+    },
+    infoIconStyle: {
+        marginBottom: 16,
+    },
+    settingIconStyle: {
+        marginRight: 16,
+    },
+    statIconStyle: {
+        marginBottom: 8,
     },
     saveButton: {
         paddingHorizontal: 24,

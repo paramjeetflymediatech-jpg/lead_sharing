@@ -5,7 +5,6 @@ import { Seo } from '@/models/Seo';
 export async function GET(req, { params }) {
     try {
         const { id } = await params;
-        // await connectToDatabase();
         const seoPage = await Seo.findById(id);
 
         if (!seoPage) {
@@ -21,7 +20,6 @@ export async function GET(req, { params }) {
 export async function PUT(req, { params }) {
     try {
         const { id } = await params;
-        // await connectToDatabase();
         const body = await req.json();
 
         const updatedSeo = await Seo.findByIdAndUpdate(id, body, { new: true });
@@ -39,10 +37,9 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
     try {
         const { id } = await params;
-        // await connectToDatabase();
-        const deletedSeo = await Seo.findByIdAndDelete(id);
+        const result = await Seo.findByIdAndDelete(id);
 
-        if (!deletedSeo) {
+        if (result === false) {
             return NextResponse.json({ error: 'SEO page not found' }, { status: 404 });
         }
 

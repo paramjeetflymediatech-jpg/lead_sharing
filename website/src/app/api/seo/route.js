@@ -11,8 +11,6 @@ export async function GET(req) {
             return NextResponse.json({ error: 'Page parameter is required' }, { status: 400 });
         }
 
-        // await connectToDatabase();
-
         // Exact match or fallback? 
         // Usually exact match.
         const seoPage = await Seo.findOne({ pageName: page });
