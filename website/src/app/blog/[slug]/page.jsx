@@ -3,6 +3,8 @@ import { Blog } from "@/models/Blog";
 import Link from "next/link";
 import { ArrowLeftIcon, CalendarDaysIcon, UserIcon, TagIcon } from "@heroicons/react/24/outline";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }) {
     const { slug } = await params;
     const blog = await Blog.findOne({ slug, status: 'PUBLISHED' });

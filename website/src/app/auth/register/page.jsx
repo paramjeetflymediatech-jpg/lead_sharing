@@ -1,6 +1,8 @@
 import RegisterForm from "./_components/RegisterForm";
 import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
   return await getSeoMetadata("/auth/register");
 }

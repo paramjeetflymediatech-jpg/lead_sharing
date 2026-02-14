@@ -2,6 +2,8 @@ import MainLayout from "../main/layout";
 import Testimonials from "../components/Testimonials";
 import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
     return await getSeoMetadata("/testimonials");
 }

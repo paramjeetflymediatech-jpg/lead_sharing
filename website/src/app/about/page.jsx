@@ -1,6 +1,8 @@
 import MainLayout from "../main/layout";
 import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
     return await getSeoMetadata("/about");
 }

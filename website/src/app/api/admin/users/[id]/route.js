@@ -85,6 +85,9 @@ export async function PATCH(req, { params }) {
   }
 }
 
+import fs from "fs";
+import path from "path";
+
 export async function DELETE(req, { params }) {
   try {
     // await connectToDatabase();
@@ -94,17 +97,39 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ message: "Invalid user id" }, { status: 400 });
     }
 
-    const deletedUser = await User.findByIdAndDelete(id);
+    // 1. Fetch media paths before deletion
+    const mediaPaths = await User.getAssociatedMedia(id);
 
-    if (!deletedUser) {
+    // 2. Delete the user (database cascades handle record cleanup)
+    const result = await User.findByIdAndDelete(id);
+
+    if (!result) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ message: "User deleted successfully" }, { status: 200 });
+    // 3. Clean up files on disk
+    if (mediaPaths && mediaPaths.length > 0) {
+      mediaPaths.forEach(mediaPath => {
+        // Only delete if it's a local upload
+        if (typeof mediaPath === 'string' && mediaPath.startsWith('/uploads/')) {
+          const absolutePath = path.join(process.cwd(), 'public', mediaPath);
+          try {
+            if (fs.existsSync(absolutePath)) {
+              fs.unlinkSync(absolutePath);
+              console.log(`[CLEANUP] Deleted file: ${absolutePath}`);
+            }
+          } catch (err) {
+            console.error(`[CLEANUP ERROR] Failed to delete ${absolutePath}:`, err);
+          }
+        }
+      });
+    }
+
+    return NextResponse.json({ message: "User and all associated data deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("ADMIN DELETE USER ERROR:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: error.message },
       { status: 500 }
     );
   }

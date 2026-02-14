@@ -10,6 +10,8 @@ function formatLocation(slug) {
         .join(" ");
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }) {
     const { location } = await params;
     const formattedLocation = formatLocation(location);

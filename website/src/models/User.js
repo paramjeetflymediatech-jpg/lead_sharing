@@ -180,5 +180,34 @@ export const User = {
   async findByIdAndDelete(id) {
     const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
     return result.affectedRows > 0;
+  },
+
+  async getAssociatedMedia(id) {
+    const mediaFiles = [];
+
+    // 1. Get profile image from tradesperson_profiles
+    const [tpRows] = await pool.query('SELECT profile_image FROM tradesperson_profiles WHERE user_id = ?', [id]);
+    if (tpRows[0]?.profile_image) {
+      mediaFiles.push(tpRows[0].profile_image);
+    }
+
+    // 2. Get media from jobs (homeowner jobs)
+    const [jobRows] = await pool.query('SELECT media FROM jobs WHERE homeowner_id = ?', [id]);
+    jobRows.forEach(row => {
+      if (row.media) {
+        try {
+          const media = JSON.parse(row.media);
+          if (Array.isArray(media)) {
+            media.forEach(item => {
+              if (item.url) mediaFiles.push(item.url);
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing job media:', e);
+        }
+      }
+    });
+
+    return mediaFiles;
   }
 };
