@@ -1,0 +1,41 @@
+--- LEADS TABLE ---
+id | int | Null:NO | Default:null
+job_id | int | Null:NO | Default:null
+tradesperson_id | int | Null:NO | Default:null
+message | text | Null:NO | Default:null
+price_estimate | decimal(10,2) | Null:YES | Default:null
+is_unlocked | tinyint(1) | Null:YES | Default:0
+status | enum('PENDING','HIRED','REJECTED') | Null:YES | Default:PENDING
+unlocked_at | datetime | Null:YES | Default:null
+created_at | timestamp | Null:YES | Default:CURRENT_TIMESTAMP
+updated_at | timestamp | Null:YES | Default:CURRENT_TIMESTAMP
+
+--- MESSAGES TABLE ---
+id | int | Null:NO | Default:null
+job_id | int | Null:NO | Default:null
+sender_id | int | Null:NO | Default:null
+receiver_id | int | Null:NO | Default:null
+content | text | Null:NO | Default:null
+is_read | tinyint(1) | Null:YES | Default:0
+conversation_status | enum('PENDING_HOMEOWNER_ACCEPTANCE','PENDING_TRADESPERSON_ACCEPTANCE','ACTIVE','CLOSED') | Null:YES | Default:ACTIVE
+conversation_accepted_by_homeowner | tinyint(1) | Null:YES | Default:0
+conversation_accepted_by_tradesperson | tinyint(1) | Null:YES | Default:0
+created_at | timestamp | Null:YES | Default:CURRENT_TIMESTAMP
+updated_at | timestamp | Null:YES | Default:CURRENT_TIMESTAMP
+
+--- TRADESPERSON_PROFILES TABLE ---
+id | int | Null:NO | Default:null
+user_id | int | Null:NO | Default:null
+company_name | varchar(255) | Null:NO | Default:null
+profile_image | varchar(255) | Null:YES | Default:null
+bio | text | Null:YES | Default:null
+phone | varchar(50) | Null:YES | Default:null
+postcode | varchar(20) | Null:YES | Default:null
+skills | text | Null:YES | Default:null
+service_areas | text | Null:YES | Default:null
+credits | int | Null:YES | Default:5
+average_rating | float | Null:YES | Default:0
+total_ratings | int | Null:YES | Default:0
+created_at | timestamp | Null:YES | Default:CURRENT_TIMESTAMP
+updated_at | timestamp | Null:YES | Default:CURRENT_TIMESTAMP
+

@@ -92,6 +92,9 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
+    // Sanitize price estimate (remove currency symbols, commas, etc.)
+    const cleanPrice = priceEstimate.toString().replace(/[^0-9.]/g, '');
+
     // Deduct credits
     await db.query(
       `UPDATE tradesperson_profiles SET credits = credits - ? WHERE user_id = ?`,
@@ -99,27 +102,41 @@ export async function POST(req) {
     );
 
     // Create lead entry
-    const [leadResult] = await db.query(
-      `INSERT INTO leads (job_id, tradesperson_id, message, price_estimate, is_unlocked, unlocked_at) 
-       VALUES (?, ?, ?, ?, TRUE, NOW())`,
-      [jobId, profile.id, message.trim(), priceEstimate.trim()]
-    );
+    let leadResult;
+    try {
+      const [result] = await db.query(
+        `INSERT INTO leads (job_id, tradesperson_id, message, price_estimate, is_unlocked, unlocked_at) 
+           VALUES (?, ?, ?, ?, TRUE, NOW())`,
+        [jobId, profile.id, message.trim(), cleanPrice]
+      );
+      leadResult = result;
+    } catch (err) {
+      console.error("LEAD INSERT ERROR:", err);
+      // Refund credits if lead creation fails
+      await db.query(`UPDATE tradesperson_profiles SET credits = credits + ? WHERE user_id = ?`, [LEAD_COST, userId]);
+      throw err;
+    }
 
     // 🚀 CREATE MESSAGE AUTOMATICALLY
-    // This creates the first message in the conversation with PENDING_HOMEOWNER_ACCEPTANCE status
-    await db.query(
-      `INSERT INTO messages (
-        sender_id, 
-        receiver_id, 
-        job_id, 
-        content, 
-        conversation_status,
-        conversation_accepted_by_homeowner,
-        conversation_accepted_by_tradesperson,
-        is_read
-      ) VALUES (?, ?, ?, ?, 'PENDING_HOMEOWNER_ACCEPTANCE', FALSE, FALSE, FALSE)`,
-      [userId, job.homeowner_id, jobId, message.trim()]
-    );
+    try {
+      await db.query(
+        `INSERT INTO messages (
+            sender_id, 
+            receiver_id, 
+            job_id, 
+            content, 
+            conversation_status, 
+            conversation_accepted_by_homeowner, 
+            conversation_accepted_by_tradesperson, 
+            is_read
+          ) VALUES (?, ?, ?, ?, 'PENDING_HOMEOWNER_ACCEPTANCE', FALSE, FALSE, FALSE)`,
+        [userId, job.homeowner_id, jobId, message.trim()]
+      );
+    } catch (err) {
+      console.error("MESSAGE INSERT ERROR:", err);
+      // We log the error but don't fail the request since the lead was unlocked (credits deducted, lead created)
+      // Optionally you could transaction rollback here if consistency is critical
+    }
 
     return NextResponse.json({
       success: true,
@@ -138,7 +155,8 @@ export async function POST(req) {
     return NextResponse.json({
       success: false,
       message: "Internal server error",
-      error: error.message
+      error: error.message,
+      details: error.sqlMessage || "No SQL details"
     }, { status: 500 });
   }
 }
