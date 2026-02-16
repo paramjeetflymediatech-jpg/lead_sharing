@@ -13,6 +13,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import LogoutModal from "../LogoutModal";
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AdminLayout({
     children,
@@ -24,6 +25,7 @@ export default function AdminLayout({
     const { user, logout } = useAuth();
     const [menuVisible, setMenuVisible] = React.useState(false);
     const [logoutModalVisible, setLogoutModalVisible] = React.useState(false);
+    const insets = useSafeAreaInsets();
 
     function handleMenuPress(screen) {
         setMenuVisible(false);
@@ -85,7 +87,7 @@ export default function AdminLayout({
             </View>
 
             {/* Bottom Navigation */}
-            <View style={styles.bottomNav}>
+            <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 20) }]}>
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() => handleMenuPress("Dashboard")}
@@ -346,7 +348,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: "#2563EB",
+        backgroundColor: "#1753ecff",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -367,8 +369,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         borderTopWidth: 1,
         borderTopColor: "#E2E8F0",
-        paddingVertical: 8,
-        paddingBottom: Platform.OS === 'ios' ? 30 : 20,
+        paddingTop: 8,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,

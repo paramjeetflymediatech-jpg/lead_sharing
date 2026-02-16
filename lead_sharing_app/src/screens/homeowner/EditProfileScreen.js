@@ -14,6 +14,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { userAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
+import { normalize, wp, hp } from "../../utils/responsive";
 
 export default function EditProfileScreen({ navigation }) {
     const { user, updateUser } = useAuth();
@@ -210,38 +211,38 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 20,
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingHorizontal: wp(5),
+        paddingTop: hp(7),
+        paddingBottom: hp(2.5),
         backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
     backButton: {
-        marginRight: 16,
-        padding: 8,
-        marginLeft: -8,
+        marginRight: wp(4),
+        padding: wp(2),
+        marginLeft: -wp(2),
     },
     headerTitle: {
-        fontSize: 20,
+        fontSize: normalize(20),
         fontWeight: "700",
         color: "#111827",
     },
     headerSubtitle: {
-        fontSize: 13,
+        fontSize: normalize(13),
         color: "#6B7280",
     },
     formContainer: {
-        padding: 20,
+        padding: wp(5),
     },
     inputGroup: {
-        marginBottom: 20,
+        marginBottom: hp(2.5),
     },
     label: {
-        fontSize: 14,
+        fontSize: normalize(14),
         fontWeight: "600",
         color: "#374151",
-        marginBottom: 8,
+        marginBottom: hp(1),
     },
     required: {
         color: "#EF4444",
@@ -252,18 +253,18 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#E5E7EB",
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        minHeight: 50,
+        borderRadius: wp(3),
+        paddingHorizontal: wp(3),
+        minHeight: hp(6),
     },
     inputIcon: {
-        marginRight: 10,
+        marginRight: wp(2.5),
     },
     input: {
         flex: 1,
-        fontSize: 15,
+        fontSize: normalize(15),
         color: "#1F2937",
-        paddingVertical: 12,
+        paddingVertical: hp(1.5),
     },
     inputDisabled: {
         backgroundColor: "#F9FAFB",
@@ -274,24 +275,24 @@ const styles = StyleSheet.create({
         paddingVertical: 0,
     },
     textArea: {
-        height: 80,
+        height: hp(10),
         textAlignVertical: "top",
-        paddingTop: 12,
+        paddingTop: hp(1.5),
     },
     helperText: {
-        fontSize: 12,
+        fontSize: normalize(12),
         color: "#9CA3AF",
-        marginTop: 6,
-        marginLeft: 4,
+        marginTop: hp(0.8),
+        marginLeft: wp(1),
     },
     saveButton: {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#2563EB",
-        borderRadius: 12,
-        paddingVertical: 16,
-        marginTop: 12,
+        borderRadius: wp(3),
+        paddingVertical: hp(2),
+        marginTop: hp(1.5),
         shadowColor: "#2563EB",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -303,17 +304,17 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: "#FFFFFF",
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "700",
     },
     cancelButton: {
         alignItems: "center",
-        paddingVertical: 16,
-        marginTop: 8,
+        paddingVertical: hp(2),
+        marginTop: hp(1),
     },
     cancelButtonText: {
         color: "#6B7280",
-        fontSize: 15,
+        fontSize: normalize(15),
         fontWeight: "600",
     },
 });

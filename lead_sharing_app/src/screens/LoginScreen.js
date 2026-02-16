@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { authAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { normalize, hp, wp } from "../utils/responsive";
 
 const { height } = Dimensions.get("window");
 
@@ -174,24 +175,24 @@ const styles = StyleSheet.create({
   },
   illustrationContainer: {
     backgroundColor: "#FFFFFF",
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 40,
+    paddingTop: hp(5), // Responsive padding
+    paddingBottom: hp(2), // Responsive padding
+    paddingHorizontal: wp(10), // Responsive padding
     alignItems: "center",
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
   illustration: {
-    width: 280,
-    height: 240,
+    width: wp(60), // Responsive width
+    height: hp(25), // Responsive height
   },
   formCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    padding: 28,
-    marginTop: -20,
+    padding: wp(6), // Responsive padding
+    marginTop: -hp(2), // Negative margin for overlap
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
@@ -199,16 +200,16 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: hp(2),
   },
   title: {
-    fontSize: 28,
+    fontSize: normalize(24),
     fontWeight: "700",
     color: "#1F2937",
-    marginBottom: 8,
+    marginBottom: hp(0.5),
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "#6B7280",
     fontWeight: "400",
   },
@@ -222,11 +223,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#DC2626",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "500",
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: hp(1.5),
   },
   inputWrapper: {
     flexDirection: "row",
@@ -236,6 +237,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
     paddingHorizontal: 16,
+    height: hp(6.5), // Responsive height
   },
   inputIcon: {
     fontSize: 18,
@@ -244,18 +246,18 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
-    fontSize: 15,
+    fontSize: normalize(14),
     color: "#1F2937",
+    height: '100%',
   },
   forgotPassword: {
     alignSelf: "flex-end",
-    marginBottom: 24,
+    marginBottom: hp(2.5),
     marginTop: 4,
   },
   forgotPasswordText: {
     color: "#2563EB",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "600",
   },
   loginButton: {
@@ -269,7 +271,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
-    minHeight: 56,
+    minHeight: hp(6.5), // Responsive height for touch target
   },
   loginButtonDisabled: {
     backgroundColor: "#93C5FD",
@@ -277,13 +279,13 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: "#FFFFFF",
-    fontSize: 17,
+    fontSize: normalize(16),
     fontWeight: "700",
   },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 24,
+    marginVertical: hp(2.5),
   },
   divider: {
     flex: 1,
@@ -292,7 +294,7 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: "#9CA3AF",
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "500",
     marginHorizontal: 12,
   },
@@ -300,14 +302,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: hp(2),
   },
   signupText: {
     color: "#6B7280",
-    fontSize: 15,
+    fontSize: normalize(14),
   },
   signupLink: {
     color: "#2563EB",
-    fontSize: 15,
+    fontSize: normalize(14),
     fontWeight: "700",
   },
 });

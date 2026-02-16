@@ -33,7 +33,8 @@ export const normalize = (size) => {
     if (Platform.OS === 'ios') {
         return Math.round(newSize);
     }
-    return Math.round(newSize) - 2;
+    // Adjust android slightly
+    return Math.round(newSize) - 1;
 };
 
 // Common responsive styles

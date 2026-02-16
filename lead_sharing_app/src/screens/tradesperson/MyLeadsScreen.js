@@ -223,14 +223,14 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 20,
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
         backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
     headerTitle: {
-        fontSize: 28,
+        fontSize: 21,
         fontWeight: "800",
         color: "#111827",
     },

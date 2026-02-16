@@ -3,6 +3,7 @@ import { View, StyleSheet, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TradespersonHomeTab from "../screens/tradesperson/TradespersonHomeTab";
 import TradespersonBrowseTab from "../screens/tradesperson/TradespersonBrowseTab";
 import TradespersonProfileTab from "../screens/tradesperson/TradespersonProfileTab";
@@ -85,24 +86,28 @@ function ProfileStack() {
 }
 
 export default function TradespersonTabs() {
+    const insets = useSafeAreaInsets();
+
     return (
         <Tab.Navigator
             screenOptions={{
-                tabBarShowLabel: false,
                 tabBarActiveTintColor: "#2563EB",
                 tabBarInactiveTintColor: "#9CA3AF",
-                tabBarStyle: styles.tabBar,
+                tabBarStyle: {
+                    ...styles.tabBar,
+                    height: 60 + insets.bottom,
+                    paddingBottom: insets.bottom,
+                },
                 headerShown: false,
+                tabBarShowLabel: false,
             }}
         >
             <Tab.Screen
                 name="Home"
                 component={HomeStack}
                 options={{
-                    tabBarIcon: ({ focused, color, size }) => (
-                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                            <Feather name="home" size={24} color={focused ? "#FFFFFF" : color} />
-                        </View>
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="home" size={size} color={color} />
                     ),
                 }}
             />
@@ -110,10 +115,8 @@ export default function TradespersonTabs() {
                 name="Browse"
                 component={BrowseStack}
                 options={{
-                    tabBarIcon: ({ focused, color, size }) => (
-                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                            <Feather name="search" size={24} color={focused ? "#FFFFFF" : color} />
-                        </View>
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="search" size={size} color={color} />
                     ),
                 }}
             />
@@ -121,10 +124,8 @@ export default function TradespersonTabs() {
                 name="Messages"
                 component={MessagesListScreen}
                 options={{
-                    tabBarIcon: ({ focused, color, size }) => (
-                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                            <Feather name="message-square" size={24} color={focused ? "#FFFFFF" : color} />
-                        </View>
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="message-square" size={size} color={color} />
                     ),
                 }}
             />
@@ -132,10 +133,8 @@ export default function TradespersonTabs() {
                 name="Profile"
                 component={ProfileStack}
                 options={{
-                    tabBarIcon: ({ focused, color, size }) => (
-                        <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                            <Feather name="user" size={24} color={focused ? "#FFFFFF" : color} />
-                        </View>
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="user" size={size} color={color} />
                     ),
                 }}
             />
@@ -145,40 +144,13 @@ export default function TradespersonTabs() {
 
 const styles = StyleSheet.create({
     tabBar: {
-        position: 'absolute',
-        bottom: 2,
-        left: 20,
-        right: 20,
-        elevation: 0,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 2,
-        height: 60,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.1,
-                shadowRadius: 10,
-            },
-            android: {
-                elevation: 10,
-            },
-        }),
+        paddingTop: 10,
+        backgroundColor: "#FFFFFF",
         borderTopWidth: 0,
-    },
-    iconContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    activeIconContainer: {
-        backgroundColor: '#2563EB',
-        shadowColor: '#2563EB',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
 });

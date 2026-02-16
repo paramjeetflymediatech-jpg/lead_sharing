@@ -11,6 +11,7 @@ import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import HomeownerTabs from "./src/components/HomeownerTabs";
 import TradespersonTabs from "./src/components/TradespersonTabs";
 import AdminDashboard from "./src/screens/AdminDashboard";
+import TermsAndConditionsScreen from "./src/screens/TermsAndConditionsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -75,6 +76,11 @@ function RootNavigator() {
           <Stack.Screen
             name="ForgotPassword"
             component={ForgotPasswordScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="TermsAndConditions"
+            component={TermsAndConditionsScreen}
             options={{ headerShown: false }}
           />
         </>

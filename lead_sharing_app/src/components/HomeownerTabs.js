@@ -3,6 +3,7 @@ import { StyleSheet, Platform, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeownerHomeTab from "../screens/homeowner/HomeownerHomeTab";
 import HomeownerJobsTab from "../screens/homeowner/HomeownerJobsTab";
 import HomeownerProfileTab from "../screens/homeowner/HomeownerProfileTab";
@@ -74,12 +75,18 @@ function ProfileStack() {
 }
 
 export default function HomeownerTabs() {
+    const insets = useSafeAreaInsets();
+
     return (
         <Tab.Navigator
             screenOptions={{
                 tabBarActiveTintColor: "#2563EB",
                 tabBarInactiveTintColor: "#9CA3AF",
-                tabBarStyle: styles.tabBar,
+                tabBarStyle: {
+                    ...styles.tabBar,
+                    height: 60 + insets.bottom,
+                    paddingBottom: insets.bottom,
+                },
                 headerShown: false,
                 tabBarShowLabel: false,
             }}
@@ -126,8 +133,6 @@ export default function HomeownerTabs() {
 
 const styles = StyleSheet.create({
     tabBar: {
-        height: Platform.OS === "ios" ? 88 : 64,
-        paddingBottom: Platform.OS === "ios" ? 28 : 10,
         paddingTop: 10,
         backgroundColor: "#FFFFFF",
         borderTopWidth: 0,

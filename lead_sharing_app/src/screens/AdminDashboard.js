@@ -16,6 +16,13 @@ import { Picker } from "@react-native-picker/picker";
 import AdminLayout from "../components/admin/AdminLayout";
 import { adminAPI } from "../services/api";
 import { Feather } from "@expo/vector-icons";
+import { normalize, wp, hp } from "../utils/responsive";
+
+import SettingsScreen from "../components/settings/SettingsScreen";
+import NotificationSettingsScreen from "../components/settings/NotificationSettingsScreen";
+import GeneralSettingsScreen from "../components/settings/GeneralSettingsScreen";
+import SecuritySettingsScreen from "../components/settings/SecuritySettingsScreen";
+import PaymentSettingsScreen from "../components/settings/PaymentSettingsScreen";
 
 export default function AdminDashboard({ navigation }) {
     const [activeScreen, setActiveScreen] = useState("Dashboard");
@@ -449,11 +456,22 @@ export default function AdminDashboard({ navigation }) {
                     <UsersScreen
                         users={users}
                         searchQuery={usersSearch}
-                        onSearchChange={setUsersSearch}
+                        onSearch={setUsersSearch}
+                        onRefresh={onRefresh}
                         onEdit={openEditUserModal}
                         onDelete={handleDeleteUser}
                     />
                 );
+            case "Settings":
+                return <SettingsScreen onNavigate={setActiveScreen} />;
+            case "NotificationSettings":
+                return <NotificationSettingsScreen onBack={() => setActiveScreen("Settings")} />;
+            case "GeneralSettings":
+                return <GeneralSettingsScreen onBack={() => setActiveScreen("Settings")} />;
+            case "SecuritySettings":
+                return <SecuritySettingsScreen onBack={() => setActiveScreen("Settings")} />;
+            case "PaymentSettings":
+                return <PaymentSettingsScreen onBack={() => setActiveScreen("Settings")} />;
             case "Categories":
                 return (
                     <CategoriesScreen
@@ -540,10 +558,10 @@ export default function AdminDashboard({ navigation }) {
 function DashboardScreen({ stats }) {
     return (
         <>
-            <View style={styles.welcomeSection}>
+            {/* <View style={styles.welcomeSection}>
                 <Text style={styles.welcomeText}>Welcome back,</Text>
                 <Text style={styles.userName}>Admin</Text>
-            </View>
+            </View> */}
 
             <View style={styles.statsGrid}>
                 <View style={styles.statsRow}>
@@ -553,6 +571,7 @@ function DashboardScreen({ stats }) {
                         subtitle={`${stats.totalHomeowners} HO • ${stats.totalTradespeople} TP`}
                         icon="users"
                         color="#2563EB"
+
                     />
                     <StatCard
                         title="Jobs"
@@ -719,7 +738,7 @@ function CategoriesScreen({ categories, onEdit, onDelete }) {
                                 style={styles.actionButton}
                                 onPress={() => onEdit(category)}
                             >
-                                <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
+                                <Feather name="edit-2" size={10} color="#2563EB" style={styles.buttonIcon} />
                                 <Text style={styles.actionButtonText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -919,67 +938,24 @@ function RevenueScreen({ revenue }) {
 // ============================================
 // SEO SCREEN
 // ============================================
-function SEOScreen() {
-    return (
-        <>
-            <Text style={styles.screenTitle}>SEO Management</Text>
-            <View style={styles.infoCard}>
-                <Feather name="search" size={48} color="#2563EB" style={styles.infoIconStyle} />
-                <Text style={styles.infoTitle}>SEO Settings</Text>
-                <Text style={styles.infoText}>
-                    Manage meta tags, descriptions, and search engine optimization settings for your platform.
-                </Text>
-            </View>
-        </>
-    );
-}
+// function SEOScreen() {
+//     return (
+//         <>
+//             <Text style={styles.screenTitle}>SEO Management</Text>
+//             <View style={styles.infoCard}>
+//                 <Feather name="search" size={48} color="#2563EB" style={styles.infoIconStyle} />
+//                 <Text style={styles.infoTitle}>SEO Settings</Text>
+//                 <Text style={styles.infoText}>
+//                     Manage meta tags, descriptions, and search engine optimization settings for your platform.
+//                 </Text>
+//             </View>
+//         </>
+//     );
+// }
 
 // ============================================
-// SETTINGS SCREEN
+// SETTINGS SCREEN MOVED TO SEPARATE FILE
 // ============================================
-function SettingsScreen() {
-    return (
-        <>
-            <Text style={styles.screenTitle}>Platform Settings</Text>
-
-            <TouchableOpacity style={styles.settingItem}>
-                <Feather name="bell" size={24} color="#2563EB" style={styles.settingIconStyle} />
-                <View style={styles.settingContent}>
-                    <Text style={styles.settingTitle}>Notifications</Text>
-                    <Text style={styles.settingSubtitle}>Manage notification preferences</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#94A3B8" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.settingItem}>
-                <Feather name="globe" size={24} color="#2563EB" style={styles.settingIconStyle} />
-                <View style={styles.settingContent}>
-                    <Text style={styles.settingTitle}>General Settings</Text>
-                    <Text style={styles.settingSubtitle}>Platform configuration</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#94A3B8" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.settingItem}>
-                <Feather name="lock" size={24} color="#2563EB" style={styles.settingIconStyle} />
-                <View style={styles.settingContent}>
-                    <Text style={styles.settingTitle}>Security</Text>
-                    <Text style={styles.settingSubtitle}>Privacy and security settings</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#94A3B8" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.settingItem}>
-                <Feather name="credit-card" size={24} color="#2563EB" style={styles.settingIconStyle} />
-                <View style={styles.settingContent}>
-                    <Text style={styles.settingTitle}>Payment Settings</Text>
-                    <Text style={styles.settingSubtitle}>Configure payment options</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#94A3B8" />
-            </TouchableOpacity>
-        </>
-    );
-}
 
 // ============================================
 // STAT CARD COMPONENT
@@ -1211,24 +1187,24 @@ const styles = StyleSheet.create({
         color: "#64748B",
     },
     userName: {
-        fontSize: 24,
+        fontSize: normalize(24),
         fontWeight: "700",
         color: "#1E293B",
-        marginTop: 4,
+        marginTop: hp(0.5),
     },
     statsGrid: {
-        marginBottom: 20,
+        marginBottom: hp(2.5),
     },
     statsRow: {
         flexDirection: "row",
-        gap: 12,
-        marginBottom: 12,
+        gap: wp(3),
+        marginBottom: hp(1.5),
     },
     statCard: {
         flex: 1,
         backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 16,
+        borderRadius: wp(4),
+        padding: wp(4),
         borderLeftWidth: 4,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
@@ -1242,20 +1218,20 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     statValue: {
-        fontSize: 22,
+        fontSize: normalize(22),
         fontWeight: "700",
         color: "#1E293B",
-        marginBottom: 4,
+        marginBottom: hp(0.5),
     },
     statTitle: {
-        fontSize: 12,
+        fontSize: normalize(12),
         color: "#64748B",
         fontWeight: "600",
     },
     statSubtitle: {
-        fontSize: 10,
+        fontSize: normalize(10),
         color: "#94A3B8",
-        marginTop: 2,
+        marginTop: hp(0.2),
     },
     summaryCard: {
         backgroundColor: "#FFFFFF",
@@ -1268,16 +1244,16 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     summaryTitle: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "700",
         color: "#1E293B",
-        marginBottom: 16,
+        marginBottom: hp(2),
     },
     summaryRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 12,
+        paddingVertical: hp(1.5),
     },
     summaryLabel: {
         fontSize: 14,
@@ -1293,19 +1269,19 @@ const styles = StyleSheet.create({
         backgroundColor: "#E2E8F0",
     },
     screenTitle: {
-        fontSize: 18,
+        fontSize: normalize(18),
         fontWeight: "700",
         color: "#1E293B",
-        marginBottom: 16,
+        marginBottom: hp(2),
     },
     searchContainer: {
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        marginBottom: 16,
+        borderRadius: wp(3),
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1.5),
+        marginBottom: hp(2),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -1317,14 +1293,14 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        fontSize: 16,
+        fontSize: normalize(16),
         color: "#1E293B",
     },
     card: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: wp(3),
+        padding: wp(4),
+        marginBottom: hp(1.5),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -1342,25 +1318,25 @@ const styles = StyleSheet.create({
         marginLeft: 12,
     },
     cardTitle: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#1E293B",
-        marginBottom: 4,
+        marginBottom: hp(0.5),
     },
     cardSubtitle: {
-        fontSize: 13,
+        fontSize: normalize(14), // reduced from 16 for better fit
         color: "#64748B",
     },
     userAvatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: wp(12),
+        height: wp(12),
+        borderRadius: wp(6),
         backgroundColor: "#2563EB",
         justifyContent: "center",
         alignItems: "center",
     },
     userAvatarText: {
-        fontSize: 20,
+        fontSize: normalize(20),
         fontWeight: "700",
         color: "#FFFFFF",
     },
@@ -1368,22 +1344,22 @@ const styles = StyleSheet.create({
         marginRight: 4,
     },
     roleBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.8),
+        borderRadius: wp(3),
     },
     roleBadgeText: {
-        fontSize: 10,
+        fontSize: normalize(10),
         fontWeight: "700",
         color: "#FFFFFF",
     },
     statusBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 8,
+        paddingHorizontal: wp(2.5),
+        paddingVertical: hp(0.5),
+        borderRadius: wp(2),
     },
     statusBadgeText: {
-        fontSize: 10,
+        fontSize: normalize(10),
         fontWeight: "700",
         color: "#FFFFFF",
     },
@@ -1392,21 +1368,21 @@ const styles = StyleSheet.create({
     },
     emptyState: {
         alignItems: "center",
-        paddingVertical: 60,
+        paddingVertical: hp(8),
     },
     emptyIconStyle: {
-        marginBottom: 16,
+        marginBottom: hp(2),
     },
     emptyText: {
-        fontSize: 16,
+        fontSize: normalize(16),
         color: "#94A3B8",
     },
     revenueCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 32,
+        borderRadius: wp(4),
+        padding: wp(8),
         alignItems: "center",
-        marginBottom: 20,
+        marginBottom: hp(2.5),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -1414,16 +1390,16 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     revenueIconStyle: {
-        marginBottom: 16,
+        marginBottom: hp(2),
     },
     revenueAmount: {
-        fontSize: 40,
+        fontSize: normalize(40),
         fontWeight: "700",
         color: "#1E293B",
-        marginBottom: 8,
+        marginBottom: hp(1),
     },
     revenueLabel: {
-        fontSize: 14,
+        fontSize: normalize(14),
         color: "#64748B",
     },
     infoCard: {
@@ -1456,9 +1432,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: wp(3),
+        padding: wp(4),
+        marginBottom: hp(1.5),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -1466,19 +1442,19 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     settingIconStyle: {
-        marginRight: 16,
+        marginRight: wp(4),
     },
     settingContent: {
         flex: 1,
     },
     settingTitle: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#1E293B",
-        marginBottom: 4,
+        marginBottom: hp(0.5),
     },
     settingSubtitle: {
-        fontSize: 13,
+        fontSize: normalize(13),
         color: "#64748B",
     },
     settingArrow: {
@@ -1489,20 +1465,20 @@ const styles = StyleSheet.create({
     cardActions: {
         flexDirection: "row",
         justifyContent: "flex-end",
-        gap: 8,
-        marginTop: 12,
-        paddingTop: 12,
+        gap: wp(2),
+        marginTop: hp(1.5),
+        paddingTop: hp(1.5),
         borderTopWidth: 1,
         borderTopColor: "#E2E8F0",
     },
     actionButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1),
+        borderRadius: wp(2),
         backgroundColor: "#EFF6FF",
     },
     actionButtonText: {
-        fontSize: 13,
+        fontSize: normalize(13),
         color: "#2563EB",
         fontWeight: "600",
     },
@@ -1510,7 +1486,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FEE2E2",
     },
     deleteButtonText: {
-        fontSize: 13,
+        fontSize: normalize(13),
         color: "#EF4444",
         fontWeight: "600",
     },
@@ -1525,7 +1501,7 @@ const styles = StyleSheet.create({
         width: "90%",
         maxHeight: "80%",
         backgroundColor: "#FFFFFF",
-        borderRadius: 16,
+        borderRadius: wp(4),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
@@ -1536,71 +1512,71 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: 20,
+        padding: wp(5),
         borderBottomWidth: 1,
         borderBottomColor: "#E2E8F0",
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: normalize(20),
         fontWeight: "700",
         color: "#1E293B",
     },
     modalClose: {
-        fontSize: 28,
+        fontSize: normalize(28),
         color: "#64748B",
         fontWeight: "300",
     },
     modalBody: {
-        padding: 20,
-        maxHeight: 400,
+        padding: wp(5),
+        maxHeight: hp(50),
     },
     modalFooter: {
         flexDirection: "row",
         justifyContent: "flex-end",
-        gap: 12,
-        padding: 20,
+        gap: wp(3),
+        padding: wp(5),
         borderTopWidth: 1,
         borderTopColor: "#E2E8F0",
     },
     inputLabel: {
-        fontSize: 14,
+        fontSize: normalize(14),
         fontWeight: "600",
         color: "#475569",
-        marginBottom: 8,
-        marginTop: 12,
+        marginBottom: hp(1),
+        marginTop: hp(1.5),
     },
     input: {
         borderWidth: 1,
         borderColor: "#CBD5E1",
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
+        borderRadius: wp(2),
+        padding: wp(3),
+        fontSize: normalize(16),
         color: "#1E293B",
         backgroundColor: "#FFFFFF",
     },
     textArea: {
-        minHeight: 100,
+        minHeight: hp(12),
         textAlignVertical: "top",
     },
     pickerContainer: {
         borderWidth: 1,
         borderColor: "#CBD5E1",
-        borderRadius: 8,
+        borderRadius: wp(2),
         overflow: "hidden",
         backgroundColor: "#FFFFFF",
     },
     picker: {
-        height: 50,
+        height: hp(6),
         color: "#1E293B",
     },
     cancelButton: {
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingHorizontal: wp(6),
+        paddingVertical: hp(1.5),
+        borderRadius: wp(2),
         backgroundColor: "#F1F5F9",
     },
     cancelButtonText: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#64748B",
     },
@@ -1630,13 +1606,13 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     saveButton: {
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingHorizontal: wp(6),
+        paddingVertical: hp(1.5),
+        borderRadius: wp(2),
         backgroundColor: "#2563EB",
     },
     saveButtonText: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#FFFFFF",
     },

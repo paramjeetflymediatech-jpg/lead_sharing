@@ -12,7 +12,9 @@ import {
     Image,
     Dimensions,
 } from "react-native";
+import { normalize, hp, wp } from "../utils/responsive";
 import { authAPI } from "../services/api";
+import SuccessModal from "../components/SuccessModal";
 
 const { height } = Dimensions.get("window");
 
@@ -24,6 +26,7 @@ export default function SignupScreen({ navigation }) {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
 
     // Validation functions
     const validateName = (value) => {
@@ -84,10 +87,9 @@ export default function SignupScreen({ navigation }) {
         try {
             const data = await authAPI.register(body);
 
-            // Redirect to login after successful registration
+            // Show success modal
             if (data.token || data.id) {
-                alert("Account created successfully! Please login.");
-                navigation?.navigate?.("Login");
+                setSuccessModalVisible(true);
             } else {
                 navigation?.navigate?.("Login");
             }
@@ -173,7 +175,7 @@ export default function SignupScreen({ navigation }) {
                     {/* Email Input */}
                     <View style={styles.inputContainer}>
                         <View style={styles.inputWrapper}>
-                           
+
                             <TextInput
                                 style={styles.input}
                                 placeholder="abc.xyz@gmail.com"
@@ -190,7 +192,7 @@ export default function SignupScreen({ navigation }) {
                     {/* Name Input */}
                     <View style={styles.inputContainer}>
                         <View style={styles.inputWrapper}>
-                            
+
                             <TextInput
                                 style={styles.input}
                                 placeholder="Full name"
@@ -207,7 +209,7 @@ export default function SignupScreen({ navigation }) {
                     {role === "TRADESPERSON" && (
                         <View style={styles.inputContainer}>
                             <View style={styles.inputWrapper}>
-                            
+
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Company name"
@@ -223,7 +225,7 @@ export default function SignupScreen({ navigation }) {
                     {/* Password Input */}
                     <View style={styles.inputContainer}>
                         <View style={styles.inputWrapper}>
-                  
+
                             <TextInput
                                 style={styles.input}
                                 placeholder="Password"
@@ -239,7 +241,12 @@ export default function SignupScreen({ navigation }) {
                     {/* Terms */}
                     <Text style={styles.terms}>
                         By signing up you agree to our{" "}
-                        <Text style={styles.termsLink}>Terms & Conditions</Text>
+                        <Text
+                            style={styles.termsLink}
+                            onPress={() => navigation.navigate("TermsAndConditions")}
+                        >
+                            Terms & Conditions
+                        </Text>
                     </Text>
 
                     {/* Signup Button */}
@@ -274,6 +281,17 @@ export default function SignupScreen({ navigation }) {
                     </View>
                 </View>
             </ScrollView>
+
+            <SuccessModal
+                visible={successModalVisible}
+                title="Account Created!"
+                message="Your account has been successfully created. Please login to continue."
+                buttonText="Login Now"
+                onClose={() => {
+                    setSuccessModalVisible(false);
+                    navigation?.navigate?.("Login");
+                }}
+            />
         </KeyboardAvoidingView>
     );
 }
@@ -288,24 +306,24 @@ const styles = StyleSheet.create({
     },
     illustrationContainer: {
         backgroundColor: "#FFFFFF",
-        paddingTop: 60,
-        paddingBottom: 30,
-        paddingHorizontal: 40,
+        paddingTop: hp(4), // Responsive padding
+        paddingBottom: hp(2), // Responsive padding
+        paddingHorizontal: wp(5), // Responsive padding
         alignItems: "center",
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
     },
     illustration: {
-        width: 280,
-        height: 120,
+        width: wp(60), // Responsive width
+        height: hp(15), // Responsive height
     },
     formCard: {
         flex: 1,
         backgroundColor: "#FFFFFF",
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        padding: 28,
-        marginTop: -20,
+        padding: wp(6), // Responsive padding
+        marginTop: -hp(2), // Negative margin
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.08,
@@ -313,16 +331,16 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     header: {
-        marginBottom: 20,
+        marginBottom: hp(2),
     },
     title: {
-        fontSize: 28,
+        fontSize: normalize(24),
         fontWeight: "700",
         color: "#1F2937",
-        marginBottom: 8,
+        marginBottom: hp(0.5),
     },
     subtitle: {
-        fontSize: 14,
+        fontSize: normalize(13),
         color: "#6B7280",
         fontWeight: "400",
     },
@@ -336,7 +354,7 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: "#DC2626",
-        fontSize: 14,
+        fontSize: normalize(13),
         fontWeight: "500",
     },
     roleSwitcher: {
@@ -344,11 +362,11 @@ const styles = StyleSheet.create({
         backgroundColor: "#F3F4F6",
         borderRadius: 12,
         padding: 4,
-        marginBottom: 20,
+        marginBottom: hp(2),
     },
     roleButton: {
         flex: 1,
-        paddingVertical: 10,
+        paddingVertical: hp(1.2),
         borderRadius: 8,
         alignItems: "center",
     },
@@ -356,7 +374,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#2563EB",
     },
     roleButtonText: {
-        fontSize: 14,
+        fontSize: normalize(13),
         fontWeight: "600",
         color: "#6B7280",
     },
@@ -364,7 +382,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
     inputContainer: {
-        marginBottom: 16,
+        marginBottom: hp(1.5),
     },
     inputWrapper: {
         flexDirection: "row",
@@ -374,19 +392,20 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#E5E7EB",
         paddingHorizontal: 16,
+        height: hp(6), // Responsive height
     },
     input: {
         flex: 1,
-        paddingVertical: 16,
-        fontSize: 15,
+        fontSize: normalize(14),
         color: "#1F2937",
+        height: '100%',
     },
     terms: {
-        fontSize: 12,
+        fontSize: normalize(11),
         color: "#6B7280",
         textAlign: "center",
-        marginBottom: 20,
-        marginTop: 8,
+        marginBottom: hp(2),
+        marginTop: hp(1),
     },
     termsLink: {
         color: "#2563EB",
@@ -403,7 +422,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
-        minHeight: 56,
+        minHeight: hp(6.5),
     },
     signupButtonDisabled: {
         backgroundColor: "#93C5FD",
@@ -411,13 +430,13 @@ const styles = StyleSheet.create({
     },
     signupButtonText: {
         color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: normalize(16),
         fontWeight: "700",
     },
     dividerContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginVertical: 20,
+        marginVertical: hp(2),
     },
     divider: {
         flex: 1,
@@ -426,7 +445,7 @@ const styles = StyleSheet.create({
     },
     dividerText: {
         color: "#9CA3AF",
-        fontSize: 13,
+        fontSize: normalize(12),
         fontWeight: "500",
         marginHorizontal: 12,
     },
@@ -434,14 +453,15 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
+        paddingBottom: hp(2),
     },
     loginText: {
         color: "#6B7280",
-        fontSize: 15,
+        fontSize: normalize(14),
     },
     loginLink: {
         color: "#2563EB",
-        fontSize: 15,
+        fontSize: normalize(14),
         fontWeight: "700",
     },
 });

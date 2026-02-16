@@ -11,9 +11,9 @@ import {
     ActivityIndicator,
     Image,
     Dimensions,
-    Alert,
 } from "react-native";
 import { authAPI } from "../services/api";
+import SuccessModal from "../components/SuccessModal";
 
 const { height } = Dimensions.get("window");
 
@@ -21,6 +21,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
 
     const validateEmail = (value) => {
         if (!value.trim()) return "Email is required";
@@ -43,16 +44,7 @@ export default function ForgotPasswordScreen({ navigation }) {
         try {
             const response = await authAPI.forgotPassword(email.trim().toLowerCase());
 
-            Alert.alert(
-                "Success",
-                "If this email is registered, you will receive a reset link shortly.",
-                [
-                    {
-                        text: "OK",
-                        onPress: () => navigation.navigate("Login"),
-                    },
-                ]
-            );
+            setSuccessModalVisible(true);
 
             setEmail("");
         } catch (error) {
@@ -147,7 +139,18 @@ export default function ForgotPasswordScreen({ navigation }) {
                     </View>
                 </View>
             </ScrollView>
-        </KeyboardAvoidingView>
+
+            <SuccessModal
+                visible={successModalVisible}
+                title="Check your email"
+                message="If this email is registered, you will receive a reset link shortly."
+                buttonText="Back to Login"
+                onClose={() => {
+                    setSuccessModalVisible(false);
+                    navigation.navigate("Login");
+                }}
+            />
+        </KeyboardAvoidingView >
     );
 }
 

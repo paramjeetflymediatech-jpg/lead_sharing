@@ -1,142 +1,101 @@
-import React, { useEffect, useState } from 'react';
-import {
-    Modal,
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Dimensions,
-    Animated
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import React from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { Check } from 'lucide-react-native';
+import { normalize, hp, wp } from '../utils/responsive';
 
-const { width } = Dimensions.get('window');
-
-export default function SuccessModal({ visible, onClose, title, subtitle, buttonText = "OK" }) {
-    const [animation] = useState(new Animated.Value(0));
-
-    useEffect(() => {
-        if (visible) {
-            Animated.spring(animation, {
-                toValue: 1,
-                useNativeDriver: true,
-                tension: 65,
-                friction: 11
-            }).start();
-        } else {
-            Animated.timing(animation, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: true
-            }).start();
-        }
-    }, [visible]);
-
-    if (!visible) return null;
-
-    const scale = animation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0.8, 1]
-    });
-
-    const opacity = animation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1]
-    });
-
+const SuccessModal = ({ visible, onClose, title, message, buttonText }) => {
     return (
         <Modal
-            transparent
             visible={visible}
-            animationType="none"
-            onRequestClose={onClose}
+            transparent={true}
+            animationType="fade"
+            statusBarTranslucent={true}
         >
-            <View style={styles.overlay}>
-                <Animated.View
-                    style={[
-                        styles.container,
-                        { transform: [{ scale }], opacity }
-                    ]}
-                >
-                    <View style={styles.header}>
-                        <View style={styles.iconContainer}>
-                            <Feather name="check-circle" size={32} color="#059669" />
-                        </View>
-                        <Text style={styles.title}>{title || "Success"}</Text>
-                        <Text style={styles.subtitle}>{subtitle || "Operation completed successfully"}</Text>
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <View style={styles.iconContainer}>
+                        <Check color="#FFFFFF" size={normalize(40)} strokeWidth={3} />
                     </View>
 
-                    <View style={styles.actions}>
-                        <TouchableOpacity
-                            style={styles.successButton}
-                            onPress={onClose}
-                        >
-                            <Text style={styles.successButtonText}>{buttonText}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </Animated.View>
+                    <Text style={styles.title}>{title || "Success!"}</Text>
+
+                    <Text style={styles.message}>
+                        {message || "Operation completed successfully."}
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={onClose}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.buttonText}>{buttonText || "Continue"}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </Modal>
     );
-}
+};
 
 const styles = StyleSheet.create({
-    overlay: {
+    modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        paddingHorizontal: wp(6),
     },
-    container: {
-        width: width - 60,
+    modalContent: {
         backgroundColor: '#FFFFFF',
         borderRadius: 24,
-        padding: 24,
+        padding: wp(6),
+        width: '100%',
+        maxWidth: 400,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    header: {
-        alignItems: 'center',
-        marginBottom: 24,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 10,
     },
     iconContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#D1FAE5', // Green-100
+        width: wp(20),
+        height: wp(20),
+        backgroundColor: '#10B981', // Emerald 500
+        borderRadius: wp(10),
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: hp(2.5),
+        marginTop: -hp(5), // Pull icon up
+        borderWidth: 4,
+        borderColor: '#FFFFFF',
     },
     title: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: '#1F2937',
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#6B7280',
+        fontSize: normalize(22),
+        fontWeight: 'bold',
+        color: '#1F2937', // Gray 800
+        marginBottom: hp(1),
         textAlign: 'center',
     },
-    actions: {
-        width: '100%',
+    message: {
+        fontSize: normalize(15),
+        color: '#6B7280', // Gray 500
+        textAlign: 'center',
+        marginBottom: hp(3),
+        lineHeight: normalize(22),
     },
-    successButton: {
+    button: {
+        backgroundColor: '#2563EB', // Blue 600
         width: '100%',
-        paddingVertical: 14,
-        borderRadius: 14,
-        backgroundColor: '#10B981', // Green-500
+        paddingVertical: hp(1.8),
+        borderRadius: 12,
         alignItems: 'center',
+        justifyContent: 'center',
     },
-    successButtonText: {
-        fontSize: 16,
-        fontWeight: '700',
+    buttonText: {
         color: '#FFFFFF',
+        fontSize: normalize(16),
+        fontWeight: '600',
     },
 });
+
+export default SuccessModal;

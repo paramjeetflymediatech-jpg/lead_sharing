@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Leadsharing",
-    "slug": "lead_sharing_app",
+    "name": "All Care Pros",
+    "slug": "allcarepros",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,14 +21,14 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.leadsharing.app"
+      "package": "com.allcarepros.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "38b70f46-f4f9-4dd1-9b38-226be4e55b1e"
+        "projectId": "0f874d87-7158-46ee-a8a4-c1070f2f6e9f"
       }
     }
   }

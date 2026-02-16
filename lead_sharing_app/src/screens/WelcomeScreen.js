@@ -60,6 +60,15 @@ export default function WelcomeScreen({ navigation }) {
                         <Text style={styles.loginLink}>Log in</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* <TouchableOpacity
+                    style={{ marginTop: 20 }}
+                    onPress={() => navigation.navigate("TermsAndConditions")}
+                >
+                    <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, textDecorationLine: 'underline' }}>
+                        Terms & Conditions
+                    </Text>
+                </TouchableOpacity> */}
             </Animated.View>
         </View>
     );

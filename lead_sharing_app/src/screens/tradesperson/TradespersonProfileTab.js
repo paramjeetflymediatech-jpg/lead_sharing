@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { Feather } from "@expo/vector-icons";
 import LogoutModal from "../../components/LogoutModal";
+import { normalize, wp, hp } from "../../utils/responsive";
 
 export default function TradespersonProfileTab({ navigation }) {
     const { user, logout } = useAuth();
@@ -124,20 +125,20 @@ const styles = StyleSheet.create({
         backgroundColor: "#F3F4F6",
     },
     header: {
-        paddingHorizontal: 20,
-        paddingTop: 60, // Safe area padding
-        paddingBottom: 20,
+        paddingHorizontal: wp(5),
+        paddingTop: hp(7), // Safe area padding
+        paddingBottom: hp(2.5),
     },
     pageTitle: {
-        fontSize: 32,
+        fontSize: normalize(32),
         fontWeight: "800",
         color: "#111827",
-        marginBottom: 20,
+        marginBottom: hp(2.5),
     },
     profileCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 20,
+        borderRadius: wp(5),
+        padding: wp(5),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
@@ -149,18 +150,18 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     avatarContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
+        width: wp(16),
+        height: wp(16),
+        borderRadius: wp(8),
         backgroundColor: "#EFF6FF", // Blue-50
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 16,
+        marginRight: wp(4),
         borderWidth: 1,
         borderColor: "#DBEAFE",
     },
     avatarText: {
-        fontSize: 24,
+        fontSize: normalize(24),
         fontWeight: "700",
         color: "#2563EB",
     },
@@ -168,15 +169,15 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     userName: {
-        fontSize: 18,
+        fontSize: normalize(18),
         fontWeight: "700",
         color: "#111827",
-        marginBottom: 4,
+        marginBottom: hp(0.5),
     },
     userEmail: {
-        fontSize: 14,
+        fontSize: normalize(14),
         color: "#6B7280",
-        marginBottom: 8,
+        marginBottom: hp(1),
     },
     badgeContainer: {
         flexDirection: "row",
@@ -185,40 +186,40 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#ECFDF5", // Green-50
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 100,
+        paddingHorizontal: wp(2),
+        paddingVertical: hp(0.5),
+        borderRadius: wp(25),
         borderWidth: 1,
         borderColor: "#D1FAE5",
     },
     badgeText: {
-        fontSize: 11,
+        fontSize: normalize(11),
         fontWeight: "600",
         color: "#059669",
     },
     editButton: {
-        padding: 8,
+        padding: wp(2),
         backgroundColor: "#F9FAFB",
-        borderRadius: 8,
+        borderRadius: wp(2),
         borderWidth: 1,
         borderColor: "#F3F4F6",
     },
     section: {
-        paddingHorizontal: 20,
-        marginBottom: 24,
+        paddingHorizontal: wp(5),
+        marginBottom: hp(3),
     },
     sectionTitle: {
-        fontSize: 14,
+        fontSize: normalize(14),
         fontWeight: "600",
         color: "#6B7280",
         textTransform: "uppercase",
         letterSpacing: 0.5,
-        marginBottom: 12,
-        marginLeft: 4,
+        marginBottom: hp(1.5),
+        marginLeft: wp(1),
     },
     menuGroup: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 16,
+        borderRadius: wp(4),
         overflow: "hidden",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     menuItem: {
         flexDirection: "row",
         alignItems: "center",
-        padding: 16,
+        padding: wp(4),
         backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#F3F4F6",
@@ -238,17 +239,17 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
     },
     menuIconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
+        width: wp(9),
+        height: wp(9),
+        borderRadius: wp(2.5),
         backgroundColor: "#F3F4F6",
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 14,
+        marginRight: wp(3.5),
     },
     menuText: {
         flex: 1,
-        fontSize: 16,
+        fontSize: normalize(16),
         color: "#1F2937",
         fontWeight: "500",
     },
@@ -256,23 +257,23 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        marginHorizontal: 20,
-        marginBottom: 20,
+        marginHorizontal: wp(5),
+        marginBottom: hp(2.5),
         backgroundColor: "#FEF2F2", // Red-50
-        padding: 16,
-        borderRadius: 16,
+        padding: wp(4),
+        borderRadius: wp(4),
         borderWidth: 1,
         borderColor: "#FECACA",
     },
     logoutText: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#EF4444",
     },
     versionText: {
         textAlign: "center",
         color: "#9CA3AF",
-        fontSize: 12,
-        marginBottom: 20,
+        fontSize: normalize(12),
+        marginBottom: hp(2.5),
     },
 });
