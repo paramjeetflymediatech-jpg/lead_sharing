@@ -73,12 +73,14 @@ export default function PostJobScreen({ navigation }) {
             // Prefill contact info
             if (userData) {
                 const user = userData.user || userData;
-                setFormData(prev => ({
-                    ...prev,
-                    contactName: user.name || "",
-                    contactPhone: user.phone || "",
-                    contactEmail: user.email || "",
-                }));
+                if (user) {
+                    setFormData(prev => ({
+                        ...prev,
+                        contactName: user.name || "",
+                        contactPhone: user.phone || "",
+                        contactEmail: user.email || "",
+                    }));
+                }
             }
         } catch (error) {
             console.error("Error loading initial data:", error);
@@ -119,6 +121,10 @@ export default function PostJobScreen({ navigation }) {
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
             const asset = result.assets[0];
+            if (!asset.uri) {
+                Alert.alert("Error", "Could not get image URI");
+                return;
+            }
             if (media.length >= 2) {
                 Alert.alert("Limit Reached", "You can only upload up to 2 images.");
                 return;
@@ -212,10 +218,13 @@ export default function PostJobScreen({ navigation }) {
                     postcode: formData.postcode,
                     city: formData.city,
                 },
-                contactName: formData.contactName, // Added
-                contactPhone: formData.contactPhone, // Added
-                contactEmail: formData.contactEmail, // Added
-                media: uploadedMedia, // Added
+                postcode: formData.postcode, // Ensure backend receives flattened field if needed
+                city: formData.city, // Ensure backend receives flattened field if needed
+                contactName: formData.contactName,
+                contactPhone: formData.contactPhone,
+                contactEmail: formData.contactEmail,
+                media: uploadedMedia,
+                images: uploadedMedia.filter(m => m && m.url).map(m => m.url), // Add safety check
             };
 
             console.log("Submitting Job Payload:", JSON.stringify(jobData, null, 2));
@@ -247,7 +256,7 @@ export default function PostJobScreen({ navigation }) {
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ flex: 1 }}
         >
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
