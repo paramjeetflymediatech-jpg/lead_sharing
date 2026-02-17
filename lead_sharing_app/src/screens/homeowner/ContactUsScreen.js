@@ -105,15 +105,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: wp(5),
-        paddingTop: hp(7),
+        paddingTop: hp(6), // Adjusted for safe area
         paddingBottom: hp(2),
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#E5E7EB',
     },
     backButton: {
-        marginRight: wp(4),
-        padding: wp(1),
+        marginRight: wp(3),
+        padding: wp(2),
+        marginLeft: -wp(2),
     },
     headerTitle: {
         fontSize: normalize(20),
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
         color: '#111827',
     },
     content: {
-        padding: wp(5),
+        padding: wp(4),
     },
     description: {
         fontSize: normalize(15),
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         fontWeight: '600',
         color: '#374151',
-        marginBottom: hp(1),
+        marginBottom: hp(0.8),
     },
     input: {
         backgroundColor: '#FFFFFF',
@@ -146,15 +147,17 @@ const styles = StyleSheet.create({
         padding: wp(3),
         fontSize: normalize(16),
         color: '#1F2937',
+        minHeight: hp(7), // Consistent height
     },
     textArea: {
         minHeight: hp(15),
         paddingTop: wp(3),
+        textAlignVertical: 'top',
     },
     sendButton: {
         backgroundColor: '#2563EB',
         borderRadius: wp(3),
-        paddingVertical: hp(2),
+        paddingVertical: hp(1.8),
         alignItems: 'center',
         marginTop: hp(1),
         shadowColor: "#2563EB",
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     contactInfo: {
-        marginTop: hp(5),
+        marginTop: hp(4),
         paddingTop: hp(3),
         borderTopWidth: 1,
         borderTopColor: '#E5E7EB',

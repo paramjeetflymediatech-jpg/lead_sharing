@@ -69,15 +69,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: wp(5),
-        paddingTop: hp(7),
+        paddingTop: hp(6), // Adjusted for safe area
         paddingBottom: hp(2),
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#E5E7EB',
     },
     backButton: {
-        marginRight: wp(4),
-        padding: wp(1),
+        marginRight: wp(3),
+        padding: wp(2),
+        marginLeft: -wp(2),
     },
     headerTitle: {
         fontSize: normalize(20),
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
         color: '#111827',
     },
     searchContainer: {
-        padding: wp(5),
+        padding: wp(4),
         backgroundColor: '#FFFFFF',
     },
     searchBar: {
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F3F4F6',
         borderRadius: wp(3),
         paddingHorizontal: wp(3),
-        height: hp(6),
+        height: hp(7), // Consistent height
     },
     searchIcon: {
         marginRight: wp(3),
@@ -103,9 +104,10 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: normalize(16),
         color: '#1F2937',
+        height: '100%',
     },
     section: {
-        padding: wp(5),
+        padding: wp(4),
     },
     sectionTitle: {
         fontSize: normalize(18),
@@ -123,6 +125,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 1,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
     },
     question: {
         fontSize: normalize(16),

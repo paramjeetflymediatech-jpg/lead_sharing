@@ -583,14 +583,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: wp(5),
-        paddingTop: hp(7),
-        paddingBottom: hp(2.5),
+        paddingTop: hp(6), // Adjusted for better safe area on small screens
+        paddingBottom: hp(2),
         backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
     backButton: {
-        marginRight: wp(4),
+        marginRight: wp(3),
         padding: wp(2),
         marginLeft: -wp(2),
     },
@@ -600,11 +600,13 @@ const styles = StyleSheet.create({
         color: "#111827",
     },
     headerSubtitle: {
-        fontSize: normalize(13),
+        fontSize: normalize(12),
         color: "#6B7280",
+        marginTop: hp(0.2),
     },
     formContainer: {
-        padding: wp(5),
+        padding: wp(4),
+        paddingBottom: hp(10), // Extra padding at bottom for scroll
     },
     sectionHeader: {
         flexDirection: "row",
@@ -622,7 +624,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         borderRadius: wp(4),
         padding: wp(4),
-        marginBottom: hp(3),
+        marginBottom: hp(2.5),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -638,7 +640,7 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         fontWeight: "600",
         color: "#374151",
-        marginBottom: hp(1),
+        marginBottom: hp(0.8),
     },
     required: {
         color: "#EF4444",
@@ -651,7 +653,7 @@ const styles = StyleSheet.create({
         borderColor: "#E5E7EB",
         borderRadius: wp(3),
         paddingHorizontal: wp(3),
-        minHeight: hp(6),
+        height: hp(7), // Increased height for better visibility
     },
     pickerContainer: {
         backgroundColor: "#F9FAFB",
@@ -659,23 +661,22 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#E5E7EB",
         overflow: "hidden",
+        height: hp(5), // Match input height
+        justifyContent: "center",
     },
     picker: {
-        height: hp(6),
+        height: hp(10),
+        width: "100%",
+        color: "#1F2937", // Ensure text is visible
     },
     inputIcon: {
         marginRight: wp(2.5),
     },
     input: {
         flex: 1,
-        fontSize: normalize(15),
+        fontSize: normalize(13), // Reduced for better fit on small screens
         color: "#1F2937",
-        paddingVertical: hp(1.5),
-        backgroundColor: "#F9FAFB",
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-        borderRadius: wp(3),
-        paddingHorizontal: wp(3),
+        height: "100%", // Take full height of wrapper
     },
     textArea: {
         backgroundColor: "#F9FAFB",
@@ -685,7 +686,7 @@ const styles = StyleSheet.create({
         color: "#1F2937",
         borderWidth: 1,
         borderColor: "#E5E7EB",
-        minHeight: hp(12),
+        minHeight: hp(15), // Taller text area
         textAlignVertical: "top",
     },
     row: {
@@ -701,8 +702,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#2563EB",
         borderRadius: wp(3),
-        paddingVertical: hp(2),
-        marginTop: hp(1.5),
+        paddingVertical: hp(1.8),
+        marginTop: hp(1),
         shadowColor: "#2563EB",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -720,7 +721,6 @@ const styles = StyleSheet.create({
     cancelButton: {
         alignItems: "center",
         paddingVertical: hp(2),
-        marginTop: hp(1),
     },
     cancelButtonText: {
         color: "#6B7280",
@@ -730,30 +730,32 @@ const styles = StyleSheet.create({
     mediaContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginTop: hp(1),
+        marginTop: hp(0.5),
     },
     imageWrapper: {
         position: "relative",
         marginRight: wp(3),
     },
     imagePreview: {
-        width: wp(25),
-        height: hp(10),
+        width: wp(22),
+        height: wp(22),
         borderRadius: wp(2),
         backgroundColor: "#E5E7EB",
+        resizeMode: "cover",
     },
     removeImageButton: {
         position: "absolute",
-        top: -8,
-        right: -8,
+        top: -wp(1.5),
+        right: -wp(1.5),
         backgroundColor: "#EF4444",
-        borderRadius: 12,
-        padding: 4,
-        zIndex: 1,
+        borderRadius: wp(3),
+        padding: wp(1),
+        zIndex: 5,
+        elevation: 2,
     },
     addImageButton: {
-        width: wp(25),
-        height: hp(10),
+        width: wp(22),
+        height: wp(22),
         borderRadius: wp(2),
         borderWidth: 1,
         borderColor: "#D1D5DB",
@@ -763,7 +765,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F9FAFB",
     },
     addImageText: {
-        fontSize: normalize(12),
+        fontSize: normalize(11),
         color: "#6B7280",
         marginTop: hp(0.5),
         fontWeight: "500",
