@@ -1,7 +1,6 @@
-
 import { NextResponse } from "next/server";
 // import { connectToDatabase } from "@/lib/mongodb";
-import Job from "@/models/Job";
+import {Job} from "@/models/Job";
 import { Lead } from "@/models/Lead";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 // import { isValidObjectId } from "mongoose";
@@ -87,7 +86,7 @@ export async function GET(req) {
           isUnlockedByMe: isUnlockedByMe,
           canUnlock: leadCount < MAX_LEADS_PER_JOB && !isUnlockedByMe,
         };
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -99,7 +98,7 @@ export async function GET(req) {
     console.error("JOB LIST ERROR:", error);
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -119,7 +118,7 @@ export async function POST(req) {
     if (!userId || role !== "HOMEOWNER") {
       return NextResponse.json(
         { message: "Only homeowner can create job" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -136,7 +135,7 @@ export async function POST(req) {
     ) {
       return NextResponse.json(
         { message: "Invalid or missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -152,10 +151,9 @@ export async function POST(req) {
       subCategory: body.subCategory,
       description: body.description,
 
-      location: {
-        postcode: body.location.postcode,
-        city: body.location.city || "",
-      },
+      city: body.location.city || "",
+      postcode: body.location.postcode,
+      location: body.location,
 
       startTime: body.startTime,
       jobStage: body.jobStage,
@@ -180,13 +178,13 @@ export async function POST(req) {
           status: job.status,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("JOB CREATE ERROR:", error);
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
