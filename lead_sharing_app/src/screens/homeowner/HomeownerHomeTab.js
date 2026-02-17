@@ -106,6 +106,7 @@ export default function HomeownerHomeTab({ navigation }) {
                     label="Active Jobs"
                     color="#2563EB"
                     bgColor="#EFF6FF"
+                    onPress={() => navigation.navigate("Jobs", { screen: "JobsMain", params: { initialFilter: "OPEN" } })}
                 />
                 <StatCard
                     icon="clock"
@@ -113,6 +114,7 @@ export default function HomeownerHomeTab({ navigation }) {
                     label="Pending"
                     color="#F59E0B"
                     bgColor="#FFFBEB"
+                    onPress={() => navigation.navigate("Jobs", { screen: "JobsMain", params: { initialFilter: "OPEN" } })}
                 />
                 <StatCard
                     icon="briefcase"
@@ -120,6 +122,7 @@ export default function HomeownerHomeTab({ navigation }) {
                     label="Total Jobs"
                     color="#10B981"
                     bgColor="#ECFDF5"
+                    onPress={() => navigation.navigate("Jobs", { screen: "JobsMain", params: { initialFilter: "ALL" } })}
                 />
                 <StatCard
                     icon="check-circle"
@@ -127,6 +130,7 @@ export default function HomeownerHomeTab({ navigation }) {
                     label="Completed"
                     color="#8B5CF6"
                     bgColor="#F5F3FF"
+                    onPress={() => navigation.navigate("Jobs", { screen: "JobsMain", params: { initialFilter: "COMPLETED" } })}
                 />
             </View>
 
@@ -177,15 +181,19 @@ export default function HomeownerHomeTab({ navigation }) {
     );
 }
 
-function StatCard({ icon, value, label, color, bgColor }) {
+function StatCard({ icon, value, label, color, bgColor, onPress }) {
     return (
-        <View style={[styles.statCard, { backgroundColor: bgColor }]}>
+        <TouchableOpacity
+            style={[styles.statCard, { backgroundColor: bgColor }]}
+            onPress={onPress}
+            activeOpacity={0.7}
+        >
             <View style={[styles.statIconContainer, { backgroundColor: color }]}>
                 <Feather name={icon} size={16} color="#FFFFFF" />
             </View>
             <Text style={[styles.statValue, { color }]}>{value}</Text>
             <Text style={styles.statLabel}>{label}</Text>
-        </View>
+        </TouchableOpacity>
     );
 }
 

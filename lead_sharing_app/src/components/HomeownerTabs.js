@@ -11,6 +11,11 @@ import PostJobScreen from "../screens/homeowner/PostJobScreen";
 import JobDetailsScreen from "../screens/homeowner/JobDetailsScreen";
 import EditProfileScreen from "../screens/homeowner/EditProfileScreen";
 import MessagesListScreen from "../screens/MessagesListScreen";
+import NotificationsScreen from "../screens/homeowner/NotificationsScreen";
+import PrivacySecurityScreen from "../screens/homeowner/PrivacySecurityScreen";
+import HelpCenterScreen from "../screens/homeowner/HelpCenterScreen";
+import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
+import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -69,6 +74,31 @@ function ProfileStack() {
                 name="EditProfile"
                 component={EditProfileScreen}
                 options={{ title: "Edit Profile", headerShown: false }}
+            />
+            <Stack.Screen
+                name="Notifications"
+                component={NotificationsScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="PrivacySecurity"
+                component={PrivacySecurityScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="HelpCenter"
+                component={HelpCenterScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="ContactUs"
+                component={ContactUsScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="TermsAndConditions"
+                component={TermsAndConditionsScreen}
+                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );

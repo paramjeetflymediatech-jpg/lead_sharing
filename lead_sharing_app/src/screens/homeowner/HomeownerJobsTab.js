@@ -13,7 +13,7 @@ import { homeownerAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
 import { normalize, wp, hp } from "../../utils/responsive";
 
-export default function HomeownerJobsTab({ navigation }) {
+export default function HomeownerJobsTab({ navigation, route }) {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -21,8 +21,13 @@ export default function HomeownerJobsTab({ navigation }) {
 
     useFocusEffect(
         useCallback(() => {
+            if (route.params?.initialFilter) {
+                setFilter(route.params.initialFilter);
+                // Clear the param so it doesn't persist if the user changes tabs manually later
+                navigation.setParams({ initialFilter: undefined });
+            }
             loadJobs();
-        }, [])
+        }, [route.params?.initialFilter])
     );
 
     async function loadJobs() {

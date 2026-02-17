@@ -72,8 +72,8 @@ export default function HomeownerProfileTab({ navigation }) {
                 <Text style={styles.sectionTitle}>Account Settings</Text>
                 <View style={styles.menuGroup}>
                     {renderMenuItem("user", "Edit Profile", () => navigation.navigate("EditProfile"))}
-                    {renderMenuItem("bell", "Notifications", () => { })}
-                    {renderMenuItem("lock", "Privacy & Security", () => { }, false)}
+                    {renderMenuItem("bell", "Notifications", () => navigation.navigate("Notifications"))}
+                    {renderMenuItem("lock", "Privacy & Security", () => navigation.navigate("PrivacySecurity"), false)}
                 </View>
             </View>
 
@@ -81,9 +81,9 @@ export default function HomeownerProfileTab({ navigation }) {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Support</Text>
                 <View style={styles.menuGroup}>
-                    {renderMenuItem("help-circle", "Help Center", () => { })}
-                    {renderMenuItem("mail", "Contact Us", () => { })}
-                    {renderMenuItem("file-text", "Terms & Conditions", () => { }, false)}
+                    {renderMenuItem("help-circle", "Help Center", () => navigation.navigate("HelpCenter"))}
+                    {renderMenuItem("mail", "Contact Us", () => navigation.navigate("ContactUs"))}
+                    {renderMenuItem("file-text", "Terms & Conditions", () => navigation.navigate("TermsAndConditions"), false)}
                 </View>
             </View>
 

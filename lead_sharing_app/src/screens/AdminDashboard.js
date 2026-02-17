@@ -450,7 +450,7 @@ export default function AdminDashboard({ navigation }) {
 
         switch (activeScreen) {
             case "Dashboard":
-                return <DashboardScreen stats={stats} />;
+                return <DashboardScreen stats={stats} onNavigate={setActiveScreen} />;
             case "Users":
                 return (
                     <UsersScreen
@@ -499,7 +499,7 @@ export default function AdminDashboard({ navigation }) {
             case "Settings":
                 return <SettingsScreen />;
             default:
-                return <DashboardScreen stats={stats} />;
+                return <DashboardScreen stats={stats} onNavigate={setActiveScreen} />;
         }
     }
 
@@ -555,7 +555,7 @@ export default function AdminDashboard({ navigation }) {
 // ============================================
 // DASHBOARD SCREEN
 // ============================================
-function DashboardScreen({ stats }) {
+function DashboardScreen({ stats, onNavigate }) {
     return (
         <>
             {/* <View style={styles.welcomeSection}>
@@ -571,7 +571,7 @@ function DashboardScreen({ stats }) {
                         subtitle={`${stats.totalHomeowners} HO • ${stats.totalTradespeople} TP`}
                         icon="users"
                         color="#2563EB"
-
+                        onPress={() => onNavigate("Users")}
                     />
                     <StatCard
                         title="Jobs"
@@ -579,6 +579,7 @@ function DashboardScreen({ stats }) {
                         subtitle="Total posted"
                         icon="briefcase"
                         color="#10B981"
+                        onPress={() => onNavigate("Jobs")}
                     />
                 </View>
 
@@ -589,6 +590,7 @@ function DashboardScreen({ stats }) {
                         subtitle="Unlocked"
                         icon="file-text"
                         color="#F59E0B"
+                        onPress={() => onNavigate("Leads")}
                     />
                     <StatCard
                         title="Revenue"
@@ -596,6 +598,7 @@ function DashboardScreen({ stats }) {
                         subtitle="Platform"
                         icon="dollar-sign"
                         color="#8B5CF6"
+                        onPress={() => onNavigate("Revenue")}
                     />
                 </View>
             </View>
@@ -960,14 +963,18 @@ function RevenueScreen({ revenue }) {
 // ============================================
 // STAT CARD COMPONENT
 // ============================================
-function StatCard({ title, value, subtitle, icon, color }) {
+function StatCard({ title, value, subtitle, icon, color, onPress }) {
     return (
-        <View style={[styles.statCard, { borderLeftColor: color, backgroundColor: `${color}08` }]}>
+        <TouchableOpacity
+            style={[styles.statCard, { borderLeftColor: color, backgroundColor: `${color}08` }]}
+            onPress={onPress}
+            activeOpacity={0.7}
+        >
             <Feather name={icon} size={24} color={color} style={styles.statIconStyle} />
             <Text style={styles.statValue}>{value}</Text>
             <Text style={styles.statTitle}>{title}</Text>
             {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
-        </View>
+        </TouchableOpacity>
     );
 }
 
