@@ -290,14 +290,37 @@ export async function GET(req) {
       [userId]
     );
 
-    if (!profileRows || profileRows.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "Tradeperson profile not found" },
-        { status: 404 }
-      );
-    }
+    let tradespersonId;
 
-    const tradespersonId = profileRows[0].id;
+    if (!profileRows || profileRows.length === 0) {
+      console.log(`⚠️ No profile found for user ${userId}, creating default profile...`);
+
+      // Get user info to create profile
+      const [userRows] = await db.query(
+        `SELECT id, name FROM users WHERE id = ? AND role = 'TRADESPERSON' LIMIT 1`,
+        [userId]
+      );
+
+      if (!userRows || userRows.length === 0) {
+        return NextResponse.json(
+          { success: false, message: "Tradesperson user not found" },
+          { status: 404 }
+        );
+      }
+
+      // Create default profile
+      const [insertResult] = await db.query(
+        `INSERT INTO tradesperson_profiles 
+        (user_id, company_name, phone, postcode, bio, skills, service_areas, profile_image, created_at, updated_at)
+        VALUES (?, ?, '', '', 'Profile not yet completed', '[]', '[]', '', NOW(), NOW())`,
+        [userId, userRows[0].name + "'s Services"]
+      );
+
+      tradespersonId = insertResult.insertId;
+      console.log(`✅ Created default profile with ID: ${tradespersonId}`);
+    } else {
+      tradespersonId = profileRows[0].id;
+    }
 
     // 2. SIMPLE QUERY - Using your actual columns from jobs table
     const [leads] = await db.query(`
@@ -363,8 +386,8 @@ export async function GET(req) {
         }
       } else {
         // Fallback to first 50 chars of description
-        jobTitle = lead.description ? 
-          (lead.description.length > 50 ? lead.description.substring(0, 50) + '...' : lead.description) 
+        jobTitle = lead.description ?
+          (lead.description.length > 50 ? lead.description.substring(0, 50) + '...' : lead.description)
           : 'Job Request';
       }
 
@@ -421,8 +444,8 @@ export async function GET(req) {
   } catch (err) {
     console.error("Error fetching leads:", err.message);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: "Server error"
       },
       { status: 500 }

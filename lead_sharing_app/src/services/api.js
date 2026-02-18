@@ -315,12 +315,12 @@ export const homeownerAPI = {
     },
 
     /**
-     * Hire a tradesperson
+     * Hire a tradesperson - requires leadId (not tradespersonId)
      */
-    hireTradesperson: async (jobId, tradespersonId) => {
+    hireTradesperson: async (jobId, leadId) => {
         return apiCall(`/api/homeowner/jobs/${jobId}/hire`, {
             method: "POST",
-            body: JSON.stringify({ tradespersonId }),
+            body: JSON.stringify({ leadId }),
         });
     },
 
@@ -345,6 +345,26 @@ export const homeownerAPI = {
         return apiCall(`/api/homeowner/messages/${conversationId}`, {
             method: "POST",
             body: JSON.stringify({ message }),
+        });
+    },
+
+    /**
+     * Complete a job - updates job status to COMPLETED
+     */
+    completeJob: async (jobId) => {
+        return apiCall(`/api/jobs/homeowner/${jobId}/status`, {
+            method: "PUT",
+            body: JSON.stringify({ status: "COMPLETED" }),
+        });
+    },
+
+    /**
+     * Rate a job/tradesperson
+     */
+    rateJob: async (jobId, rating, review) => {
+        return apiCall(`/api/homeowner/jobs/${jobId}/rate`, {
+            method: "POST",
+            body: JSON.stringify({ rating, review }),
         });
     },
 };
@@ -376,6 +396,14 @@ export const tradespersonAPI = {
      */
     getMyLeads: async () => {
         return apiCall("/api/leads/my");
+    },
+
+    /**
+     * Get public tradesperson profile (for homeowners)
+     * Returns profile, stats, completed jobs, and reviews all in one call
+     */
+    getPublicProfile: async (tradespersonId) => {
+        return apiCall(`/api/homeowner/tradesperson/${tradespersonId}`);
     },
 
     /**

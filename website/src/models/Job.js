@@ -560,12 +560,12 @@ export const Job = {
       startTime,
       status = "OPEN",
       media = [],
-      location = null,
+      // location = null,
     } = data;
     console.log(data.location, "data");
     const [result] = await pool.query(
-      `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status, media, location) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status, media) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         description,
         homeowner,
@@ -584,7 +584,6 @@ export const Job = {
         status,
         status,
         JSON.stringify(media),
-        location,
       ],
     );
 

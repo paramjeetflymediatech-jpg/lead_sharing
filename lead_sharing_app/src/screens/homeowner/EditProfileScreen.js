@@ -212,14 +212,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: wp(5),
-        paddingTop: hp(7),
-        paddingBottom: hp(2.5),
+        paddingTop: hp(6), // Adjusted for safe area
+        paddingBottom: hp(2),
         backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
     backButton: {
-        marginRight: wp(4),
+        marginRight: wp(3),
         padding: wp(2),
         marginLeft: -wp(2),
     },
@@ -231,9 +231,11 @@ const styles = StyleSheet.create({
     headerSubtitle: {
         fontSize: normalize(13),
         color: "#6B7280",
+        marginTop: hp(0.2),
     },
     formContainer: {
-        padding: wp(5),
+        padding: wp(4),
+        paddingBottom: hp(5),
     },
     inputGroup: {
         marginBottom: hp(2.5),
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         fontWeight: "600",
         color: "#374151",
-        marginBottom: hp(1),
+        marginBottom: hp(0.8),
     },
     required: {
         color: "#EF4444",
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
         borderColor: "#E5E7EB",
         borderRadius: wp(3),
         paddingHorizontal: wp(3),
-        minHeight: hp(6),
+        height: hp(7), // Consistent height
     },
     inputIcon: {
         marginRight: wp(2.5),
@@ -264,7 +266,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: normalize(15),
         color: "#1F2937",
-        paddingVertical: hp(1.5),
+        height: "100%", // Full height
     },
     inputDisabled: {
         backgroundColor: "#F9FAFB",
@@ -273,6 +275,8 @@ const styles = StyleSheet.create({
     textAreaWrapper: {
         alignItems: "flex-start",
         paddingVertical: 0,
+        height: "auto", // Auto height for text area wrapper
+        minHeight: hp(12),
     },
     textArea: {
         height: hp(10),
@@ -291,7 +295,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#2563EB",
         borderRadius: wp(3),
-        paddingVertical: hp(2),
+        paddingVertical: hp(1.8),
         marginTop: hp(1.5),
         shadowColor: "#2563EB",
         shadowOffset: { width: 0, height: 4 },
@@ -310,7 +314,7 @@ const styles = StyleSheet.create({
     cancelButton: {
         alignItems: "center",
         paddingVertical: hp(2),
-        marginTop: hp(1),
+        marginTop: hp(0.5),
     },
     cancelButtonText: {
         color: "#6B7280",

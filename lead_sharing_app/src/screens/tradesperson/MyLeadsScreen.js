@@ -13,7 +13,7 @@ import {
 import { tradespersonAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
 
-export default function MyLeadsScreen() {
+export default function MyLeadsScreen({ navigation }) {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -73,7 +73,7 @@ export default function MyLeadsScreen() {
             <FlatList
                 data={leads}
                 keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-                renderItem={({ item }) => <LeadCard lead={item} />}
+                renderItem={({ item }) => <LeadCard lead={item} navigation={navigation} />}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} />
@@ -95,7 +95,7 @@ export default function MyLeadsScreen() {
     );
 }
 
-function LeadCard({ lead }) {
+function LeadCard({ lead, navigation }) {
     const getStatusInfo = (status) => {
         switch (status) {
             case "PENDING": return { color: "#F59E0B", icon: "clock", bg: "#FEF3C7", label: "Pending" };
@@ -185,6 +185,14 @@ function LeadCard({ lead }) {
                 </View>
 
                 <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.viewDetailsButton]}
+                        onPress={() => navigation.navigate('TradespersonJobDetails', { jobId: lead.jobId || job.id })}
+                    >
+                        <Feather name="eye" size={16} color="#2563EB" style={{ marginRight: 6 }} />
+                        <Text style={[styles.actionButtonText, { color: '#2563EB' }]}>View Details</Text>
+                    </TouchableOpacity>
+
                     {contactPhone && contactPhone !== 'Not provided' && (
                         <TouchableOpacity
                             style={[styles.actionButton, styles.callButton]}
@@ -396,6 +404,10 @@ const styles = StyleSheet.create({
     emailButton: {
         backgroundColor: "#FFFFFF",
         borderColor: "#E5E7EB",
+    },
+    viewDetailsButton: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#2563EB",
     },
     actionButtonText: {
         fontSize: 13,

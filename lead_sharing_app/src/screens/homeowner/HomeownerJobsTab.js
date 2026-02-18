@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     RefreshControl,
+    ScrollView,
 } from "react-native";
 import { homeownerAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
@@ -23,7 +24,6 @@ export default function HomeownerJobsTab({ navigation, route }) {
         useCallback(() => {
             if (route.params?.initialFilter) {
                 setFilter(route.params.initialFilter);
-                // Clear the param so it doesn't persist if the user changes tabs manually later
                 navigation.setParams({ initialFilter: undefined });
             }
             loadJobs();
@@ -32,11 +32,9 @@ export default function HomeownerJobsTab({ navigation, route }) {
 
     async function loadJobs() {
         try {
-            // Only set loading on initial load, not on refresh/refocus to avoid flickering
             if (jobs.length === 0) setLoading(true);
 
             const data = await homeownerAPI.getMyJobs();
-            // console.log("MyJobs Response:", JSON.stringify(data, null, 2));
 
             let jobsList = [];
             if (Array.isArray(data)) {
@@ -44,7 +42,6 @@ export default function HomeownerJobsTab({ navigation, route }) {
             } else if (Array.isArray(data?.data)) {
                 jobsList = data.data;
             } else if (Array.isArray(data?.data?.jobs)) {
-                // Correctly accessing nested jobs array from backend response structure
                 jobsList = data.data.jobs;
             } else if (Array.isArray(data?.jobs)) {
                 jobsList = data.jobs;
@@ -88,24 +85,27 @@ export default function HomeownerJobsTab({ navigation, route }) {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>My Jobs</Text>
-                <Text style={styles.headerSubtitle}>
-                    {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} posted
-                </Text>
             </View>
 
             {/* Filter Tabs */}
-            <View style={styles.filtersContainer}>
-                {filters.map((f) => (
-                    <TouchableOpacity
-                        key={f.key}
-                        style={[styles.filterTab, filter === f.key && styles.filterTabActive]}
-                        onPress={() => setFilter(f.key)}
-                    >
-                        <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
-                            {f.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+            <View style={styles.filterContainer}>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterContent}
+                >
+                    {filters.map((f) => (
+                        <TouchableOpacity
+                            key={f.key}
+                            style={[styles.filterButton, filter === f.key && styles.activeFilterButton]}
+                            onPress={() => setFilter(f.key)}
+                        >
+                            <Text style={[styles.filterText, filter === f.key && styles.activeFilterText]}>
+                                {f.label}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
 
             {/* Jobs List */}
@@ -119,11 +119,8 @@ export default function HomeownerJobsTab({ navigation, route }) {
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
-                        <View style={styles.emptyIconContainer}>
-                            <Feather name="inbox" size={40} color="#9CA3AF" />
-                        </View>
-                        <Text style={styles.emptyTitle}>No jobs found</Text>
-                        <Text style={styles.emptyText}>
+                        <Text style={styles.emptyText}>No jobs found</Text>
+                        <Text style={styles.emptySubtext}>
                             {filter === "ALL" ? "Post your first job to get started" : `No ${filter.toLowerCase()} jobs yet`}
                         </Text>
                     </View>
@@ -137,11 +134,11 @@ export default function HomeownerJobsTab({ navigation, route }) {
 function JobCard({ job, navigation }) {
     const getStatusInfo = (status) => {
         switch (status) {
-            case "OPEN": return { color: "#10B981", bg: "#D1FAE5", icon: 'check-circle' };
-            case "HIRED": return { color: "#2563EB", bg: "#DBEAFE", icon: 'user-check' };
-            case "COMPLETED": return { color: "#8B5CF6", bg: "#EDE9FE", icon: 'check' };
-            case "CANCELLED": return { color: "#EF4444", bg: "#FEE2E2", icon: 'x' };
-            default: return { color: "#6B7280", bg: "#F3F4F6", icon: 'help-circle' };
+            case "OPEN": return { color: "#10B981", bg: "#D1FAE5" };
+            case "HIRED": return { color: "#2563EB", bg: "#DBEAFE" };
+            case "COMPLETED": return { color: "#8B5CF6", bg: "#EDE9FE" };
+            case "CANCELLED": return { color: "#EF4444", bg: "#FEE2E2" };
+            default: return { color: "#6B7280", bg: "#F3F4F6" };
         }
     };
 
@@ -154,11 +151,10 @@ function JobCard({ job, navigation }) {
             activeOpacity={0.8}
         >
             <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle} numberOfLines={2}>
+                <Text style={styles.jobTitle} numberOfLines={1}>
                     {job.description || "Job Description"}
                 </Text>
                 <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
-                    <Feather name={status.icon} size={12} color={status.color} style={{ marginRight: 4 }} />
                     <Text style={[styles.statusText, { color: status.color }]}>
                         {job.status?.charAt(0) + job.status?.slice(1).toLowerCase()}
                     </Text>
@@ -166,31 +162,20 @@ function JobCard({ job, navigation }) {
             </View>
 
             <View style={styles.jobDetails}>
-                <View style={styles.jobDetail}>
-                    <Feather name="map-pin" size={14} color="#6B7280" style={{ marginRight: 6 }} />
+                <View style={styles.detailItem}>
+                    <Feather name="map-pin" size={12} color="#6B7280" />
                     <Text style={styles.detailText}>{job.postcode || "N/A"}</Text>
                 </View>
-                <View style={styles.jobDetail}>
-                    <Feather name="clock" size={14} color="#6B7280" style={{ marginRight: 6 }} />
+                <View style={styles.detailItem}>
+                    <Feather name="clock" size={12} color="#6B7280" />
                     <Text style={styles.detailText}>
                         {job.start_time ? job.start_time.replace(/_/g, " ").toLowerCase() : "flexible"}
                     </Text>
                 </View>
             </View>
 
-            {job.budget_max && (
-                <View style={styles.budgetRow}>
-                    <View style={styles.budgetBadge}>
-                        <Feather name="credit-card" size={12} color="#4B5563" style={{ marginRight: 6 }} />
-                        <Text style={styles.budgetText}>
-                            ${job.budget_min || 0} - ${job.budget_max}
-                        </Text>
-                    </View>
-                </View>
-            )}
-
-            <View style={styles.cardFooter}>
-                <Text style={styles.jobDate}>
+            <View style={styles.footer}>
+                <Text style={styles.dateText}>
                     Posted {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'recently'}
                 </Text>
             </View>
@@ -201,47 +186,46 @@ function JobCard({ job, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F3F4F6",
+        backgroundColor: "#F9FAFB",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F3F4F6",
+        backgroundColor: "#F9FAFB",
     },
     header: {
-        paddingHorizontal: wp(5),
         paddingTop: hp(7),
-        paddingBottom: hp(2.5),
+        paddingHorizontal: wp(5),
+        paddingBottom: hp(2),
         backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
     headerTitle: {
-        fontSize: normalize(28),
+        fontSize: normalize(24),
         fontWeight: "800",
         color: "#111827",
     },
-    headerSubtitle: {
-        fontSize: normalize(14),
-        color: "#6B7280",
-        marginTop: hp(0.5),
+    filterContainer: {
+        maxHeight: hp(8),
+        marginBottom: hp(1),
     },
-    filtersContainer: {
-        flexDirection: "row",
+    filterContent: {
         paddingHorizontal: wp(5),
-        paddingVertical: hp(2),
+        paddingVertical: hp(1.5),
         gap: wp(2),
     },
-    filterTab: {
+    filterButton: {
         paddingHorizontal: wp(4),
         paddingVertical: hp(1),
         borderRadius: wp(5),
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#E5E7EB",
+        marginRight: wp(2),
     },
-    filterTabActive: {
+    activeFilterButton: {
         backgroundColor: "#2563EB",
         borderColor: "#2563EB",
     },
@@ -250,43 +234,17 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         color: "#6B7280",
     },
-    filterTextActive: {
+    activeFilterText: {
         color: "#FFFFFF",
     },
     listContent: {
         padding: wp(5),
-        paddingTop: 0,
-    },
-    emptyState: {
-        alignItems: "center",
-        marginTop: hp(8),
-        paddingHorizontal: wp(10),
-    },
-    emptyIconContainer: {
-        width: wp(20),
-        height: wp(20),
-        borderRadius: wp(10),
-        backgroundColor: "#E5E7EB",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: hp(2.5),
-    },
-    emptyTitle: {
-        fontSize: normalize(20),
-        fontWeight: "700",
-        color: "#1F2937",
-        marginBottom: hp(1),
-    },
-    emptyText: {
-        fontSize: normalize(15),
-        color: "#6B7280",
-        textAlign: "center",
-        lineHeight: normalize(22),
+        paddingBottom: hp(12),
     },
     jobCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: wp(4),
-        padding: wp(5),
+        padding: wp(4),
         marginBottom: hp(2),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
@@ -300,7 +258,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        marginBottom: hp(2),
+        marginBottom: hp(1.5),
     },
     jobTitle: {
         flex: 1,
@@ -308,14 +266,12 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#111827",
         marginRight: wp(3),
-        lineHeight: normalize(22),
     },
     statusBadge: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: wp(2),
+        paddingHorizontal: wp(2.5),
         paddingVertical: hp(0.5),
-        borderRadius: wp(25),
+        borderRadius: wp(1.5),
+        backgroundColor: "#F3F4F6",
     },
     statusText: {
         fontSize: normalize(11),

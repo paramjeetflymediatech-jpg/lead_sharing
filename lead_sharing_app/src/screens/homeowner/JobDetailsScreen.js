@@ -8,13 +8,19 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
+import { Feather } from '@expo/vector-icons';
 import { homeownerAPI } from "../../services/api";
+import { normalize, wp, hp } from "../../utils/responsive";
+import RatingModal from "../../components/RatingModal";
 
 export default function JobDetailsScreen({ route, navigation }) {
     const { jobId } = route.params;
     const [job, setJob] = useState(null);
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [ratingModalVisible, setRatingModalVisible] = useState(false);
+    const [selectedTradespersonName, setSelectedTradespersonName] = useState('');
+    const [selectedTradespersonId, setSelectedTradespersonId] = useState(null);
 
     useEffect(() => {
         loadJobDetails();
@@ -23,14 +29,19 @@ export default function JobDetailsScreen({ route, navigation }) {
     async function loadJobDetails() {
         try {
             setLoading(true);
-            const [jobData, leadsData] = await Promise.all([
+            const [jobResponse, leadsData] = await Promise.all([
                 homeownerAPI.getJob(jobId).catch(() => null),
                 homeownerAPI.getJobLeads(jobId).catch(() => []),
             ]);
 
+            // Extract job from the response structure: { success, data: { job, leads }, message }
+            const jobData = jobResponse?.data?.job || jobResponse;
             setJob(jobData);
 
-            const leadsList = Array.isArray(leadsData) ? leadsData : leadsData?.leads || [];
+            // Extract leads: API returns { success, data: [...leads], count }
+            const leadsList = Array.isArray(leadsData) ? leadsData : leadsData?.data || leadsData?.leads || [];
+            console.log('Leads data:', leadsData);
+            console.log('Extracted leads:', leadsList);
             setLeads(leadsList);
         } catch (error) {
             console.error("Error loading job details:", error);
@@ -40,7 +51,7 @@ export default function JobDetailsScreen({ route, navigation }) {
         }
     }
 
-    async function handleHire(tradespersonId) {
+    async function handleHire(leadId) {
         Alert.alert(
             "Hire Tradesperson",
             "Are you sure you want to hire this tradesperson?",
@@ -50,7 +61,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                     text: "Hire",
                     onPress: async () => {
                         try {
-                            await homeownerAPI.hireTradesperson(jobId, tradespersonId);
+                            await homeownerAPI.hireTradesperson(jobId, leadId);
                             Alert.alert("Success", "Tradesperson hired successfully!");
                             loadJobDetails();
                         } catch (error) {
@@ -60,6 +71,85 @@ export default function JobDetailsScreen({ route, navigation }) {
                 },
             ]
         );
+    }
+
+    async function handleCompleteJob() {
+        Alert.alert(
+            "Complete Job",
+            "Mark this job as completed?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Complete",
+                    onPress: async () => {
+                        try {
+                            await homeownerAPI.completeJob(jobId);
+                            Alert.alert("Success", "Job marked as completed!");
+
+                            // Reload job details and wait for it to complete
+                            await loadJobDetails();
+
+                            // Show rating modal after job details are refreshed
+                            // Small delay to ensure state is updated
+                            setTimeout(() => {
+                                // Look for hired tradesperson in the current job and leads state
+                                const hiredTradespersonId = job?.hired_tradesperson_id;
+
+                                console.log('Job hired_tradesperson_id:', hiredTradespersonId);
+                                console.log('Current leads:', leads);
+
+                                // If job doesn't have hired_tradesperson_id, try to find from leads with HIRED status
+                                let tradespersonId = hiredTradespersonId;
+                                let tradespersonName = job?.hired_tradesperson_name;
+
+                                if (!tradespersonId) {
+                                    const hiredLead = leads.find(l => l.status === 'HIRED');
+                                    console.log('Found hired lead:', hiredLead);
+                                    if (hiredLead) {
+                                        tradespersonId = hiredLead.tradesperson_id;
+                                        tradespersonName = hiredLead.tradesperson_name || hiredLead.company_name;
+                                    }
+                                }
+
+                                console.log('Final tradesperson ID:', tradespersonId);
+                                console.log('Final tradesperson name:', tradespersonName);
+
+                                if (tradespersonId) {
+                                    setSelectedTradespersonName(tradespersonName || 'this tradesperson');
+                                    setSelectedTradespersonId(tradespersonId);
+                                    setRatingModalVisible(true);
+                                } else {
+                                    console.log('❌ No hired tradesperson found');
+                                    Alert.alert('Info', 'Unable to find hired tradesperson for rating.');
+                                }
+                            }, 800);
+                        } catch (error) {
+                            Alert.alert("Error", error.message || "Failed to complete job");
+                        }
+                    },
+                },
+            ]
+        );
+    }
+
+    async function handleSubmitRating(rating, review) {
+        if (!selectedTradespersonId) {
+            Alert.alert("Error", "Tradesperson information missing");
+            throw new Error("Tradesperson ID missing");
+        }
+        try {
+            await homeownerAPI.rateJob(jobId, selectedTradespersonId, rating, review);
+            Alert.alert("Success", "Thank you for your feedback!");
+            // Reload job details to update has_rated field and hide rating button
+            await loadJobDetails();
+        } catch (error) {
+            Alert.alert("Error", error.message || "Failed to submit rating");
+            throw error;
+        }
+    }
+
+    function handleViewProfile(tradespersonId) {
+        navigation.navigate('TradespersonProfile', { tradespersonId });
     }
 
     if (loading) {
@@ -104,7 +194,11 @@ export default function JobDetailsScreen({ route, navigation }) {
                     <Text style={styles.detailIcon}>📍</Text>
                     <View style={styles.detailContent}>
                         <Text style={styles.detailLabel}>Location</Text>
-                        <Text style={styles.detailValue}>{job.postcode}</Text>
+                        <Text style={styles.detailValue}>
+                            {job.city && job.postcode
+                                ? `${job.city}, ${job.postcode}`
+                                : job.postcode || job.city || "N/A"}
+                        </Text>
                     </View>
                 </View>
 
@@ -125,7 +219,9 @@ export default function JobDetailsScreen({ route, navigation }) {
                     <View style={styles.detailContent}>
                         <Text style={styles.detailLabel}>Start Time</Text>
                         <Text style={styles.detailValue}>
-                            {job.start_time?.replace(/_/g, " ") || "Flexible"}
+                            {job.start_time
+                                ? job.start_time.replace(/_/g, " ")
+                                : "Flexible"}
                         </Text>
                     </View>
                 </View>
@@ -134,7 +230,11 @@ export default function JobDetailsScreen({ route, navigation }) {
                     <Text style={styles.detailIcon}>🏠</Text>
                     <View style={styles.detailContent}>
                         <Text style={styles.detailLabel}>Property Type</Text>
-                        <Text style={styles.detailValue}>{job.property_type || "Not specified"}</Text>
+                        <Text style={styles.detailValue}>
+                            {job.ownership
+                                ? job.ownership.charAt(0) + job.ownership.slice(1).toLowerCase()
+                                : "Not specified"}
+                        </Text>
                     </View>
                 </View>
             </View>
@@ -157,28 +257,97 @@ export default function JobDetailsScreen({ route, navigation }) {
                     leads.map((lead, index) => (
                         <View key={lead.id || index} style={styles.leadCard}>
                             <View style={styles.leadHeader}>
-                                <View>
+                                <View style={{ flex: 1 }}>
                                     <Text style={styles.leadName}>{lead.tradesperson_name || "Tradesperson"}</Text>
-                                    {lead.company && (
-                                        <Text style={styles.leadCompany}>{lead.company}</Text>
+                                    {lead.company_name && (
+                                        <Text style={styles.leadCompany}>{lead.company_name}</Text>
                                     )}
                                 </View>
-                                {job.status === "OPEN" && (
+                                <View style={styles.actionButtons}>
                                     <TouchableOpacity
-                                        style={styles.hireButton}
-                                        onPress={() => handleHire(lead.tradesperson_id)}
+                                        style={styles.viewProfileButton}
+                                        onPress={() => handleViewProfile(lead.tradesperson_id)}
                                     >
-                                        <Text style={styles.hireButtonText}>Hire</Text>
+                                        <Feather name="user" size={16} color="#2563EB" />
+                                        <Text style={styles.viewProfileText}>View Profile</Text>
                                     </TouchableOpacity>
-                                )}
+                                    {job.status === "OPEN" && (
+                                        <TouchableOpacity
+                                            style={styles.hireButton}
+                                            onPress={() => handleHire(lead.id)}
+                                        >
+                                            <Text style={styles.hireButtonText}>Hire</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
                             </View>
                             {lead.message && (
                                 <Text style={styles.leadMessage}>{lead.message}</Text>
+                            )}
+                            {lead.price_estimate && (
+                                <Text style={styles.priceEstimate}>
+                                    Estimate: ${lead.price_estimate}
+                                </Text>
                             )}
                         </View>
                     ))
                 )}
             </View>
+
+            {/* Complete Job Button (shown when HIRED) */}
+            {job.status === "HIRED" && (
+                <View style={styles.section}>
+                    <TouchableOpacity
+                        style={styles.completeJobButton}
+                        onPress={handleCompleteJob}
+                    >
+                        <Feather name="check-circle" size={20} color="#FFFFFF" />
+                        <Text style={styles.completeJobButtonText}>Complete Job</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {/* Rating Section (shown when COMPLETED and not rated) */}
+            {job.status === "COMPLETED" && !job.has_rated && (
+                <View style={styles.section}>
+                    <View style={styles.ratingPrompt}>
+                        <Feather name="star" size={24} color="#FCD34D" />
+                        <Text style={styles.ratingPromptTitle}>Rate Your Experience</Text>
+                        <Text style={styles.ratingPromptText}>
+                            How was your experience with this tradesperson?
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.rateNowButton}
+                            onPress={() => {
+                                const hiredLead = leads.find(l => l.status === 'HIRED');
+                                if (hiredLead) {
+                                    setSelectedTradespersonName(hiredLead.tradesperson_name || 'this tradesperson');
+                                }
+                                setRatingModalVisible(true);
+                            }}
+                        >
+                            <Text style={styles.rateNowButtonText}>Rate Now</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
+            {/* Rating Submitted Message */}
+            {job.status === "COMPLETED" && job.has_rated && (
+                <View style={styles.section}>
+                    <View style={styles.ratedMessage}>
+                        <Feather name="check-circle" size={24} color="#10B981" />
+                        <Text style={styles.ratedText}>Thank you for your feedback!</Text>
+                    </View>
+                </View>
+            )}
+
+            <RatingModal
+                visible={ratingModalVisible}
+                onClose={() => setRatingModalVisible(false)}
+                onSubmit={handleSubmitRating}
+                tradespersonName={selectedTradespersonName}
+            />
 
             <View style={{ height: 40 }} />
         </ScrollView>
@@ -188,52 +357,52 @@ export default function JobDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     errorContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#F3F4F6",
     },
     errorText: {
-        fontSize: 16,
+        fontSize: normalize(16),
         color: "#6B7280",
     },
     header: {
-        padding: 20,
-        paddingTop: 16,
+        padding: wp(5),
+        paddingTop: wp(4),
     },
     statusBadge: {
         alignSelf: "flex-start",
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-        marginBottom: 12,
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.8),
+        borderRadius: wp(2),
+        marginBottom: hp(1.5),
     },
     statusText: {
         color: "#FFFFFF",
-        fontSize: 13,
+        fontSize: normalize(13),
         fontWeight: "700",
     },
     title: {
-        fontSize: 22,
+        fontSize: normalize(22),
         fontWeight: "700",
         color: "#1F2937",
-        lineHeight: 30,
+        lineHeight: normalize(30),
     },
     card: {
         backgroundColor: "#FFFFFF",
-        marginHorizontal: 16,
-        marginBottom: 20,
-        borderRadius: 12,
-        padding: 16,
+        marginHorizontal: wp(4),
+        marginBottom: hp(2.5),
+        borderRadius: wp(3),
+        padding: wp(4),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -243,98 +412,194 @@ const styles = StyleSheet.create({
     detailRow: {
         flexDirection: "row",
         alignItems: "flex-start",
-        marginBottom: 16,
+        marginBottom: hp(2),
     },
     detailIcon: {
-        fontSize: 20,
-        marginRight: 12,
-        marginTop: 2,
+        fontSize: normalize(20),
+        marginRight: wp(3),
+        marginTop: hp(0.2),
     },
     detailContent: {
         flex: 1,
     },
     detailLabel: {
-        fontSize: 13,
+        fontSize: normalize(13),
         color: "#6B7280",
-        marginBottom: 2,
+        marginBottom: hp(0.2),
     },
     detailValue: {
-        fontSize: 15,
+        fontSize: normalize(15),
         fontWeight: "600",
         color: "#1F2937",
     },
     section: {
-        paddingHorizontal: 16,
-        marginBottom: 20,
+        paddingHorizontal: wp(4),
+        marginBottom: hp(2.5),
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: normalize(18),
         fontWeight: "700",
         color: "#1F2937",
-        marginBottom: 12,
+        marginBottom: hp(1.5),
     },
     emptyState: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
-        padding: 40,
+        borderRadius: wp(3),
+        padding: wp(10),
         alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
     },
     emptyIcon: {
-        fontSize: 56,
-        marginBottom: 12,
+        fontSize: normalize(50),
+        marginBottom: hp(1.5),
     },
     emptyTitle: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#1F2937",
-        marginBottom: 6,
+        marginBottom: hp(0.8),
     },
     emptyText: {
-        fontSize: 14,
+        fontSize: normalize(14),
         color: "#6B7280",
         textAlign: "center",
     },
     leadCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: wp(3),
+        padding: wp(4),
+        marginBottom: hp(1.5),
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
     },
     leadHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 8,
+        alignItems: "flex-start",
+        marginBottom: hp(1),
     },
     leadName: {
-        fontSize: 16,
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#1F2937",
     },
     leadCompany: {
-        fontSize: 13,
+        fontSize: normalize(13),
         color: "#6B7280",
-        marginTop: 2,
+        marginTop: hp(0.2),
     },
     leadMessage: {
-        fontSize: 14,
+        fontSize: normalize(14),
         color: "#4B5563",
-        lineHeight: 20,
+        lineHeight: normalize(20),
+        marginTop: hp(1),
     },
     hireButton: {
         backgroundColor: "#2563EB",
-        paddingHorizontal: 20,
-        paddingVertical: 8,
-        borderRadius: 8,
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1),
+        borderRadius: wp(2),
+        marginLeft: wp(2),
     },
     hireButtonText: {
         color: "#FFFFFF",
-        fontSize: 14,
+        fontSize: normalize(13),
         fontWeight: "700",
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        gap: normalize(8),
+        alignItems: 'center',
+    },
+    viewProfileButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(4),
+        paddingHorizontal: normalize(12),
+        paddingVertical: normalize(6),
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#2563EB',
+        backgroundColor: '#FFFFFF',
+    },
+    viewProfileText: {
+        fontSize: normalize(12),
+        fontWeight: '600',
+        color: '#2563EB',
+    },
+    priceEstimate: {
+        fontSize: normalize(14),
+        fontWeight: '600',
+        color: '#10B981',
+        marginTop: hp(0.5),
+    },
+    completeJobButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: normalize(8),
+        backgroundColor: '#10B981',
+        paddingVertical: normalize(14),
+        borderRadius: 8,
+        marginTop: hp(1),
+    },
+    completeJobButtonText: {
+        fontSize: normalize(16),
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+    ratingPrompt: {
+        backgroundColor: '#FFFBEB',
+        borderRadius: 12,
+        padding: normalize(20),
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+    },
+    ratingPromptTitle: {
+        fontSize: normalize(18),
+        fontWeight: '700',
+        color: '#92400E',
+        marginTop: hp(1),
+        marginBottom: hp(0.5),
+    },
+    ratingPromptText: {
+        fontSize: normalize(14),
+        color: '#78350F',
+        textAlign: 'center',
+        marginBottom: hp(2),
+    },
+    rateNowButton: {
+        backgroundColor: '#2563EB',
+        paddingHorizontal: normalize(24),
+        paddingVertical: normalize(12),
+        borderRadius: 8,
+    },
+    rateNowButtonText: {
+        fontSize: normalize(14),
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+    ratedMessage: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: normalize(8),
+        backgroundColor: '#D1FAE5',
+        paddingVertical: normalize(16),
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#A7F3D0',
+    },
+    ratedText: {
+        fontSize: normalize(16),
+        fontWeight: '600',
+        color: '#065F46',
     },
 });

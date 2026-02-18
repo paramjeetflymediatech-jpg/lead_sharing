@@ -16,6 +16,7 @@ import PrivacySecurityScreen from "../screens/homeowner/PrivacySecurityScreen";
 import HelpCenterScreen from "../screens/homeowner/HelpCenterScreen";
 import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
 import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
+import TradespersonProfileScreen from "../screens/tradesperson/TradespersonProfileScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -38,6 +39,11 @@ function HomeStack() {
                 name="JobDetails"
                 component={JobDetailsScreen}
                 options={{ title: "Job Details" }}
+            />
+            <Stack.Screen
+                name="TradespersonProfile"
+                component={TradespersonProfileScreen}
+                options={{ title: "Tradesperson Profile" }}
             />
         </Stack.Navigator>
     );
