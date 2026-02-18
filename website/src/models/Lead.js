@@ -384,7 +384,7 @@ export const Lead = {
   async updateLeadsByJob(jobId, updates) {
     const { hiredLeadId, statusUpdates } = updates;
     const connection = await pool.getConnection();
-    
+
     try {
       await connection.beginTransaction();
 
@@ -395,7 +395,7 @@ export const Lead = {
           `UPDATE leads SET status = 'HIRED', updated_at = NOW() WHERE id = ?`,
           [hiredLeadId]
         );
-        
+
         // Update all other leads for this job to REJECTED
         await connection.query(
           `UPDATE leads SET status = 'REJECTED', updated_at = NOW() 
@@ -439,7 +439,7 @@ export const Lead = {
     }
 
     sql += ' ORDER BY created_at DESC';
-    
+
     if (options.limit) {
       sql += ' LIMIT ?';
       params.push(options.limit);
@@ -447,6 +447,29 @@ export const Lead = {
 
     const [rows] = await pool.query(sql, params);
     return rows.map(simpleLeadMapper);
+  },
+
+  async deleteOne(query) {
+    const params = [];
+    let sql = 'DELETE FROM leads WHERE 1=1';
+
+    if (query._id) {
+      sql += ' AND id = ?';
+      params.push(query._id);
+    }
+    if (query.job) {
+      sql += ' AND job_id = ?';
+      params.push(query.job);
+    }
+    if (query.tradesperson) {
+      sql += ' AND tradesperson_id = ?';
+      params.push(query.tradesperson);
+    }
+
+    const [result] = await pool.query(sql, params);
+    return {
+      deletedCount: result.affectedRows
+    };
   }
 };
 

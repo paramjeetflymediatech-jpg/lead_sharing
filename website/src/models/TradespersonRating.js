@@ -8,10 +8,10 @@
 //        VALUES (?, ?, ?, ?, ?)`,
 //       [jobId, homeownerId, tradespersonId, rating, review || null]
 //     );
-    
+
 //     // Update the average rating in tradesperson_profiles
 //     await this.updateAverageRating(tradespersonId);
-    
+
 //     return result.insertId;
 //   },
 
@@ -45,7 +45,7 @@
 //        WHERE tradesperson_id = ?`,
 //       [tradespersonId]
 //     );
-    
+
 //     const result = rows[0];
 //     return {
 //       average_rating: result.average_rating ? parseFloat(result.average_rating).toFixed(1) : 0,
@@ -55,14 +55,14 @@
 
 //   async updateAverageRating(tradespersonId) {
 //     const ratingData = await this.getAverageRating(tradespersonId);
-    
+
 //     await pool.query(
 //       `UPDATE tradesperson_profiles 
 //        SET average_rating = ?, total_ratings = ?, updated_at = NOW()
 //        WHERE user_id = ?`,
 //       [ratingData.average_rating, ratingData.total_ratings, tradespersonId]
 //     );
-    
+
 //     return ratingData;
 //   },
 
@@ -87,18 +87,18 @@
 //        ORDER BY rating DESC`,
 //       [tradespersonId]
 //     );
-    
+
 //     // Initialize all ratings
 //     const ratingDistribution = {
 //       5: 0, 4: 0, 3: 0, 2: 0, 1: 0
 //     };
-    
+
 //     rows.forEach(row => {
 //       ratingDistribution[row.rating] = row.count;
 //     });
-    
+
 //     const total = Object.values(ratingDistribution).reduce((a, b) => a + b, 0);
-    
+
 //     return {
 //       distribution: ratingDistribution,
 //       total
@@ -126,7 +126,7 @@ export const TradespersonRating = {
     console.log("Tradesperson ID (user_id):", tradespersonId);
     console.log("Homeowner ID:", homeownerId);
     console.log("Rating:", rating);
-    
+
     try {
       // 1. First insert the rating
       const [result] = await pool.query(
@@ -135,16 +135,16 @@ export const TradespersonRating = {
          VALUES (?, ?, ?, ?, ?, NOW())`,
         [jobId, homeownerId, tradespersonId, rating, review || null]
       );
-      
+
       console.log("✅ Rating inserted with ID:", result.insertId);
-      
+
       // 2. IMPORTANT: Update the tradesperson profile stats
       // Import the TradespersonProfile model
       const { TradespersonProfile } = await import('./TradespersonProfile.js');
-      
+
       // Update rating stats for this tradesperson
       await TradespersonProfile.updateRatingStatsForUser(tradespersonId);
-      
+
       return result.insertId;
     } catch (error) {
       console.error("❌ Error creating rating:", error);
@@ -154,11 +154,11 @@ export const TradespersonRating = {
 
   async forceUpdateProfileStats(tradespersonId) {
     console.log("🔄 FORCE UPDATING PROFILE STATS FOR:", tradespersonId);
-    
+
     try {
       // Import the TradespersonProfile model
       const { TradespersonProfile } = await import('./TradespersonProfile.js');
-      
+
       // Use the new helper method
       return await TradespersonProfile.updateRatingStatsForUser(tradespersonId);
     } catch (error) {
@@ -201,7 +201,7 @@ export const TradespersonRating = {
        WHERE tradesperson_id = ?`,
       [tradespersonId]
     );
-    
+
     const result = rows[0];
     return {
       average_rating: result.average_rating ? parseFloat(result.average_rating).toFixed(1) : 0,
@@ -235,18 +235,74 @@ export const TradespersonRating = {
        ORDER BY rating DESC`,
       [tradespersonId]
     );
-    
+
     const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    
+
     rows.forEach(row => {
       ratingDistribution[row.rating] = row.count;
     });
-    
+
     const total = Object.values(ratingDistribution).reduce((a, b) => a + b, 0);
-    
+
     return {
       distribution: ratingDistribution,
       total
+    };
+  },
+
+  async findById(id) {
+    const [rows] = await pool.query(
+      `SELECT * FROM tradesperson_ratings WHERE id = ?`,
+      [id]
+    );
+    return rows[0] || null;
+  },
+
+  async findByIdAndUpdate(id, updateData) {
+    const updates = [];
+    const values = [];
+
+    if (updateData.rating !== undefined) {
+      updates.push('rating = ?');
+      values.push(updateData.rating);
+    }
+    if (updateData.review !== undefined) {
+      updates.push('review = ?');
+      values.push(updateData.review);
+    }
+
+    if (updates.length > 0) {
+      values.push(id);
+      await pool.query(`UPDATE tradesperson_ratings SET ${updates.join(', ')} WHERE id = ?`, values);
+
+      // Get the tradespersonId to update stats
+      const rating = await this.findById(id);
+      if (rating) {
+        await this.forceUpdateProfileStats(rating.tradesperson_id);
+      }
+    }
+
+    return this.findById(id);
+  },
+
+  async deleteOne(query) {
+    if (!query._id) return { deletedCount: 0 };
+
+    // Get tradespersonId before deletion to update stats
+    const rating = await this.findById(query._id);
+    if (!rating) return { deletedCount: 0 };
+
+    const [result] = await pool.query(
+      `DELETE FROM tradesperson_ratings WHERE id = ?`,
+      [query._id]
+    );
+
+    if (result.affectedRows > 0) {
+      await this.forceUpdateProfileStats(rating.tradesperson_id);
+    }
+
+    return {
+      deletedCount: result.affectedRows
     };
   }
 };

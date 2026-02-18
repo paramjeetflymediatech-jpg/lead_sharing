@@ -8,6 +8,8 @@ const userToMongoStyle = (row) => {
   return {
     ...row,
     _id: row.id, // Alias id as _id for compatibility
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 };
 

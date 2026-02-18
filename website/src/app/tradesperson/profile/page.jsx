@@ -30,11 +30,16 @@ export default function ProfilePage() {
             const res = await fetch("/api/tradesperson/profile");
             const data = await res.json();
             if (data.success) {
+                const p = data.data;
                 setProfile({
-                    ...data.data,
-                    email: data.data.user?.email || data.data.email || "", // Handle populated user email or direct field if we add it
-                    skills: data.data.skills ? data.data.skills.join(", ") : "",
-                    serviceAreas: data.data.serviceAreas ? data.data.serviceAreas.join(", ") : ""
+                    companyName: p.companyName || "",
+                    email: p.user?.email || p.email || "",
+                    phone: p.phone || "",
+                    postcode: p.postcode || "",
+                    bio: p.bio || "",
+                    profileImage: p.profileImage || "",
+                    skills: p.skills ? p.skills.join(", ") : "",
+                    serviceAreas: p.serviceAreas ? p.serviceAreas.join(", ") : ""
                 });
             } else {
                 toast.error(data.message || "Failed to load profile");

@@ -10,8 +10,12 @@ import {
     CheckBadgeIcon,
     UserGroupIcon,
     BriefcaseIcon,
-    XCircleIcon
+    XCircleIcon,
+    PlusIcon,
+    PencilSquareIcon,
+    TrashIcon
 } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 
 import Pagination from "../../../../components/Pagination";
 
@@ -25,14 +29,54 @@ export default function AdminJobsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    // CRUD State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit'
+    const [formData, setFormData] = useState({
+        description: "",
+        homeowner: "",
+        category: "",
+        subCategory: "",
+        budgetMin: "",
+        budgetMax: "",
+        location: { city: "", postcode: "" },
+        contactName: "",
+        contactEmail: "",
+        contactPhone: "",
+        jobStage: "PLANNING",
+        ownership: "OWN",
+        startTime: "FLEXIBLE",
+        status: "OPEN"
+    });
+    const [submitting, setSubmitting] = useState(false);
+
+    // Data for selectors
+    const [homeowners, setHomeowners] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [subcategories, setSubcategories] = useState([]);
+
     useEffect(() => {
         fetchJobs();
+        fetchInitialData();
     }, []);
 
-    // Reset pagination when filter/search changes
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, statusFilter]);
+    const fetchInitialData = async () => {
+        try {
+            const [usersRes, catRes, subRes] = await Promise.all([
+                fetch("/api/admin/users?role=HOMEOWNER&limit=1000"),
+                fetch("/api/admin/categories"),
+                fetch("/api/admin/subcategories")
+            ]);
+            if (usersRes.ok) {
+                const data = await usersRes.json();
+                setHomeowners(data.users || []);
+            }
+            if (catRes.ok) setCategories(await catRes.json());
+            if (subRes.ok) setSubcategories(await subRes.json());
+        } catch (error) {
+            console.error("Error fetching initial data:", error);
+        }
+    };
 
     const fetchJobs = async () => {
         try {
@@ -48,17 +92,115 @@ export default function AdminJobsPage() {
         }
     };
 
+    // Reset pagination when filter/search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
+
     const filteredJobs = jobs.filter((job) => {
         const matchesSearch =
             (job.description?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (job.homeowner?.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (job.homeowner?.email?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-            (job.location?.city?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+            (job.location?.city?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (job.hiredTradespersonName?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === "ALL" || job.status === statusFilter;
 
         return matchesSearch && matchesStatus;
     });
+
+    const openCreateModal = () => {
+        setModalMode("create");
+        setFormData({
+            description: "",
+            homeowner: "",
+            category: "",
+            subCategory: "",
+            budgetMin: "",
+            budgetMax: "",
+            location: { city: "", postcode: "" },
+            contactName: "",
+            contactEmail: "",
+            contactPhone: "",
+            jobStage: "PLANNING",
+            ownership: "OWN",
+            startTime: "FLEXIBLE",
+            status: "OPEN"
+        });
+        setIsFormModalOpen(true);
+    };
+
+    const openEditModal = (job) => {
+        setModalMode("edit");
+        setFormData({
+            _id: job._id,
+            description: job.description || "",
+            homeowner: job.homeowner?._id || job.homeowner || "",
+            category: job.category?._id || job.category || "",
+            subCategory: job.subCategory?._id || job.subCategory || "",
+            budgetMin: job.budgetMin || "",
+            budgetMax: job.budgetMax || "",
+            location: {
+                city: job.location?.city || "",
+                postcode: job.location?.postcode || ""
+            },
+            contactName: job.contactName || "",
+            contactEmail: job.contactEmail || "",
+            contactPhone: job.contactPhone || "",
+            jobStage: job.jobStage || "PLANNING",
+            ownership: job.ownership || "OWN",
+            startTime: job.startTime || "FLEXIBLE",
+            status: job.status || "OPEN"
+        });
+        setIsFormModalOpen(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            const method = modalMode === "create" ? "POST" : "PATCH";
+            const url = modalMode === "create" ? "/api/admin/jobs" : `/api/admin/jobs/${formData._id}`;
+
+            const res = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
+
+            if (res.ok) {
+                toast.success(`Job ${modalMode === "create" ? "created" : "updated"} successfully`);
+                fetchJobs();
+                setIsFormModalOpen(false);
+            } else {
+                const error = await res.json();
+                toast.error(error.message || "Failed to save job");
+            }
+        } catch (error) {
+            console.error("Error saving job:", error);
+            toast.error("An error occurred while saving the job");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (jobId) => {
+        if (!confirm("Are you sure you want to delete this job? This action cannot be undone.")) return;
+        try {
+            const res = await fetch(`/api/admin/jobs/${jobId}`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Job deleted successfully");
+                setJobs(jobs.filter(j => j._id !== jobId));
+            } else {
+                const error = await res.json();
+                toast.error(error.message || "Failed to delete job");
+            }
+        } catch (error) {
+            console.error("Error deleting job:", error);
+            toast.error("An error occurred while deleting the job");
+        }
+    };
 
     // Pagination Slicing
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -96,9 +238,18 @@ export default function AdminJobsPage() {
                     <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Jobs Management</h1>
                     <p className="text-zinc-500 text-sm">Monitor and manage all job postings</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 font-medium text-zinc-600 dark:text-zinc-400 shadow-sm">
-                    <BriefcaseIcon className="w-4 h-4 text-blue-500" />
-                    <span>Total Jobs: {jobs.length}</span>
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 font-medium text-zinc-600 dark:text-zinc-400 shadow-sm">
+                        <BriefcaseIcon className="w-4 h-4 text-blue-500" />
+                        <span>Total Jobs: {jobs.length}</span>
+                    </div>
+                    <button
+                        onClick={openCreateModal}
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors"
+                    >
+                        <PlusIcon className="w-5 h-5" />
+                        <span>Add Job</span>
+                    </button>
                 </div>
             </div>
 
@@ -188,12 +339,29 @@ export default function AdminJobsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => openJobDetails(job)}
-                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-xs"
-                                            >
-                                                View Details
-                                            </button>
+                                            <div className="flex items-center justify-end gap-3">
+                                                <button
+                                                    onClick={() => openJobDetails(job)}
+                                                    className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                                                    title="View Details"
+                                                >
+                                                    <MagnifyingGlassIcon className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => openEditModal(job)}
+                                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                    title="Edit Job"
+                                                >
+                                                    <PencilSquareIcon className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(job._id)}
+                                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                                    title="Delete Job"
+                                                >
+                                                    <TrashIcon className="w-5 h-5" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -250,12 +418,24 @@ export default function AdminJobsPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+                            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
                                 <button
                                     onClick={() => openJobDetails(job)}
+                                    className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 font-medium text-sm"
+                                >
+                                    Details
+                                </button>
+                                <button
+                                    onClick={() => openEditModal(job)}
                                     className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm"
                                 >
-                                    View Details
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(job._id)}
+                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm"
+                                >
+                                    Delete
                                 </button>
                             </div>
                         </div>
@@ -370,6 +550,191 @@ export default function AdminJobsPage() {
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Job Form Modal (Create/Edit) */}
+            {isFormModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 dark:border-zinc-800">
+                        <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-6 flex justify-between items-center z-10">
+                            <div>
+                                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+                                    {modalMode === "create" ? "Add New Job" : "Edit Job"}
+                                </h2>
+                                <p className="text-sm text-zinc-500">
+                                    {modalMode === "create" ? "Create a platform-wide job posting" : `Editing Job ID: ${formData._id}`}
+                                </p>
+                            </div>
+                            <button onClick={() => setIsFormModalOpen(false)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                                <XCircleIcon className="w-6 h-6 text-zinc-500" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                            {/* Basic Info */}
+                            <div className="space-y-4">
+                                <h3 className="text-md font-semibold text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">Basic Information</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
+                                    <textarea
+                                        required
+                                        rows={4}
+                                        className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                        placeholder="Detailed job description..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Homeowner</label>
+                                        <select
+                                            required
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.homeowner}
+                                            onChange={e => setFormData({ ...formData, homeowner: e.target.value })}
+                                        >
+                                            <option value="" disabled>Select Homeowner</option>
+                                            {homeowners.map(user => (
+                                                <option key={user._id} value={user._id}>{user.name} ({user.email})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
+                                        <select
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.status}
+                                            onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                        >
+                                            <option value="OPEN">Open</option>
+                                            <option value="HIRED">Hired / In Progress</option>
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="CANCELLED">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Categorization & Budget */}
+                            <div className="space-y-4">
+                                <h3 className="text-md font-semibold text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">Category & Budget</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Category</label>
+                                        <select
+                                            required
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.category}
+                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                        >
+                                            <option value="" disabled>Select Category</option>
+                                            {categories.map(cat => (
+                                                <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Sub-Category</label>
+                                        <select
+                                            required
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.subCategory}
+                                            onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
+                                        >
+                                            <option value="" disabled>Select Sub-Category</option>
+                                            {subcategories
+                                                .filter(sub => !formData.category || sub.category?._id === formData.category || sub.category === formData.category)
+                                                .map(sub => (
+                                                    <option key={sub._id} value={sub._id}>{sub.name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Budget Min</label>
+                                        <input
+                                            type="number"
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.budgetMin}
+                                            onChange={e => setFormData({ ...formData, budgetMin: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Budget Max</label>
+                                        <input
+                                            type="number"
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.budgetMax}
+                                            onChange={e => setFormData({ ...formData, budgetMax: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Location & Contact */}
+                            <div className="space-y-4">
+                                <h3 className="text-md font-semibold text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">Location & Contact</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">City</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.location.city}
+                                            onChange={e => setFormData({ ...formData, location: { ...formData.location, city: e.target.value } })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Postcode</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.location.postcode}
+                                            onChange={e => setFormData({ ...formData, location: { ...formData.location, postcode: e.target.value } })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Contact Name</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.contactName}
+                                            onChange={e => setFormData({ ...formData, contactName: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Contact Email</label>
+                                        <input
+                                            type="email"
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.contactEmail}
+                                            onChange={e => setFormData({ ...formData, contactEmail: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-zinc-900 py-4 border-t border-zinc-200 dark:border-zinc-800 mt-8">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFormModalOpen(false)}
+                                    className="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                    {modalMode === "create" ? "Create Job" : "Save Changes"}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

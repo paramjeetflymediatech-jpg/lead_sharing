@@ -1399,6 +1399,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { PLANS } from "@/app/api/topup/route";
+import { Payment } from "@/models/Payment";
 import CreditsTopUp from "./CreditsTopUp";
 import { CreditCard, Zap, Shield, CheckCircle, ArrowLeft, Star, TrendingUp, Clock, HelpCircle, Mail, Phone } from "lucide-react";
 import Link from "next/link";
@@ -1459,6 +1460,12 @@ export default async function CreditsPage() {
       console.log("No tradesperson profile, redirecting to setup");
       redirect("/tradesperson/setup");
     }
+
+    // ✅ Fetch purchased plans
+    const payments = await Payment.findByTradespersonId(tradespersonProfile.id, 50);
+    const completedPayments = payments.filter(p => p.status === 'completed');
+    const purchasedPlanKeys = [...new Set(completedPayments.map(p => p.plan))];
+
 
     // Calculate per credit prices from PLANS
     const calculatePerCreditPrice = (amount, credits) => {
@@ -1608,6 +1615,8 @@ export default async function CreditsPage() {
                       profileId={tradespersonProfile._id}
                       userId={user.id}
                       isPopular={key === 'pro'}
+                      purchasedPlanKeys={purchasedPlanKeys}
+                      userCredits={tradespersonProfile.credits || 0}
                     />
                   </div>
                 );

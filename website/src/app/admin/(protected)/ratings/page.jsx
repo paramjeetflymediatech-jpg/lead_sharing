@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { StarIcon as StarIconOutline, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconOutline, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 import Pagination from "../../../../components/Pagination";
 
 export default function AdminTradespersonRatingsPage() {
@@ -10,6 +11,13 @@ export default function AdminTradespersonRatingsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTradesperson, setSelectedTradesperson] = useState(null);
+
+  // Edit State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [newRating, setNewRating] = useState(5);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,6 +50,59 @@ export default function AdminTradespersonRatingsPage() {
       console.error("Error fetching ratings:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteRating = async (ratingId) => {
+    if (!confirm("Are you sure you want to delete this rating? This will affect the tradesperson's average rating.")) return;
+    try {
+      const res = await fetch(`/api/admin/ratings/${ratingId}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Rating deleted successfully");
+        fetchAllRatings();
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Failed to delete rating");
+      }
+    } catch (error) {
+      console.error("Error deleting rating:", error);
+      toast.error("An error occurred while deleting the rating");
+    }
+  };
+
+  const openEditRatingModal = (review) => {
+    setEditingReview(review);
+    setNewRating(review.rating);
+    setNewReviewText(review.review || "");
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateRating = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/ratings/${editingReview.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating: newRating,
+          review: newReviewText
+        })
+      });
+
+      if (res.ok) {
+        toast.success("Rating updated successfully");
+        fetchAllRatings();
+        setIsEditModalOpen(false);
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Failed to update rating");
+      }
+    } catch (error) {
+      console.error("Error updating rating:", error);
+      toast.error("An error occurred while updating the rating");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -207,9 +268,27 @@ export default function AdminTradespersonRatingsPage() {
                                 {review.homeownerName || 'Anonymous'}
                               </span>
                             </div>
-                            <span className="text-xs text-gray-500 dark:text-zinc-500">
-                              {formatDate(review.createdAt)}
-                            </span>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="text-xs text-gray-500 dark:text-zinc-500">
+                                {formatDate(review.createdAt)}
+                              </span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => openEditRatingModal(review)}
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                  title="Edit Review"
+                                >
+                                  <PencilSquareIcon className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteRating(review.id)}
+                                  className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                  title="Delete Review"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
                           {review.review && (
                             <p className="text-sm text-gray-700 dark:text-zinc-300 mb-2">
@@ -257,6 +336,77 @@ export default function AdminTradespersonRatingsPage() {
           />
         </div>
       </div>
+
+      {/* Edit Rating Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl w-full max-w-lg shadow-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-zinc-700 flex justify-between items-center bg-gray-50 dark:bg-zinc-800/50">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Review</h2>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                  For: {editingReview?.homeownerName || 'Anonymous'}
+                </p>
+              </div>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full transition-colors">
+                <XCircleIcon className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateRating} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Rating</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setNewRating(star)}
+                      className="p-1 transition-transform active:scale-90"
+                    >
+                      {star <= newRating ? (
+                        <StarIconSolid className="h-8 w-8 text-yellow-400" />
+                      ) : (
+                        <StarIconOutline className="h-8 w-8 text-gray-300 dark:text-zinc-600" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Review Content</label>
+                <textarea
+                  required
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
+                  value={newReviewText}
+                  onChange={(e) => setNewReviewText(e.target.value)}
+                  placeholder="Share your experience..."
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2.5 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-xl font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

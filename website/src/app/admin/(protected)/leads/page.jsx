@@ -8,8 +8,13 @@ import {
     ClockIcon,
     CurrencyDollarIcon,
     CheckBadgeIcon,
-    UserGroupIcon
+    UserGroupIcon,
+    PlusIcon,
+    PencilSquareIcon,
+    TrashIcon,
+    XCircleIcon
 } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 import Pagination from "../../../../components/Pagination";
 
 export default function AdminLeadsPage() {
@@ -22,9 +27,43 @@ export default function AdminLeadsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    // CRUD State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit'
+    const [formData, setFormData] = useState({
+        job: "",
+        tradesperson: "",
+        message: "",
+        priceEstimate: "",
+        isUnlocked: false,
+        status: "PENDING"
+    });
+    const [submitting, setSubmitting] = useState(false);
+
+    // Data for selectors
+    const [tradespeople, setTradespeople] = useState([]);
+    const [jobs, setJobs] = useState([]);
+
     useEffect(() => {
         fetchLeads();
+        fetchInitialData();
     }, []);
+
+    const fetchInitialData = async () => {
+        try {
+            const [usersRes, jobsRes] = await Promise.all([
+                fetch("/api/admin/users?role=TRADESPERSON&limit=1000"),
+                fetch("/api/admin/jobs")
+            ]);
+            if (usersRes.ok) {
+                const data = await usersRes.json();
+                setTradespeople(data.users || []);
+            }
+            if (jobsRes.ok) setJobs(await jobsRes.json());
+        } catch (error) {
+            console.error("Error fetching initial data:", error);
+        }
+    };
 
     // Reset pagination when filter/search changes
     useEffect(() => {
@@ -50,13 +89,86 @@ export default function AdminLeadsPage() {
             (lead.message?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (lead.tradesperson?.companyName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (lead.tradesperson?.user?.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (lead.job?.description?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (lead.job?.location?.city?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
-        // Example filter: Unlocked vs Locked (though admin sees all)
         const matchesFilter = filter === "ALL" || (filter === "UNLOCKED" && lead.isUnlocked);
 
         return matchesSearch && matchesFilter;
     });
+
+    const openCreateModal = () => {
+        setModalMode("create");
+        setFormData({
+            job: "",
+            tradesperson: "",
+            message: "",
+            priceEstimate: "",
+            isUnlocked: false,
+            status: "PENDING"
+        });
+        setIsFormModalOpen(true);
+    };
+
+    const openEditModal = (lead) => {
+        setModalMode("edit");
+        setFormData({
+            _id: lead._id,
+            job: lead.job?._id || lead.job || "",
+            tradesperson: lead.tradesperson?.id || lead.tradesperson?._id || lead.tradesperson || "",
+            message: lead.message || "",
+            priceEstimate: lead.priceEstimate || "",
+            isUnlocked: lead.isUnlocked || false,
+            status: lead.status || "PENDING"
+        });
+        setIsFormModalOpen(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            const method = modalMode === "create" ? "POST" : "PATCH";
+            const url = modalMode === "create" ? "/api/admin/leads" : `/api/admin/leads/${formData._id}`;
+
+            const res = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
+
+            if (res.ok) {
+                toast.success(`Lead ${modalMode === "create" ? "created" : "updated"} successfully`);
+                fetchLeads();
+                setIsFormModalOpen(false);
+            } else {
+                const error = await res.json();
+                toast.error(error.message || "Failed to save lead");
+            }
+        } catch (error) {
+            console.error("Error saving lead:", error);
+            toast.error("An error occurred while saving the lead");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (leadId) => {
+        if (!confirm("Are you sure you want to delete this lead?")) return;
+        try {
+            const res = await fetch(`/api/admin/leads/${leadId}`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Lead deleted successfully");
+                setLeads(leads.filter(l => l._id !== leadId));
+            } else {
+                const error = await res.json();
+                toast.error(error.message || "Failed to delete lead");
+            }
+        } catch (error) {
+            console.error("Error deleting lead:", error);
+            toast.error("An error occurred while deleting the lead");
+        }
+    };
 
     // Pagination Slicing
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -67,12 +179,21 @@ export default function AdminLeadsPage() {
         <div className="space-y-6 p-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-zinc-900">Leads Management</h1>
+                    <h1 className="text-2xl font-bold text-zinc-900 line-height-tight">Leads Management</h1>
                     <p className="text-zinc-500 text-sm">Track job leads and tradesperson interactions</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm bg-white border border-zinc-200 rounded-lg px-3 py-1.5 font-medium text-zinc-600 shadow-sm">
-                    <UserGroupIcon className="w-4 h-4 text-purple-500" />
-                    <span>Total Leads: {leads.length}</span>
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm bg-white border border-zinc-200 rounded-lg px-3 py-1.5 font-medium text-zinc-600 shadow-sm">
+                        <UserGroupIcon className="w-4 h-4 text-purple-500" />
+                        <span>Total Leads: {leads.length}</span>
+                    </div>
+                    <button
+                        onClick={openCreateModal}
+                        className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors"
+                    >
+                        <PlusIcon className="w-5 h-5" />
+                        <span>Add Lead</span>
+                    </button>
                 </div>
             </div>
 
@@ -117,6 +238,7 @@ export default function AdminLeadsPage() {
                                     <th className="px-6 py-4">Message</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">Date</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
@@ -164,6 +286,24 @@ export default function AdminLeadsPage() {
                                         <td className="px-6 py-4 text-zinc-500 text-xs">
                                             {new Date(lead.createdAt).toLocaleDateString()} <br />
                                             {new Date(lead.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-3">
+                                                <button
+                                                    onClick={() => openEditModal(lead)}
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                    title="Edit Lead"
+                                                >
+                                                    <PencilSquareIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(lead._id)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                    title="Delete Lead"
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -223,18 +363,154 @@ export default function AdminLeadsPage() {
                                     </div>
                                 )}
                             </div>
+
+                            <div className="pt-3 border-t border-zinc-100 flex justify-end gap-3">
+                                <button
+                                    onClick={() => openEditModal(lead)}
+                                    className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(lead._id)}
+                                    className="text-red-600 hover:text-red-800 text-xs font-medium"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     ))
                 )}
             </div>
 
-            {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalItems={filteredLeads.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-            />
+            {/* Lead Form Modal (Create/Edit) */}
+            {isFormModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-zinc-200 overflow-hidden">
+                        <div className="p-6 border-b border-zinc-200 flex justify-between items-center bg-zinc-50/50">
+                            <div>
+                                <h2 className="text-xl font-bold text-zinc-900">
+                                    {modalMode === "create" ? "Add New Lead" : "Edit Lead"}
+                                </h2>
+                                <p className="text-xs text-zinc-500 mt-1">
+                                    {modalMode === "create" ? "Assign a tradesperson to a job" : `Editing Lead ID: ${formData._id}`}
+                                </p>
+                            </div>
+                            <button onClick={() => setIsFormModalOpen(false)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+                                <XCircleIcon className="w-6 h-6 text-zinc-400" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-zinc-700 mb-1">Select Job</label>
+                                    <select
+                                        required
+                                        className="w-full px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none text-sm"
+                                        value={formData.job}
+                                        onChange={e => setFormData({ ...formData, job: e.target.value })}
+                                        disabled={modalMode === "edit"}
+                                    >
+                                        <option value="" disabled>Choose a job...</option>
+                                        {jobs.map(job => (
+                                            <option key={job._id} value={job._id}>
+                                                {job.description?.substring(0, 50)}... ({job.location?.city})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-zinc-700 mb-1">Select Tradesperson</label>
+                                    <select
+                                        required
+                                        className="w-full px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none text-sm"
+                                        value={formData.tradesperson}
+                                        onChange={e => setFormData({ ...formData, tradesperson: e.target.value })}
+                                        disabled={modalMode === "edit"}
+                                    >
+                                        <option value="" disabled>Choose a tradesperson...</option>
+                                        {tradespeople.map(tp => (
+                                            <option key={tp._id} value={tp._id}>
+                                                {tp.name} ({tp.email})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-zinc-700 mb-1">Introduction Message</label>
+                                    <textarea
+                                        rows={3}
+                                        className="w-full px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none text-sm resize-none"
+                                        value={formData.message}
+                                        onChange={e => setFormData({ ...formData, message: e.target.value })}
+                                        placeholder="Lead introduction message..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-zinc-700 mb-1">Price Estimate ($)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none text-sm"
+                                            value={formData.priceEstimate}
+                                            onChange={e => setFormData({ ...formData, priceEstimate: e.target.value })}
+                                            placeholder="e.g. 500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-zinc-700 mb-1">Status</label>
+                                        <select
+                                            className="w-full px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none text-sm"
+                                            value={formData.status}
+                                            onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                        >
+                                            <option value="PENDING">Pending</option>
+                                            <option value="HIRED">Hired</option>
+                                            <option value="REJECTED">Rejected</option>
+                                            <option value="CANCELLED">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 py-2">
+                                    <input
+                                        type="checkbox"
+                                        id="isUnlocked"
+                                        className="w-4 h-4 text-purple-600 border-zinc-300 rounded focus:ring-purple-500"
+                                        checked={formData.isUnlocked}
+                                        onChange={e => setFormData({ ...formData, isUnlocked: e.target.checked })}
+                                    />
+                                    <label htmlFor="isUnlocked" className="text-sm font-medium text-zinc-700 cursor-pointer">
+                                        Mark as Unlocked (Paid)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 flex justify-end gap-3 mt-4 border-t border-zinc-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFormModalOpen(false)}
+                                    className="px-5 py-2 text-zinc-600 hover:bg-zinc-100 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="bg-purple-600 hover:bg-purple-500 text-white px-8 py-2 rounded-lg font-bold transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                    {modalMode === "create" ? "Create Lead" : "Save Changes"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

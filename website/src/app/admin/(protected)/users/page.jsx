@@ -109,6 +109,21 @@ export default function UsersManagement() {
 
     // --- API Operations ---
 
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "N/A";
+            return date.toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+            });
+        } catch (e) {
+            return "N/A";
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -288,7 +303,7 @@ export default function UsersManagement() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500">
-                                            {new Date(user.createdAt).toLocaleDateString()}
+                                            {formatDate(user.createdAt)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center justify-end gap-3">
@@ -351,7 +366,7 @@ export default function UsersManagement() {
                             </div>
 
                             <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                <span className="text-xs text-zinc-500">Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
+                                <span className="text-xs text-zinc-500">Joined: {formatDate(user.createdAt)}</span>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => openEditModal(user)}

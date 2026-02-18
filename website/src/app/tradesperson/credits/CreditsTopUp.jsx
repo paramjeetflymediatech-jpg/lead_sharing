@@ -13,7 +13,7 @@
 //     try {
 //       setLoading(true);
 //       setError(null);
-      
+
 //       const response = await fetch("/api/topup", {
 //         method: "POST",
 //         headers: {
@@ -35,11 +35,11 @@
 //       } else {
 //         throw new Error("No checkout URL received");
 //       }
-      
+
 //     } catch (error) {
 //       console.error("Error creating checkout session:", error);
 //       setError(error.message || "Failed to process payment. Please try again.");
-      
+
 //       // Auto-hide error after 5 seconds
 //       setTimeout(() => {
 //         setError(null);
@@ -64,7 +64,7 @@
 //           </div>
 //         </div>
 //       )}
-      
+
 //       <button
 //         onClick={handleTopUp}
 //         disabled={loading}
@@ -76,7 +76,7 @@
 //       >
 //         {/* Shimmer effect */}
 //         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-        
+
 //         {/* Loading state */}
 //         {loading ? (
 //           <>
@@ -98,7 +98,7 @@
 //           </>
 //         )}
 //       </button>
-      
+
 //       {/* Trust badges */}
 //       <div className="flex flex-col items-center gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
 //         <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
@@ -125,18 +125,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, Loader2, Lock, Check, Shield } from "lucide-react";
 
-export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
+export default function CreditsTopUp({ plan, profileId, userId, isPopular = false, purchasedPlanKeys = [], userCredits }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
 
+  // ✅ Determine display state
+  const isSubscribed = userCredits > 0 && purchasedPlanKeys.includes(plan);
+
   const handleTopUp = async () => {
+    if (isSubscribed) return;
+
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log("Sending payment request for plan:", plan, "profileId:", profileId);
-      
+
       const response = await fetch("/api/topup", {
         method: "POST",
         headers: {
@@ -147,7 +152,7 @@ export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
       });
 
       const data = await response.json();
-      
+
       console.log("Payment API response:", data);
 
       if (!response.ok) {
@@ -160,11 +165,11 @@ export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
       } else {
         throw new Error("No checkout URL received");
       }
-      
+
     } catch (error) {
       console.error("Error creating checkout session:", error);
       setError(error.message || "Failed to process payment. Please try again.");
-      
+
       // Auto-hide error after 5 seconds
       setTimeout(() => {
         setError(null);
@@ -189,25 +194,35 @@ export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
           </div>
         </div>
       )}
-      
+
       <button
         onClick={handleTopUp}
-        disabled={loading}
-        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group ${
-          isPopular
+        disabled={loading || isSubscribed}
+        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group ${isSubscribed
+          ? "bg-green-500 text-white cursor-default"
+          : isPopular
             ? "bg-gradient-to-r from-[#155DFC] via-blue-600 to-blue-500 text-white hover:shadow-2xl hover:shadow-blue-500/40"
             : "bg-gradient-to-r from-zinc-900 via-zinc-800 to-black dark:from-zinc-800 dark:via-zinc-900 dark:to-black text-white hover:shadow-2xl hover:shadow-black/30"
-        } ${loading ? "opacity-80 cursor-not-allowed" : "hover:scale-[1.02] active:scale-[0.98]"}`}
+          } ${loading ? "opacity-80 cursor-not-allowed" : !isSubscribed ? "hover:scale-[1.02] active:scale-[0.98]" : ""}`}
       >
         {/* Shimmer effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-        
-        {/* Loading state */}
+        {!isSubscribed && (
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+        )}
+
+        {/* State rendering */}
         {loading ? (
           <>
             <div className="relative z-10 flex items-center gap-3">
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Processing Payment...</span>
+              <span>Processing...</span>
+            </div>
+          </>
+        ) : isSubscribed ? (
+          <>
+            <div className="relative z-10 flex items-center gap-3">
+              <Check className="w-5 h-5" />
+              <span>Subscribed</span>
             </div>
           </>
         ) : (
@@ -223,7 +238,8 @@ export default function CreditsTopUp({ plan, profileId, isPopular = false }) {
           </>
         )}
       </button>
-      
+
+
       {/* Trust badges */}
       {/* <div className="flex flex-col items-center gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
