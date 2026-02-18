@@ -11,7 +11,7 @@ export async function GET() {
   } catch (error) {
     console.error("ADMIN JOBS ERROR:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: error.message },
       { status: 500 }
     );
   }
@@ -49,10 +49,10 @@ export async function POST(req) {
       homeowner,
       category,
       subCategory,
-      budgetMin,
-      budgetMax,
-      city: location?.city,
-      postcode: location?.postcode,
+      budgetMin: budgetMin || 0,
+      budgetMax: budgetMax || 0,
+      city: body.city || location?.city || "",
+      postcode: body.postcode || location?.postcode || "",
       contactName,
       contactEmail,
       contactPhone,
@@ -71,7 +71,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("ADMIN CREATE JOB ERROR:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: error.message },
       { status: 500 }
     );
   }

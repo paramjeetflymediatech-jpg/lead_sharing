@@ -450,10 +450,10 @@ const detailedJobMapper = (row) => ({
   // Populate objects if names exist, otherwise fall back to ID
   homeowner: row.homeowner_name
     ? {
-        _id: row.homeowner_id,
-        name: row.homeowner_name,
-        email: row.homeowner_email,
-      }
+      _id: row.homeowner_id,
+      name: row.homeowner_name,
+      email: row.homeowner_email,
+    }
     : row.homeowner_id,
   category: row.category_name
     ? { _id: row.category_id, name: row.category_name }
@@ -472,7 +472,7 @@ const detailedJobMapper = (row) => ({
   ownership: row.ownership,
   startTime: row.start_time,
   media: row.media
-    ? typeof row.media === String
+    ? typeof row.media === "string"
       ? JSON.parse(row.media)
       : row.media
     : [],
@@ -480,39 +480,44 @@ const detailedJobMapper = (row) => ({
 
 export const Job = {
   async find(query = {}) {
-    let sql = `
-      SELECT 
-        j.*,
-        c.name as category_name,
-        sc.name as sub_category_name,
-        u.name as homeowner_name,
-        u.email as homeowner_email,
-        t.name as hired_tradesperson_name
-      FROM jobs j
-      LEFT JOIN categories c ON j.category_id = c.id
-      LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
-      LEFT JOIN users u ON j.homeowner_id = u.id
-      LEFT JOIN users t ON j.hired_tradesperson_id = t.id
-      WHERE 1=1
-    `;
-    const params = [];
+    try {
+      let sql = `
+        SELECT 
+          j.*,
+          c.name as category_name,
+          sc.name as sub_category_name,
+          u.name as homeowner_name,
+          u.email as homeowner_email,
+          t.name as hired_tradesperson_name
+        FROM jobs j
+        LEFT JOIN categories c ON j.category_id = c.id
+        LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
+        LEFT JOIN users u ON j.homeowner_id = u.id
+        LEFT JOIN users t ON j.hired_tradesperson_id = t.id
+        WHERE 1=1
+      `;
+      const params = [];
 
-    if (query.status) {
-      sql += " AND j.status = ?";
-      params.push(query.status);
-    }
-    if (query.homeowner) {
-      sql += " AND j.homeowner_id = ?";
-      params.push(query.homeowner);
-    }
-    if (query._id) {
-      sql += " AND j.id = ?";
-      params.push(query._id);
-    }
+      if (query.status) {
+        sql += " AND j.status = ?";
+        params.push(query.status);
+      }
+      if (query.homeowner) {
+        sql += " AND j.homeowner_id = ?";
+        params.push(query.homeowner);
+      }
+      if (query._id) {
+        sql += " AND j.id = ?";
+        params.push(query._id);
+      }
 
-    sql += " ORDER BY j.created_at DESC";
-    const [rows] = await pool.query(sql, params);
-    return rows.map(detailedJobMapper);
+      sql += " ORDER BY j.created_at DESC";
+      const [rows] = await pool.query(sql, params);
+      return rows.map(detailedJobMapper);
+    } catch (error) {
+      console.error("Job.find error:", error);
+      throw error;
+    }
   },
 
   async findById(id) {
@@ -562,33 +567,36 @@ export const Job = {
       media = [],
       // location = null,
     } = data;
-    console.log(data.location, "data");
-    const [result] = await pool.query(
-      `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status, media) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        description,
-        homeowner,
-        category,
-        subCategory,
-        budgetMin || 0,
-        budgetMax || 0,
-        city || "",
-        postcode || "",
-        contactName || "",
-        contactEmail || "",
-        contactPhone || "",
-        jobStage || "PLANNING",
-        ownership || "OWN",
-        startTime || "FLEXIBLE",
-        status,
-        status,
-        JSON.stringify(media),
-      ],
-    );
+    try {
+      const [result] = await pool.query(
+        `INSERT INTO jobs (description, homeowner_id, category_id, sub_category_id, budget_min, budget_max, city, postcode, contact_name, contact_email, contact_phone, job_stage, ownership, start_time, status, media) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          description,
+          homeowner,
+          category,
+          subCategory,
+          budgetMin || 0,
+          budgetMax || 0,
+          city || "",
+          postcode || "",
+          contactName || "",
+          contactEmail || "",
+          contactPhone || "",
+          jobStage || "PLANNING",
+          ownership || "OWNER",
+          startTime || "FLEXIBLE",
+          status,
+          JSON.stringify(media),
+        ],
+      );
 
-    // Return the created job, ideally fetching it to get all fields including defaults
-    return this.findById(result.insertId);
+      // Return the created job, ideally fetching it to get all fields including defaults
+      return this.findById(result.insertId);
+    } catch (error) {
+      console.error("Job.create error:", error);
+      throw error;
+    }
   },
 
   async findByIdAndUpdate(id, updateData, options = {}) {

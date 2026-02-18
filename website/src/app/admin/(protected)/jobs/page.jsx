@@ -44,7 +44,7 @@ export default function AdminJobsPage() {
         contactEmail: "",
         contactPhone: "",
         jobStage: "PLANNING",
-        ownership: "OWN",
+        ownership: "OWNER",
         startTime: "FLEXIBLE",
         status: "OPEN"
     });
@@ -124,7 +124,7 @@ export default function AdminJobsPage() {
             contactEmail: "",
             contactPhone: "",
             jobStage: "PLANNING",
-            ownership: "OWN",
+            ownership: "OWNER",
             startTime: "FLEXIBLE",
             status: "OPEN"
         });
@@ -149,7 +149,7 @@ export default function AdminJobsPage() {
             contactEmail: job.contactEmail || "",
             contactPhone: job.contactPhone || "",
             jobStage: job.jobStage || "PLANNING",
-            ownership: job.ownership || "OWN",
+            ownership: job.ownership || "OWNER",
             startTime: job.startTime || "FLEXIBLE",
             status: job.status || "OPEN"
         });
@@ -616,6 +616,48 @@ export default function AdminJobsPage() {
                                         </select>
                                     </div>
                                 </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Job Stage</label>
+                                        <select
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.jobStage}
+                                            onChange={e => setFormData({ ...formData, jobStage: e.target.value })}
+                                        >
+                                            <option value="READY_TO_HIRE">Ready to Hire</option>
+                                            <option value="PLANNING">Planning</option>
+                                            <option value="INSURANCE">Insurance</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Ownership</label>
+                                        <select
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.ownership}
+                                            onChange={e => setFormData({ ...formData, ownership: e.target.value })}
+                                        >
+                                            <option value="OWNER">Owner</option>
+                                            <option value="LANDLORD">Landlord</option>
+                                            <option value="AUTHORIZED">Authorized Rep</option>
+                                            <option value="BUYING">Buying Property</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Start Time</label>
+                                        <select
+                                            className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={formData.startTime}
+                                            onChange={e => setFormData({ ...formData, startTime: e.target.value })}
+                                        >
+                                            <option value="URGENT">Urgent</option>
+                                            <option value="WITHIN_2_DAYS">Within 2 Days</option>
+                                            <option value="WITHIN_2_WEEKS">Within 2 Weeks</option>
+                                            <option value="WITHIN_2_MONTHS">Within 2 Months</option>
+                                            <option value="FLEXIBLE">Flexible</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Categorization & Budget */}
@@ -628,7 +670,7 @@ export default function AdminJobsPage() {
                                             required
                                             className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                             value={formData.category}
-                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                            onChange={e => setFormData({ ...formData, category: e.target.value, subCategory: "" })}
                                         >
                                             <option value="" disabled>Select Category</option>
                                             {categories.map(cat => (
@@ -646,7 +688,10 @@ export default function AdminJobsPage() {
                                         >
                                             <option value="" disabled>Select Sub-Category</option>
                                             {subcategories
-                                                .filter(sub => !formData.category || sub.category?._id === formData.category || sub.category === formData.category)
+                                                .filter(sub => {
+                                                    const subCatId = sub.category?._id || sub.category;
+                                                    return !formData.category || String(subCatId) === String(formData.category);
+                                                })
                                                 .map(sub => (
                                                     <option key={sub._id} value={sub._id}>{sub.name}</option>
                                                 ))
