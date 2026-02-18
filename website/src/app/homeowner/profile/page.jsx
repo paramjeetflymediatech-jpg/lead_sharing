@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import {
     UserCircleIcon,
@@ -8,15 +9,23 @@ import {
     MapPinIcon,
     LockClosedIcon,
     CameraIcon,
-    CheckBadgeIcon
+    CheckBadgeIcon,
+    EyeIcon,
+    EyeSlashIcon
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 
 export default function ProfilePage() {
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [avatar, setAvatar] = useState(null);
     const fileInputRef = useRef(null);
+
+    // Password visibility states
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     // Form states
     const [formData, setFormData] = useState({
@@ -157,6 +166,14 @@ export default function ProfilePage() {
                     newPassword: "",
                     confirmPassword: ""
                 }));
+
+                // Refresh server components to update header image
+                router.refresh();
+
+                // Redirect to dashboard
+                setTimeout(() => {
+                    router.push("/homeowner");
+                }, 1000);
             } else {
                 toast.error(data.message || "Failed to update profile");
             }
@@ -286,30 +303,69 @@ export default function ProfilePage() {
                             <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
                                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Change Password</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <input
-                                        type="password"
-                                        name="currentPassword"
-                                        value={formData.currentPassword}
-                                        onChange={handleChange}
-                                        placeholder="Current Password"
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white text-sm"
-                                    />
-                                    <input
-                                        type="password"
-                                        name="newPassword"
-                                        value={formData.newPassword}
-                                        onChange={handleChange}
-                                        placeholder="New Password"
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white text-sm"
-                                    />
-                                    <input
-                                        type="password"
-                                        name="confirmPassword"
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                        placeholder="Confirm New Password"
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white text-sm"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showCurrentPassword ? "text" : "password"}
+                                            name="currentPassword"
+                                            value={formData.currentPassword}
+                                            onChange={handleChange}
+                                            placeholder="Current Password"
+                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white text-sm pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        >
+                                            {showCurrentPassword ? (
+                                                <EyeSlashIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EyeIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type={showNewPassword ? "text" : "password"}
+                                            name="newPassword"
+                                            value={formData.newPassword}
+                                            onChange={handleChange}
+                                            placeholder="New Password"
+                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white text-sm pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        >
+                                            {showNewPassword ? (
+                                                <EyeSlashIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EyeIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            placeholder="Confirm New Password"
+                                            className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white text-sm pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeSlashIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EyeIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -361,6 +417,7 @@ export default function ProfilePage() {
                     <div className="flex flex-col-reverse sm:flex-row justify-end gap-4 pt-4">
                         <button
                             type="button"
+                            onClick={() => router.push("/homeowner")}
                             className="w-full sm:w-auto px-6 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition font-medium"
                         >
                             Cancel

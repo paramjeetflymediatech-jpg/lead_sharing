@@ -130,7 +130,7 @@ export async function GET(req, context) {
       FROM jobs j
       LEFT JOIN categories c ON j.category_id = c.id
       LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
-      LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
+      LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.user_id
       WHERE j.id = ? AND j.homeowner_id = ?
       LIMIT 1`,
       [jobId, userId]

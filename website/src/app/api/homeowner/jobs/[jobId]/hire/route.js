@@ -78,7 +78,7 @@ export async function POST(req, context) {
 
     // ✅ Start transaction for atomic updates
     const connection = await db.getConnection();
-    
+
     try {
       await connection.beginTransaction();
 
@@ -97,11 +97,11 @@ export async function POST(req, context) {
       const [statusColumns] = await connection.query(
         `SHOW COLUMNS FROM leads LIKE '%status%'`
       );
-      
+
       // Determine if we should update status in leads table
       let shouldUpdateLeadsStatus = false;
       let statusColumnName = null;
-      
+
       if (statusColumns.length > 0) {
         shouldUpdateLeadsStatus = true;
         statusColumnName = statusColumns[0].Field;
@@ -109,13 +109,13 @@ export async function POST(req, context) {
         // Check for common alternative column names
         const [allColumns] = await connection.query(`SHOW COLUMNS FROM leads`);
         const columnNames = allColumns.map(col => col.Field.toLowerCase());
-        
+
         // Look for any column that might be used for status
         const possibleStatusColumns = ['lead_status', 'state', 'status_code', 'lead_state', 'current_status'];
         for (const possibleCol of possibleStatusColumns) {
           if (columnNames.includes(possibleCol.toLowerCase())) {
             // Find the exact case-sensitive column name
-            const exactColumn = allColumns.find(col => 
+            const exactColumn = allColumns.find(col =>
               col.Field.toLowerCase() === possibleCol.toLowerCase()
             );
             if (exactColumn) {
@@ -125,7 +125,7 @@ export async function POST(req, context) {
             }
           }
         }
-        
+
         if (!shouldUpdateLeadsStatus) {
           console.warn("No status column found in leads table. Status updates will be skipped.");
         }
@@ -134,7 +134,7 @@ export async function POST(req, context) {
       // ✅ UPDATE LEADS STATUS ONLY IF COLUMN EXISTS
       if (shouldUpdateLeadsStatus && statusColumnName) {
         console.log(`Updating leads status using column: ${statusColumnName}`);
-        
+
         // Update all other leads to REJECTED
         await connection.query(
           `UPDATE leads 
@@ -168,7 +168,7 @@ export async function POST(req, context) {
           j.*,
           tp.company_name as hired_tradesperson_name
          FROM jobs j
-         LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
+         LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.user_id
          WHERE j.id = ?
          LIMIT 1`,
         [jobId]
@@ -190,9 +190,9 @@ export async function POST(req, context) {
   } catch (error) {
     console.error("HIRE API ERROR:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: "Internal server error", 
+      {
+        success: false,
+        message: "Internal server error",
         error: error.message,
         sqlMessage: error.sqlMessage
       },

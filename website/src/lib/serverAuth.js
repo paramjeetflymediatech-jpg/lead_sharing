@@ -68,6 +68,7 @@ export async function getCurrentUser() {
       role: user.role,
       email: user.email,
       name: user.name,
+      profileImage: user.profile_image || user.profileImage, // Map from DB snake_case or existing camelCase
     };
   } catch (err) {
     return null;

@@ -95,6 +95,8 @@ export default function ProfilePage() {
             const data = await res.json();
             if (data.success) {
                 toast.success("Profile updated successfully!");
+                // Refresh server components to update header image
+                router.refresh();
                 // Redirect to dashboard after successful profile update
                 setTimeout(() => {
                     router.push("/tradesperson");

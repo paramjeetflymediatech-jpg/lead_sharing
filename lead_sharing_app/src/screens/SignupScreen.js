@@ -12,6 +12,7 @@ import {
     Image,
     Dimensions,
 } from "react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 import { normalize, hp, wp } from "../utils/responsive";
 import { authAPI } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
@@ -24,6 +25,7 @@ export default function SignupScreen({ navigation }) {
     const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [successModalVisible, setSuccessModalVisible] = useState(false);
@@ -183,7 +185,7 @@ export default function SignupScreen({ navigation }) {
                                 autoCapitalize="none"
                                 keyboardType="email-address"
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={(text) => setEmail(text.toLowerCase())}
                                 editable={!loading}
                             />
                         </View>
@@ -230,11 +232,21 @@ export default function SignupScreen({ navigation }) {
                                 style={styles.input}
                                 placeholder="Password"
                                 placeholderTextColor="#9CA3AF"
-                                secureTextEntry
+                                secureTextEntry={!showPassword}
                                 value={password}
                                 onChangeText={setPassword}
                                 editable={!loading}
                             />
+                            <TouchableOpacity
+                                onPress={() => setShowPassword(!showPassword)}
+                                style={styles.eyeIcon}
+                            >
+                                {showPassword ? (
+                                    <EyeOff color="#9CA3AF" size={20} />
+                                ) : (
+                                    <Eye color="#9CA3AF" size={20} />
+                                )}
+                            </TouchableOpacity>
                         </View>
                     </View>
 
@@ -399,6 +411,9 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         color: "#1F2937",
         height: '100%',
+    },
+    eyeIcon: {
+        padding: 10,
     },
     terms: {
         fontSize: normalize(11),

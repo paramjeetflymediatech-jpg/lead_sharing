@@ -171,7 +171,7 @@ export async function GET(req) {
 
     let whereClause = "j.homeowner_id = ?";
     const params = [userId];
-    
+
     if (status && status !== "all") {
       whereClause += " AND j.status = ?";
       params.push(status.toUpperCase());
@@ -192,7 +192,7 @@ export async function GET(req) {
       LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
       LEFT JOIN leads l ON j.id = l.job_id
       LEFT JOIN tradesperson_ratings r ON j.id = r.job_id
-      LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
+      LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.user_id
       WHERE ${whereClause}
       GROUP BY j.id
       ORDER BY j.created_at DESC`,
@@ -210,7 +210,7 @@ export async function GET(req) {
       leadCount: job.leadCount || 0,
       hasRated: Boolean(job.hasRated),
       rating: job.rating || null,
-      
+
       category: { name: job.category_name },
       subCategory: { name: job.subcategory_name },
       location: {
@@ -233,7 +233,7 @@ export async function GET(req) {
       success: true,
       data: { jobs: formattedJobs, summary }
     });
-    
+
   } catch (error) {
     console.error("Get jobs error:", error);
     return NextResponse.json(

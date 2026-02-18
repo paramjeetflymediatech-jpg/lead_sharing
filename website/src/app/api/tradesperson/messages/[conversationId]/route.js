@@ -62,9 +62,10 @@ export async function GET(req, context) {
         const tradespersonId = profiles[0].id;
 
         // Verify tradesperson has unlocked this lead
+        // Verify tradesperson has unlocked this lead
         const [leads] = await db.query(
             `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-            [jobId, tradespersonId]
+            [jobId, userId]
         );
 
         if (!leads || leads.length === 0) {
@@ -221,9 +222,10 @@ export async function POST(req, context) {
         const tradespersonId = profiles[0].id;
 
         // Verify tradesperson has unlocked this lead
+        // Verify tradesperson has unlocked this lead
         const [leads] = await db.query(
             `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-            [jobId, tradespersonId]
+            [jobId, userId]
         );
 
         if (!leads || leads.length === 0) {

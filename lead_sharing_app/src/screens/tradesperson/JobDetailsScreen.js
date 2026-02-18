@@ -185,6 +185,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                                 </View>
                             </View>
                         )}
+
                     </View>
                 )}
             </View>
@@ -421,3 +422,4 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 });
+

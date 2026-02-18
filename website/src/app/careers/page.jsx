@@ -9,32 +9,32 @@ export async function generateMetadata() {
 
 export default async function CareersPage() {
     const schema = await getSeoSchema("/careers");
-    const openPositions = [
-        {
-            title: "Full Stack Developer",
-            department: "Engineering",
-            location: "Remote / Toronto",
-            type: "Full-time"
-        },
-        {
-            title: "Customer Success Manager",
-            department: "Customer Support",
-            location: "Toronto",
-            type: "Full-time"
-        },
-        {
-            title: "Marketing Manager",
-            department: "Marketing",
-            location: "Remote / Vancouver",
-            type: "Full-time"
-        },
-        {
-            title: "Product Designer",
-            department: "Design",
-            location: "Remote",
-            type: "Full-time"
-        }
-    ];
+    // const openPositions = [
+    //     {
+    //         title: "Full Stack Developer",
+    //         department: "Engineering",
+    //         location: "Remote / Toronto",
+    //         type: "Full-time"
+    //     },
+    //     {
+    //         title: "Customer Success Manager",
+    //         department: "Customer Support",
+    //         location: "Toronto",
+    //         type: "Full-time"
+    //     },
+    //     {
+    //         title: "Marketing Manager",
+    //         department: "Marketing",
+    //         location: "Remote / Vancouver",
+    //         type: "Full-time"
+    //     },
+    //     {
+    //         title: "Product Designer",
+    //         department: "Design",
+    //         location: "Remote",
+    //         type: "Full-time"
+    //     }
+    // ];
 
     return (
         <MainLayout>
@@ -128,7 +128,7 @@ export default async function CareersPage() {
                     </div>
 
                     {/* Open Positions */}
-                    <div>
+                    {/* <div>
                         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Open Positions</h2>
                         <div className="space-y-4">
                             {openPositions.map((job, index) => (
@@ -152,7 +152,7 @@ export default async function CareersPage() {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* CTA */}
                     <div className="mt-16 text-center">

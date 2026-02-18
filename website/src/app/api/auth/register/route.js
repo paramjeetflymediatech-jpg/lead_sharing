@@ -6,7 +6,9 @@ import { setAuthCookie } from '@/lib/serverAuth';
 
 export async function POST(req) {
   const body = await req.json();
-  const { name, email, password, role, companyName } = body;
+  let { name, email, password, role, companyName } = body;
+
+  if (email) email = email.toLowerCase();
 
   if (!name || !email || !password || !role) {
     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });

@@ -11,7 +11,17 @@ export async function GET(req) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Get tradesperson profile with user details
+    // Get tradesperson profile using the model (which handles JSON parsing)
+    // We can also join with user data if needed, but the model primarily returns profile data
+    // The previous query joined with users table, so we might need to preserve that if the frontend uses user_name/email from here.
+    // However, the model's findOne returns a normalized object. 
+    // Let's use the model to get the profile, then fetch user details if needed, or rely on the join in the model if we add it.
+    // For now, let's look at the original query: it joined users.
+    // Let's stick to the raw query but APPLY THE PARSING manually or helper.
+    // Actually, looking at the TradespersonProfile.js model, it has a findOne that does NOT join users by default.
+    // But the frontend expects `email` in the response (ProfilePage.jsx line 35).
+
+    // Let's use the raw query for the JOIN but parse the results.
     const [profiles] = await pool.query(
       `SELECT 
         tp.*,
@@ -43,8 +53,8 @@ export async function GET(req) {
         [userId, user[0].name + "'s Services"]
       );
 
-      // Fetch the newly created profile
-      const [newProfile] = await pool.query(
+      // Recursive call or just fetch what we just created
+      const [newProfiles] = await pool.query(
         `SELECT 
           tp.*,
           u.email,
@@ -56,15 +66,63 @@ export async function GET(req) {
         [result.insertId]
       );
 
-      return NextResponse.json({
-        success: true,
-        data: newProfile[0]
-      });
+      const profile = newProfiles[0];
+      // PARSE JSON FIELDS
+      try {
+        profile.skills = typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []);
+        profile.serviceAreas = typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []); // map service_areas to serviceAreas for frontend?
+        // The frontend expects camelCase 'serviceAreas' but DB has 'service_areas'. 
+        // The previous code returned raw, so likely frontend accessed 'service_areas' OR 'serviceAreas' if it was consistent.
+        // ProfilePage.jsx line 37 uses `data.data.serviceAreas`.
+        // So we MUST map it.
+        profile.serviceAreas = typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []);
+
+        // Also map company_name to companyName if needed, but ProfilePage uses ...data, so maybe it uses snake_case?
+        // ProfilePage line 14: companyName. Line 34: ...data.data.
+        // If previous return was RAW, it returned `company_name`. 
+        // ProfilePage line 34 spreads it.
+        // ProfilePage state has `companyName`. 
+        // Line 34: `setProfile({ ...data.data, ... })`
+        // If data.data has company_name, but state expects companyName, the spread adds company_name to state but doesn't update companyName!
+        // This implies the frontend might have been broken for companyName too, OR the previous backend query returned camelCase? 
+        // No, `SELECT tp.*` returns snake_case.
+
+        // Let's normalize the response to match what frontend likely expects (camelCase based on state variables).
+        const normalized = {
+          ...profile,
+          companyName: profile.company_name,
+          profileImage: profile.profile_image,
+          serviceAreas: typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []),
+          skills: typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []),
+        };
+
+        return NextResponse.json({
+          success: true,
+          data: normalized
+        });
+
+      } catch (e) {
+        console.error("Error parsing new profile JSON", e);
+      }
+
+      return NextResponse.json({ success: true, data: profile });
     }
+
+    // Existing profile found
+    const profile = profiles[0];
+
+    // Normalize and parse
+    const normalized = {
+      ...profile,
+      companyName: profile.company_name,
+      profileImage: profile.profile_image,
+      serviceAreas: typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []),
+      skills: typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []),
+    };
 
     return NextResponse.json({
       success: true,
-      data: profiles[0]
+      data: normalized
     });
   } catch (error) {
     console.error("❌ Tradesperson Profile Fetch Error:", error);
@@ -130,7 +188,7 @@ export async function PUT(req) {
     }
 
     // Fetch updated profile
-    const [updatedProfile] = await pool.query(
+    const [updatedProfiles] = await pool.query(
       `SELECT 
         tp.*,
         u.email,
@@ -142,10 +200,21 @@ export async function PUT(req) {
       [userId]
     );
 
+    const profile = updatedProfiles[0];
+
+    // Normalize and parse
+    const normalized = {
+      ...profile,
+      companyName: profile.company_name,
+      profileImage: profile.profile_image,
+      serviceAreas: typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []),
+      skills: typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []),
+    };
+
     return NextResponse.json({
       success: true,
       message: "Profile updated successfully",
-      data: updatedProfile[0]
+      data: normalized
     });
   } catch (error) {
     console.error("❌ Tradesperson Profile Update Error:", error);

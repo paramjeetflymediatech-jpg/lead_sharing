@@ -55,6 +55,15 @@ export async function POST(req) {
     }
 
     const profile = profiles[0];
+    console.log("UNLOCK DEBUG: Profile retrieved:", profile);
+
+    if (!profile.id) {
+      console.error("UNLOCK DEBUG: Profile ID is missing", profile);
+      return NextResponse.json({
+        success: false,
+        message: "Invalid tradesperson profile data"
+      }, { status: 500 });
+    }
 
     // Check credits
     if (profile.credits < LEAD_COST) {
@@ -83,6 +92,7 @@ export async function POST(req) {
     const [existingLeads] = await db.query(
       `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
       [jobId, userId]
+      
     );
 
     if (existingLeads && existingLeads.length > 0) {

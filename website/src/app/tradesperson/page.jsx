@@ -1625,9 +1625,10 @@ export default async function TradespersonDashboard({ searchParams }) {
           });
 
           // Check if current tradesperson unlocked this job
+          // Note: leads table stores user_id in tradesperson_id column due to schema/logic mismatch
           const myLead = await Lead.findOne({
             job: job._id,
-            tradesperson: profile._id,
+            tradesperson: user.id, // Changed from profile._id to user.id
             isUnlocked: true,
           });
           const isUnlockedByMe = !!myLead;
@@ -1665,7 +1666,7 @@ export default async function TradespersonDashboard({ searchParams }) {
 
     // Get tradesperson's unlocked leads count
     const activeLeadsCount = await Lead.countDocuments({
-      tradesperson: profile._id,
+      tradesperson: user.id, // Changed from profile._id to user.id
       isUnlocked: true,
     });
 
@@ -2004,7 +2005,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                       {profile.companyName || "Your Business"}
                     </h4>
                     <p className="text-xs text-zinc-500 mb-1">
-                      {profile.user?.email || "No email"}
+                      {profile.user?.email || ""}
                     </p>
                     <p className="text-xs text-zinc-500">
                       {profile.skills?.length || 0} services • {profile.serviceAreas?.length || 0} areas

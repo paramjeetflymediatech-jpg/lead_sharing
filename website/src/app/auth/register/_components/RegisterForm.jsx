@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 
 
 function RegisterFormContent() {
@@ -16,6 +17,7 @@ function RegisterFormContent() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Validation states
     const [fieldErrors, setFieldErrors] = useState({
@@ -148,7 +150,7 @@ function RegisterFormContent() {
     };
 
     const handleEmailChange = (e) => {
-        const value = e.target.value;
+        const value = e.target.value.toLowerCase();
         setEmail(value);
         if (touched.email) {
             setFieldErrors({ ...fieldErrors, email: validateEmail(value) });
@@ -307,8 +309,8 @@ function RegisterFormContent() {
                                 <input
                                     required
                                     className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.name && fieldErrors.name
-                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
+                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
                                         }`}
                                     placeholder="Enter your name"
                                     value={name}
@@ -331,8 +333,8 @@ function RegisterFormContent() {
                                     <input
                                         required
                                         className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.companyName && fieldErrors.companyName
-                                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                                : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
+                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
                                             }`}
                                         placeholder="Enter company name"
                                         value={companyName}
@@ -356,8 +358,8 @@ function RegisterFormContent() {
                                     required
                                     type="email"
                                     className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.email && fieldErrors.email
-                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
+                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
                                         }`}
                                     placeholder="Enter your email"
                                     value={email}
@@ -376,18 +378,31 @@ function RegisterFormContent() {
                                 <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ml-1">
                                     Password
                                 </label>
-                                <input
-                                    required
-                                    type="password"
-                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.password && fieldErrors.password
+                                <div className="relative">
+                                    <input
+                                        required
+                                        type={showPassword ? "text" : "password"}
+                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white pr-10 ${touched.password && fieldErrors.password
                                             ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
                                             : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
-                                        }`}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={handlePasswordChange}
-                                    onBlur={() => handleBlur("password")}
-                                />
+                                            }`}
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={handlePasswordChange}
+                                        onBlur={() => handleBlur("password")}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    >
+                                        {showPassword ? (
+                                            <EyeSlashIcon className="w-5 h-5" />
+                                        ) : (
+                                            <EyeIcon className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
                                 {touched.password && fieldErrors.password && (
                                     <p className="text-xs text-red-600 dark:text-red-400 ml-1 mt-1">
                                         {fieldErrors.password}

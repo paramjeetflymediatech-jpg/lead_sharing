@@ -28,6 +28,18 @@ export async function GET(req, context) {
 
     const job = jobs[0];
 
+    // Parse media JSON if it's a string
+    try {
+      if (job.media && typeof job.media === 'string') {
+        job.media = JSON.parse(job.media);
+      } else if (!Array.isArray(job.media)) {
+        job.media = [];
+      }
+    } catch (e) {
+      console.error("Error parsing media JSON:", e);
+      job.media = [];
+    }
+
     // Check if this tradesperson has unlocked this job
     let isUnlocked = false;
     let contactInfo = null;

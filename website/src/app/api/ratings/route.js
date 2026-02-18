@@ -816,22 +816,21 @@ export async function POST(req) {
       [jobId]
     );
 
+    let ratingId;
     if (existing && existing.length > 0) {
-      return NextResponse.json(
-        { success: false, message: "You have already rated this job" },
-        { status: 400 }
+      console.log("⚠️ Job already rated. Skipping insert, but will update profile stats.");
+      ratingId = existing[0].id;
+    } else {
+      // INSERT RATING
+      const [result] = await db.query(
+        `INSERT INTO tradesperson_ratings 
+         (job_id, homeowner_id, tradesperson_id, rating, review, created_at)
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [jobId, userId, tradespersonId, rating, review?.trim() || null]
       );
+      ratingId = result.insertId;
+      console.log("✅ Rating inserted with ID:", ratingId);
     }
-
-    // INSERT RATING (tradesperson_id = user_id due to foreign key)
-    const [result] = await db.query(
-      `INSERT INTO tradesperson_ratings 
-       (job_id, homeowner_id, tradesperson_id, rating, review, created_at)
-       VALUES (?, ?, ?, ?, ?, NOW())`,
-      [jobId, userId, tradespersonId, rating, review?.trim() || null]
-    );
-
-    console.log("✅ Rating inserted with ID:", result.insertId);
 
     // CALCULATE NEW STATS
     const [stats] = await db.query(
@@ -850,9 +849,9 @@ export async function POST(req) {
     console.log("  Average:", avgRating);
     console.log("  Total:", totalRatings);
 
-    // The tradespersonId from frontend is actually hired_tradesperson_id which is a PROFILE ID
+    // The tradespersonId from frontend is actually the tradesperson's USER ID
     const [profile] = await db.query(
-      `SELECT id, user_id, company_name FROM tradesperson_profiles WHERE id = ? LIMIT 1`,
+      `SELECT id, user_id, company_name FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
       [tradespersonId]
     );
 
@@ -900,7 +899,7 @@ export async function POST(req) {
       success: true,
       message: "Rating submitted successfully",
       data: {
-        ratingId: result.insertId,
+        ratingId: ratingId,
         avgRating: parseFloat(avgRating),
         totalRatings
       }

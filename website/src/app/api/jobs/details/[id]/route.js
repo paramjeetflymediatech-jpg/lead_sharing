@@ -29,7 +29,7 @@ export async function GET(req, context) {
       FROM jobs j
       LEFT JOIN categories c ON j.category_id = c.id
       LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
-      LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
+      LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.user_id
       LEFT JOIN tradesperson_ratings tr ON j.id = tr.job_id
       WHERE j.id = ? AND j.homeowner_id = ?
       LIMIT 1`,
@@ -54,14 +54,14 @@ export async function GET(req, context) {
       budgetMax: job.budget_max,
       createdAt: job.created_at,
       rating: job.rating_value,
-      
+
       category: { name: job.category_name },
       subCategory: { name: job.subcategory_name },
       location: {
         city: job.city,
         postcode: job.postcode
       },
-      
+
       // Hired tradesperson info
       hiredTradesperson: job.hired_tradesperson_id ? {
         _id: job.hired_tradesperson_id,
@@ -70,7 +70,7 @@ export async function GET(req, context) {
     };
 
     return NextResponse.json(response);
-    
+
   } catch (error) {
     console.error("Get job error:", error);
     return NextResponse.json(

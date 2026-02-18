@@ -71,7 +71,7 @@ export async function GET(req, context) {
       is_unlocked: lead.is_unlocked,
       created_at: lead.created_at,
       updated_at: lead.updated_at,
-      
+
       // Tradesperson details
       tradesperson_name: lead.tradesperson_name || lead.company_name || "Professional",
       company_name: lead.company_name,

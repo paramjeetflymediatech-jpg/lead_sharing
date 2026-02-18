@@ -175,10 +175,10 @@ export default function TradespersonJobsList({ jobs, profileId }) {
         <div className="flex flex-col items-end gap-3">
           {/* Lead Status Badge */}
           <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${job.leadCount >= job.maxLeads
-              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-              : job.leadCount > 0
-                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
-                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+            : job.leadCount > 0
+              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+              : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
             }`}>
             {job.leadCount >= job.maxLeads
               ? "Full"
@@ -207,8 +207,8 @@ export default function TradespersonJobsList({ jobs, profileId }) {
                 onClick={() => handleUnlockClick(job)}
                 disabled={unlockingJobId === job.id}
                 className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${unlockingJobId === job.id
-                    ? "bg-zinc-300 text-zinc-500 cursor-not-allowed"
-                    : "bg-[#155DFC] text-white hover:bg-[#155DFC]/90 shadow-sm"
+                  ? "bg-zinc-300 text-zinc-500 cursor-not-allowed"
+                  : "bg-[#155DFC] text-white hover:bg-[#155DFC]/90 shadow-sm"
                   }`}
               >
                 {unlockingJobId === job.id ? "Processing..." : "Unlock Lead"}
@@ -246,8 +246,8 @@ export default function TradespersonJobsList({ jobs, profileId }) {
       {/* Alert Message */}
       {alert.show && (
         <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg ${alert.type === "success"
-            ? "bg-green-600 text-white"
-            : "bg-red-600 text-white"
+          ? "bg-green-600 text-white"
+          : "bg-red-600 text-white"
           }`}>
           <div className="flex items-center gap-2">
             {alert.type === "success" ? (
@@ -349,8 +349,8 @@ export default function TradespersonJobsList({ jobs, profileId }) {
                   onClick={handleUnlockLead}
                   disabled={!message.trim() || !priceEstimate.trim() || unlockingJobId}
                   className={`flex-1 px-4 py-3 font-bold rounded-xl transition-all ${!message.trim() || !priceEstimate.trim() || unlockingJobId
-                      ? "bg-zinc-300 text-zinc-500 cursor-not-allowed"
-                      : "bg-[#155DFC] text-white hover:bg-[#155DFC]/90"
+                    ? "bg-zinc-300 text-zinc-500 cursor-not-allowed"
+                    : "bg-[#155DFC] text-white hover:bg-[#155DFC]/90"
                     }`}
                 >
                   {unlockingJobId ? "Processing..." : "Unlock Lead (1 Credit)"}

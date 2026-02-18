@@ -210,10 +210,10 @@ export default function PostJobScreen({ navigation }) {
                 startTime: formData.start_time,
                 jobStage: formData.job_stage,
                 ownership: formData.ownership,
-                location: {
-                    postcode: formData.postcode,
-                    city: formData.city,
-                },
+                // location: {
+                //     postcode: formData.postcode,
+                //     city: formData.city,
+                // },
                 postcode: formData.postcode, // Ensure backend receives flattened field if needed
                 city: formData.city, // Ensure backend receives flattened field if needed
                 contactName: formData.contactName,

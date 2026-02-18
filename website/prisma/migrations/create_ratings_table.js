@@ -297,6 +297,8 @@ async function runMigration() {
         FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
+
+
     console.log("✅ messages");
 
     /* ================= SEED DATA ================= */

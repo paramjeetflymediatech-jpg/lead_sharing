@@ -341,8 +341,16 @@ export default function Header() {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-[#1149C7] transition-all"
               >
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7]">
-                  <UserCircleIcon className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7] overflow-hidden border border-blue-200">
+                  {user.profile_image || user.profileImage ? (
+                    <img
+                      src={user.profile_image || user.profileImage}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <UserCircleIcon className="w-6 h-6" />
+                  )}
                 </div>
                 <span>{user.name}</span>
                 <ChevronDownIcon className={`w-4 h-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
@@ -559,8 +567,16 @@ export default function Header() {
             {user && (
               <div className="mt-auto pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-3 px-2 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7]">
-                    <UserCircleIcon className="w-7 h-7" />
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7] overflow-hidden border border-blue-200">
+                    {user.profile_image || user.profileImage ? (
+                      <img
+                        src={user.profile_image || user.profileImage}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UserCircleIcon className="w-7 h-7" />
+                    )}
                   </div>
                   <div>
                     <p className="font-bold text-gray-900">{user.name}</p>

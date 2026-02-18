@@ -38,21 +38,8 @@ export async function GET(req) {
 
     // TRADESPERSON - View their own ratings
     if (userRole === "TRADESPERSON") {
-      // Get tradesperson profile to find their tradesperson_id
-      const [profiles] = await db.query(
-        `SELECT id FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
-        [userId]
-      );
-
-      if (!profiles || profiles.length === 0) {
-        return NextResponse.json(
-          { success: false, message: "Tradesperson profile not found" },
-          { status: 404 }
-        );
-      }
-
-      const tradespersonProfileId = profiles[0].id;
-      const ratings = await getTradespersonRatings(tradespersonProfileId);
+      // Use userId directly as tradesperson_id in ratings table refers to user_id
+      const ratings = await getTradespersonRatings(userId);
 
       return NextResponse.json({
         success: true,

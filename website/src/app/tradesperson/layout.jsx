@@ -9,6 +9,14 @@ export default async function TradespersonLayout({ children }) {
         redirect("/auth/login");
     }
 
+    // Fetch tradesperson profile to get the image
+    const { TradespersonProfile } = await import("@/models/TradespersonProfile");
+    const profile = await TradespersonProfile.findOne({ user: user.id });
+
+    if (profile && profile.profileImage) {
+        user.profileImage = profile.profileImage;
+    }
+
     const navItems = [
         { name: "Explore Jobs", href: "/tradesperson", icon: "HomeIcon" },
         { name: "My Unlocked Leads", href: "/tradesperson/leads", icon: "ClipboardDocumentListIcon" },

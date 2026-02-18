@@ -131,8 +131,16 @@ export default function DashboardLayout({ children, navItems, user }) {
                     {/* Sidebar Footer - User Profile (Mobile Only Context) */}
                     <div className="p-6 border-t border-zinc-200 dark:border-zinc-800">
                         <div className="flex items-center gap-3 mb-4 xl:hidden">
-                            <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
-                                <UserCircleIcon className="w-6 h-6 text-zinc-500" />
+                            <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                                {user?.profileImage ? (
+                                    <img
+                                        src={user.profileImage}
+                                        alt={user.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <UserCircleIcon className="w-6 h-6 text-zinc-500" />
+                                )}
                             </div>
                             <div className="overflow-hidden">
                                 <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">{user?.name || user?.email}</p>
@@ -189,7 +197,15 @@ export default function DashboardLayout({ children, navItems, user }) {
                             </div>
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#1149C7] to-[#155DFC] p-[1px] shadow-lg shadow-[#1149C7]/20">
                                 <div className="w-full h-full rounded-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden">
-                                    <UserCircleIcon className="w-6 h-6 text-zinc-400" />
+                                    {user?.profileImage ? (
+                                        <img
+                                            src={user.profileImage}
+                                            alt={user.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <UserCircleIcon className="w-6 h-6 text-zinc-400" />
+                                    )}
                                 </div>
                             </div>
                         </div>

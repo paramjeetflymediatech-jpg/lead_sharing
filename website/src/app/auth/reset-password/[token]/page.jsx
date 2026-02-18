@@ -4,12 +4,15 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 
 export default function ResetPasswordPage() {
     const params = useParams();
     const router = useRouter();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [submitted, setSubmitted] = useState(false);
@@ -88,27 +91,53 @@ export default function ResetPasswordPage() {
                                     <label className="text-xs font-bold uppercase text-zinc-500 ml-1">
                                         New Password
                                     </label>
-                                    <input
-                                        required
-                                        type="password"
-                                        className="w-full mt-1 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm focus:border-[#155DFC] outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            required
+                                            type={showPassword ? "text" : "password"}
+                                            className="w-full mt-1 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm focus:border-[#155DFC] outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white pr-10"
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        >
+                                            {showPassword ? (
+                                                <EyeSlashIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EyeIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="text-xs font-bold uppercase text-zinc-500 ml-1">
                                         Confirm Password
                                     </label>
-                                    <input
-                                        required
-                                        type="password"
-                                        className="w-full mt-1 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm focus:border-[#155DFC] outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                                        placeholder="••••••••"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            required
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            className="w-full mt-1 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm focus:border-[#155DFC] outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white pr-10"
+                                            placeholder="••••••••"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeSlashIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EyeIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                                 <button
                                     type="submit"
