@@ -37,6 +37,7 @@ async function runMigration() {
       'tradesperson_profiles',
       'sub_categories',
       'categories',
+      'credit_plans',
       'seo_pages',
       'users'
     ];
@@ -207,12 +208,29 @@ async function runMigration() {
     `);
     console.log("✅ leads");
 
+    /* ================= CREDIT PLANS ================= */
+    await connection.query(`
+      CREATE TABLE credit_plans (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        plan_key VARCHAR(50) NOT NULL UNIQUE,
+        price DECIMAL(10,2) NOT NULL,
+        credits INT NOT NULL,
+        description TEXT,
+        is_active TINYINT(1) DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      );
+    `);
+    console.log("✅ credit_plans");
+
     /* ================= PAYMENTS ================= */
     await connection.query(`
       CREATE TABLE payments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         tradesperson_id INT NOT NULL,
         user_id INT NOT NULL,
+        plan_id INT,
         stripe_session_id VARCHAR(255) NOT NULL,
         stripe_payment_intent_id VARCHAR(255),
         plan VARCHAR(50) NOT NULL,
@@ -223,7 +241,8 @@ async function runMigration() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (tradesperson_id) REFERENCES users(id),
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (plan_id) REFERENCES credit_plans(id) ON DELETE SET NULL
       );
     `);
     console.log("✅ payments");
@@ -271,6 +290,7 @@ async function runMigration() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );
     `);
+
     console.log("✅ blogs");
 
     /* ================= MESSAGES ================= */
@@ -319,6 +339,13 @@ async function runMigration() {
       ('Electrical', 'electrical'),
       ('Carpentry', 'carpentry'),
       ('Painting & Decorating', 'painting-decorating')
+    `);
+
+    await connection.query(`
+      INSERT INTO credit_plans (name, plan_key, price, credits, description) VALUES
+      ('Basic Plan', 'basic_plan', 10.00, 10, 'Starter pack with 10 credits'),
+      ('Standard Plan', 'standard_plan', 25.00, 30, 'Best seller with 30 credits'),
+      ('Premium Plan', 'premium_plan', 50.00, 70, 'Bulk pack with 70 credits')
     `);
 
     console.log("🎉 MIGRATION COMPLETED SUCCESSFULLY");
