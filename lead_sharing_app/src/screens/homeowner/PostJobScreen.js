@@ -200,15 +200,11 @@ export default function PostJobScreen({ navigation }) {
 
             // Convert to numbers
             // detailed description with property type
-            let detailedDescription = formData.description;
-            if (formData.property_type) {
-                detailedDescription += `\n\nProperty Type: ${formData.property_type}`;
-            }
-
             const jobData = {
                 category: parseInt(formData.category_id),
                 subCategory: formData.subcategory_id ? parseInt(formData.subcategory_id) : null,
-                description: detailedDescription,
+                description: formData.description,
+                propertyType: formData.property_type,
                 budgetMin: formData.budget_min ? parseFloat(formData.budget_min) : null,
                 budgetMax: formData.budget_max ? parseFloat(formData.budget_max) : null,
                 startTime: formData.start_time,
