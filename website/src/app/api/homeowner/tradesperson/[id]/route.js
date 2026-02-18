@@ -43,11 +43,53 @@ export async function GET(request, { params }) {
       }
     }
 
+    // If profile doesn't exist, try to create a default one
     if (!tradespersonProfileId) {
-      return NextResponse.json(
-        { success: false, message: 'Tradesperson profile not found' },
-        { status: 404 }
-      );
+      console.log(`⚠️ Tradesperson profile not found for ID: ${id}, attempting to create default profile...`);
+
+      // Try to find the user (either by profile ID or user ID)
+      const [userRows] = await pool.query(`
+        SELECT id, name, email FROM users 
+        WHERE (id = ? OR id IN (SELECT user_id FROM tradesperson_profiles WHERE id = ?))
+        AND role = 'TRADESPERSON'
+        LIMIT 1
+      `, [id, id]);
+
+      if (userRows.length > 0) {
+        const user = userRows[0];
+        console.log(`✅ Found tradesperson user: ${user.name} (ID: ${user.id})`);
+
+        // Check if a profile already exists for this user (by user_id, not profile id)
+        const [existingProfileRows] = await pool.query(`
+          SELECT id, user_id FROM tradesperson_profiles WHERE user_id = ?
+        `, [user.id]);
+
+        if (existingProfileRows.length > 0) {
+          // Profile exists, just use it
+          tradespersonProfileId = existingProfileRows[0].id;
+          tradespersonUserId = existingProfileRows[0].user_id;
+          console.log(`✅ Found existing profile with ID: ${tradespersonProfileId} for user ${user.id}`);
+        } else {
+          // Create a default profile for this tradesperson
+          console.log(`Creating new default profile for user ${user.id}...`);
+          const [insertResult] = await pool.query(`
+            INSERT INTO tradesperson_profiles 
+            (user_id, company_name, phone, postcode, bio, skills, service_areas, profile_image, created_at, updated_at)
+            VALUES (?, ?, '', '', 'Profile not yet completed', '[]', '[]', '', NOW(), NOW())
+          `, [user.id, user.name + "'s Services"]);
+
+          tradespersonProfileId = insertResult.insertId;
+          tradespersonUserId = user.id;
+          console.log(`✅ Created default profile with ID: ${tradespersonProfileId}`);
+        }
+      } else {
+        // User doesn't exist or is not a tradesperson
+        console.log(`❌ No tradesperson user found for ID: ${id}`);
+        return NextResponse.json(
+          { success: false, message: 'Tradesperson not found' },
+          { status: 404 }
+        );
+      }
     }
 
     // Now get tradesperson profile with user details using the correct profile_id

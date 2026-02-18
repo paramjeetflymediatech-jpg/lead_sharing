@@ -230,12 +230,18 @@ function JobCard({ job, navigation }) {
             <View style={styles.jobDetailsRow}>
                 <View style={styles.jobDetailItem}>
                     <Feather name="map-pin" size={12} color="#6B7280" style={{ marginRight: 4 }} />
-                    <Text style={styles.jobDetailText}>{job.postcode || "N/A"}</Text>
+                    <Text style={styles.jobDetailText}>
+                        {job.city && job.postcode
+                            ? `${job.city}, ${job.postcode}`
+                            : job.postcode || job.city || "N/A"}
+                    </Text>
                 </View>
                 <View style={styles.jobDetailItem}>
                     <Feather name="clock" size={12} color="#6B7280" style={{ marginRight: 4 }} />
                     <Text style={styles.jobDetailText}>
-                        {job.start_time ? job.start_time.replace(/_/g, " ").toLowerCase() : "flexible"}
+                        {job.start_time
+                            ? job.start_time.replace(/_/g, " ").toLowerCase()
+                            : "Flexible"}
                     </Text>
                 </View>
             </View>
