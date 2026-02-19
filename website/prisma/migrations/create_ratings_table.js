@@ -39,6 +39,8 @@ async function runMigration() {
       'categories',
       'credit_plans',
       'seo_pages',
+      'push_tokens',
+      'auth_tokens',
       'users'
     ];
 
@@ -64,11 +66,42 @@ async function runMigration() {
         postcode VARCHAR(20),
         phone VARCHAR(20),
         profile_image VARCHAR(255),
+        auth_token VARCHAR(1000),
+        auth_token_expires DATETIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );
     `);
     console.log("✅ users");
+
+    /* ================= PUSH TOKENS ================= */
+    await connection.query(`
+      CREATE TABLE push_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL UNIQUE,
+        platform VARCHAR(50) DEFAULT 'mobile',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+    console.log("✅ push_tokens");
+
+    /* ================= AUTH TOKENS ================= */
+    await connection.query(`
+      CREATE TABLE auth_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        token VARCHAR(1000) NOT NULL,
+        device_id VARCHAR(255),
+        device_type VARCHAR(50),
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_token (token(255))
+      );
+    `);
+    console.log("✅ auth_tokens");
 
     /* ================= SEO PAGES ================= */
     await connection.query(`

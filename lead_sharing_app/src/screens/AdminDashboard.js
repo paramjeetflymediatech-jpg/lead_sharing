@@ -934,6 +934,7 @@ function RevenueScreen({ revenue }) {
                     </Text>
                 </View>
             </View>
+            
         </>
     );
 }

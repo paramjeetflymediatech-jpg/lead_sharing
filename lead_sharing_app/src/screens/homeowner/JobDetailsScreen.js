@@ -43,9 +43,11 @@ export default function JobDetailsScreen({ route, navigation }) {
             console.log('Leads data:', leadsData);
             console.log('Extracted leads:', leadsList);
             setLeads(leadsList);
+            return { job: jobData, leads: leadsList };
         } catch (error) {
             console.error("Error loading job details:", error);
             Alert.alert("Error", "Failed to load job details");
+            return { job: null, leads: [] };
         } finally {
             setLoading(false);
         }
@@ -87,42 +89,36 @@ export default function JobDetailsScreen({ route, navigation }) {
                             Alert.alert("Success", "Job marked as completed!");
 
                             // Reload job details and wait for it to complete
-                            await loadJobDetails();
+                            const { job: updatedJob, leads: updatedLeads } = await loadJobDetails();
 
                             // Show rating modal after job details are refreshed
-                            // Small delay to ensure state is updated
-                            setTimeout(() => {
-                                // Look for hired tradesperson in the current job and leads state
-                                const hiredTradespersonId = job?.hired_tradesperson_id;
+                            // Look for hired tradesperson in the updated data
+                            const hiredTradespersonId = updatedJob?.hired_tradesperson_id;
 
-                                console.log('Job hired_tradesperson_id:', hiredTradespersonId);
-                                console.log('Current leads:', leads);
+                            console.log('Updated job hired_tradesperson_id:', hiredTradespersonId);
+                            console.log('Updated leads:', updatedLeads);
 
-                                // If job doesn't have hired_tradesperson_id, try to find from leads with HIRED status
-                                let tradespersonId = hiredTradespersonId;
-                                let tradespersonName = job?.hired_tradesperson_name;
+                            // If job doesn't have hired_tradesperson_id, try to find from leads with HIRED status
+                            let tradespersonId = hiredTradespersonId;
+                            let tradespersonName = updatedJob?.hired_tradesperson_name;
 
-                                if (!tradespersonId) {
-                                    const hiredLead = leads.find(l => l.status === 'HIRED');
-                                    console.log('Found hired lead:', hiredLead);
-                                    if (hiredLead) {
-                                        tradespersonId = hiredLead.tradesperson_id;
-                                        tradespersonName = hiredLead.tradesperson_name || hiredLead.company_name;
-                                    }
+                            if (!tradespersonId) {
+                                const hiredLead = updatedLeads.find(l => l.status === 'HIRED');
+                                console.log('Found hired lead:', hiredLead);
+                                if (hiredLead) {
+                                    tradespersonId = hiredLead.tradesperson_id;
+                                    tradespersonName = hiredLead.tradesperson_name || hiredLead.company_name;
                                 }
+                            }
 
-                                console.log('Final tradesperson ID:', tradespersonId);
-                                console.log('Final tradesperson name:', tradespersonName);
+                            console.log('Final tradesperson ID:', tradespersonId);
+                            console.log('Final tradesperson name:', tradespersonName);
 
-                                if (tradespersonId) {
-                                    setSelectedTradespersonName(tradespersonName || 'this tradesperson');
-                                    setSelectedTradespersonId(tradespersonId);
-                                    setRatingModalVisible(true);
-                                } else {
-                                    console.log('❌ No hired tradesperson found');
-                                    Alert.alert('Info', 'Unable to find hired tradesperson for rating.');
-                                }
-                            }, 800);
+                            if (tradespersonId) {
+                                setSelectedTradespersonName(tradespersonName || 'this tradesperson');
+                                setSelectedTradespersonId(tradespersonId);
+                                setRatingModalVisible(true);
+                            }
                         } catch (error) {
                             Alert.alert("Error", error.message || "Failed to complete job");
                         }
@@ -197,7 +193,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                         <Text style={styles.detailValue}>
                             {job.city && job.postcode
                                 ? `${job.city}, ${job.postcode}`
-                                : job.postcode || job.city || "N/A"}
+                                : job.postcode || job.city || "Location not specified"}
                         </Text>
                     </View>
                 </View>
@@ -220,7 +216,11 @@ export default function JobDetailsScreen({ route, navigation }) {
                         <Text style={styles.detailLabel}>Start Time</Text>
                         <Text style={styles.detailValue}>
                             {job.start_time
-                                ? job.start_time.replace(/_/g, " ")
+                                ? job.start_time
+                                    .toLowerCase()
+                                    .split("_")
+                                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(" ")
                                 : "Flexible"}
                         </Text>
                     </View>
@@ -322,6 +322,10 @@ export default function JobDetailsScreen({ route, navigation }) {
                                 const hiredLead = leads.find(l => l.status === 'HIRED');
                                 if (hiredLead) {
                                     setSelectedTradespersonName(hiredLead.tradesperson_name || 'this tradesperson');
+                                    setSelectedTradespersonId(hiredLead.tradesperson_id);
+                                } else if (job?.hired_tradesperson_id) {
+                                    setSelectedTradespersonName(job.hired_tradesperson_name || 'this tradesperson');
+                                    setSelectedTradespersonId(job.hired_tradesperson_id);
                                 }
                                 setRatingModalVisible(true);
                             }}

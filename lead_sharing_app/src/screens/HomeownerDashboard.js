@@ -204,12 +204,12 @@ export default function HomeownerDashboard({ navigation }) {
             </TouchableOpacity>
           </View>
         ) : (
-          recentJobs.map((job) => (
+          recentJobs.map((job, index) => (
             <JobCard
-              key={job.id}
+              key={job._id || job.id || index}
               job={job}
               onPress={() =>
-                navigation?.navigate?.("JobDetail", { jobId: job.id }) ||
+                navigation?.navigate?.("JobDetails", { jobId: job._id || job.id }) ||
                 Alert.alert("Job Details", `${job.description}`)
               }
             />
@@ -275,7 +275,10 @@ function JobCard({ job, onPress }) {
   };
 
   const getStatusLabel = (status) => {
-    return status?.charAt(0) + status?.slice(1).toLowerCase() || "Open";
+    if (!status) return "Open";
+    return (
+      status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+    );
   };
 
   return (
@@ -299,12 +302,24 @@ function JobCard({ job, onPress }) {
       <View style={styles.jobDetails}>
         <View style={styles.jobDetail}>
           <Text style={styles.jobDetailIcon}>📍</Text>
-          <Text style={styles.jobDetailText}>{job.postcode || "N/A"}</Text>
+          <Text style={styles.jobDetailText}>
+            {job.city && job.postcode
+              ? `${job.city}, ${job.postcode}`
+              : job.postcode || job.city || "Location not specified"}
+          </Text>
         </View>
 
         <View style={styles.jobDetail}>
           <Text style={styles.jobDetailIcon}>⏰</Text>
-          <Text style={styles.jobDetailText}>{job.start_time?.replace(/_/g, " ") || "Flexible"}</Text>
+          <Text style={styles.jobDetailText}>
+            {job.start_time
+              ? job.start_time
+                .toLowerCase()
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+              : "Flexible"}
+          </Text>
         </View>
 
         {job.budget_max && (

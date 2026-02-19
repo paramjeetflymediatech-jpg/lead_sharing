@@ -331,13 +331,23 @@ function JobCard({ job, credits, onPress }) {
       <View style={styles.jobDetails}>
         <View style={styles.jobDetail}>
           <Text style={styles.jobDetailIcon}>📍</Text>
-          <Text style={styles.jobDetailText}>{job.postcode || "N/A"}</Text>
+          <Text style={styles.jobDetailText}>
+            {job.city && job.postcode
+              ? `${job.city}, ${job.postcode}`
+              : job.postcode || job.city || "Location not specified"}
+          </Text>
         </View>
 
         <View style={styles.jobDetail}>
           <Text style={styles.jobDetailIcon}>⏰</Text>
           <Text style={styles.jobDetailText}>
-            {job.start_time?.replace(/_/g, " ") || "Flexible"}
+            {job.start_time
+              ? job.start_time
+                .toLowerCase()
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+              : "Flexible"}
           </Text>
         </View>
 

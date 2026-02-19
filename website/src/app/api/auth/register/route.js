@@ -48,6 +48,11 @@ export async function POST(req) {
   const token = signAuthToken({ userId: user._id.toString(), role });
   await setAuthCookie(token);
 
+  // Save token to database
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7); // Matches 7d from signAuthToken
+  await User.saveAuthToken(user._id, token, expiresAt);
+
   return NextResponse.json(
     {
       token,

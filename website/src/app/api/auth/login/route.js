@@ -5,7 +5,7 @@ import { setAuthCookie } from '@/lib/serverAuth';
 
 export async function POST(req) {
   const body = await req.json();
-  let { email, password } = body;
+  let { email, password, deviceId, deviceType } = body;
 
   if (email) email = email.toLowerCase();
 
@@ -27,6 +27,11 @@ export async function POST(req) {
 
   const token = signAuthToken({ userId: user._id.toString(), role: user.role });
   await setAuthCookie(token);
+
+  // Save token to database
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7); // Matches 7d from signAuthToken
+  await User.saveAuthToken(user._id, token, expiresAt, { deviceId, deviceType });
 
   return NextResponse.json(
     {

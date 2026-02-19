@@ -234,7 +234,24 @@ function JobCard({ job, credits, navigation }) {
             <View style={styles.jobDetails}>
                 <View style={styles.detailItem}>
                     <Feather name="map-pin" size={12} color="#6B7280" />
-                    <Text style={styles.detailText}>{job.postcode || "Remote"}</Text>
+                    <Text style={styles.detailText}>
+                        {job.city && job.postcode
+                            ? `${job.city}, ${job.postcode}`
+                            : job.postcode || job.city || "Location not specified"}
+                    </Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.detailItem}>
+                    <Feather name="clock" size={12} color="#6B7280" />
+                    <Text style={styles.detailText}>
+                        {job.start_time
+                            ? job.start_time
+                                .toLowerCase()
+                                .split("_")
+                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(" ")
+                            : "Flexible"}
+                    </Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.detailItem}>

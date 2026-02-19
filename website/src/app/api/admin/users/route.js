@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 // import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
-import { hashPassword } from "@/lib/auth";
+import { hashPassword, signAuthToken } from "@/lib/auth";
 
 export async function GET(req) {
   try {
@@ -84,6 +84,15 @@ export async function POST(req) {
       email,
       password: hashedPassword,
       role,
+    });
+
+    // Generate and save initial auth token
+    const token = signAuthToken({ userId: newUser._id.toString(), role: newUser.role });
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await User.saveAuthToken(newUser._id, token, expiresAt, {
+      deviceType: 'admin-created',
+      deviceId: 'admin'
     });
 
     return NextResponse.json(

@@ -233,14 +233,18 @@ function JobCard({ job, navigation }) {
                     <Text style={styles.jobDetailText}>
                         {job.city && job.postcode
                             ? `${job.city}, ${job.postcode}`
-                            : job.postcode || job.city || "N/A"}
+                            : job.postcode || job.city || "Location not specified"}
                     </Text>
                 </View>
                 <View style={styles.jobDetailItem}>
                     <Feather name="clock" size={12} color="#6B7280" style={{ marginRight: 4 }} />
                     <Text style={styles.jobDetailText}>
                         {job.start_time
-                            ? job.start_time.replace(/_/g, " ").toLowerCase()
+                            ? job.start_time
+                                .toLowerCase()
+                                .split("_")
+                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(" ")
                             : "Flexible"}
                     </Text>
                 </View>

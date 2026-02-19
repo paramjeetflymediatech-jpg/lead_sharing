@@ -132,7 +132,11 @@ export default function JobDetailsScreen({ route, navigation }) {
                     <Text style={styles.detailIcon}>📍</Text>
                     <View style={styles.detailContent}>
                         <Text style={styles.detailLabel}>Location</Text>
-                        <Text style={styles.detailValue}>{job.postcode}</Text>
+                        <Text style={styles.detailValue}>
+                            {job.city && job.postcode
+                                ? `${job.city}, ${job.postcode}`
+                                : job.postcode || job.city || "Location not specified"}
+                        </Text>
                     </View>
                 </View>
 
@@ -153,7 +157,13 @@ export default function JobDetailsScreen({ route, navigation }) {
                     <View style={styles.detailContent}>
                         <Text style={styles.detailLabel}>Start Time</Text>
                         <Text style={styles.detailValue}>
-                            {job.start_time?.replace(/_/g, " ") || "Flexible"}
+                            {job.start_time
+                                ? job.start_time
+                                    .toLowerCase()
+                                    .split("_")
+                                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(" ")
+                                : "Flexible"}
                         </Text>
                     </View>
                 </View>

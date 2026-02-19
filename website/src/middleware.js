@@ -58,6 +58,14 @@ export async function middleware(req) {
       return NextResponse.json({ message: "Invalid role" }, { status: 403 });
     }
 
+    // Optional: Check if token exists in DB for session management
+    /* 
+    const [tokenRows] = await pool.query('SELECT id FROM auth_tokens WHERE token = ? AND expires_at > NOW()', [token]);
+    if (tokenRows.length === 0) {
+      return NextResponse.json({ message: "Session expired or revoked" }, { status: 401 });
+    }
+    */
+
     /* ======================
        ROLE BASED RULES
     ======================= */
@@ -112,6 +120,7 @@ export const config = {
     "/api/admin/:path*",
     "/api/me/:path*",
     "/api/auth/update-password",
-    "/api/topup", // Add this line
+    "/api/topup",
+    "/api/ratings",
   ],
 };

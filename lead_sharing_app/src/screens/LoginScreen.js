@@ -38,7 +38,10 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      const data = await authAPI.login(email, password);
+      const data = await authAPI.login(email, password, {
+        deviceType: Platform.OS,
+        // deviceId: ... could add device id here if needed
+      });
 
       if (!data.token) {
         setError("No token returned from server");

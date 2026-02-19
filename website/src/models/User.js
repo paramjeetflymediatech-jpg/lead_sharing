@@ -115,6 +115,45 @@ export const User = {
     };
   },
 
+  async saveAuthToken(userId, token, expiresAt, deviceInfo = {}) {
+    const { deviceId = null, deviceType = null } = deviceInfo;
+
+    // Legacy column update
+    await pool.query(
+      'UPDATE users SET auth_token = ?, auth_token_expires = ? WHERE id = ?',
+      [token, expiresAt, userId]
+    );
+
+    // New multi-session support with device info
+    await pool.query(
+      'INSERT INTO auth_tokens (user_id, token, expires_at, device_id, device_type) VALUES (?, ?, ?, ?, ?)',
+      [userId, token, expiresAt, deviceId, deviceType]
+    );
+  },
+
+  async findToken(token) {
+    const [rows] = await pool.query(
+      'SELECT user_id, device_id, device_type FROM auth_tokens WHERE token = ? AND expires_at > NOW()',
+      [token]
+    );
+    return rows[0] || null;
+  },
+
+  async revokeAuthToken(token) {
+    // Revoke from users table (legacy)
+    await pool.query('UPDATE users SET auth_token = NULL, auth_token_expires = NULL WHERE auth_token = ?', [token]);
+
+    // Revoke from auth_tokens table (new)
+    await pool.query('DELETE FROM auth_tokens WHERE token = ?', [token]);
+  },
+
+  async savePushToken(userId, token, platform = 'mobile') {
+    await pool.query(
+      'INSERT INTO push_tokens (user_id, token, platform) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE user_id = ?',
+      [userId, token, platform, userId]
+    );
+  },
+
   async findByIdAndUpdate(id, updateData, options = {}) {
     // Prepare update query
     const updates = [];

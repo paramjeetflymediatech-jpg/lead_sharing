@@ -65,10 +65,11 @@ export const authAPI = {
     /**
      * Login user
      */
-    login: async (email, password) => {
+    login: async (email, password, deviceInfo = {}) => {
+        const { deviceId, deviceType } = deviceInfo;
         return apiCall("/api/auth/login", {
             method: "POST",
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, deviceId, deviceType }),
             skipAuth: true,
         });
     },
@@ -361,10 +362,10 @@ export const homeownerAPI = {
     /**
      * Rate a job/tradesperson
      */
-    rateJob: async (jobId, rating, review) => {
-        return apiCall(`/api/homeowner/jobs/${jobId}/rate`, {
+    rateJob: async (jobId, tradespersonId, rating, review) => {
+        return apiCall(`/api/ratings`, {
             method: "POST",
-            body: JSON.stringify({ rating, review }),
+            body: JSON.stringify({ jobId, tradespersonId, rating, review }),
         });
     },
 };
