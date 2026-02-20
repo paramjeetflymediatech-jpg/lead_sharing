@@ -120,19 +120,17 @@ export async function GET(req, context) {
         j.status,
         j.hired_tradesperson_id,
         j.has_rated,
-        j.hired_at,
         j.created_at,
         j.updated_at,
         c.id as category_id,
         c.name as category_name,
         sc.id as subcategory_id,
         sc.name as subcategory_name,
-        COALESCE(tp.company_name, u_hired.name) as hired_tradesperson_name
+        tp.company_name as hired_tradesperson_name
       FROM jobs j
       LEFT JOIN categories c ON j.category_id = c.id
       LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
       LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.user_id
-      LEFT JOIN users u_hired ON j.hired_tradesperson_id = u_hired.id
       WHERE j.id = ? AND j.homeowner_id = ?
       LIMIT 1`,
       [jobId, userId]

@@ -50,7 +50,7 @@ export async function GET(req, context) {
         u.name as tradesperson_name,
         u.email as tradesperson_email
       FROM leads l
-      LEFT JOIN tradesperson_profiles tp ON l.tradesperson_id = tp.id
+      LEFT JOIN tradesperson_profiles tp ON l.tradesperson_id = tp.user_id
       LEFT JOIN users u ON tp.user_id = u.id
       WHERE l.job_id = ?
       ORDER BY l.created_at DESC`,
