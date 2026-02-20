@@ -10,25 +10,68 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
+    Image,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../context/AuthContext";
-import { userAPI } from "../../services/api";
+import { userAPI, uploadAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
 import { normalize, wp, hp } from "../../utils/responsive";
 
 export default function EditProfileScreen({ navigation }) {
     const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [profileImage, setProfileImage] = useState(user?.profile_image || user?.profileImage || null);
+    const [newImage, setNewImage] = useState(null); // To track if a new image was picked
+
     const [formData, setFormData] = useState({
         name: user?.name || "",
-        phone: "",
-        address: "",
-        postcode: "",
+        phone: user?.phone || "",
+        address: user?.address_line1 || user?.address?.line1 || "", // Handle nested or flat address
+        postcode: user?.postcode || user?.address?.postcode || "",
     });
+
+    useEffect(() => {
+        // Sync state with user data if it changes (e.g. initial load)
+        if (user) {
+            setFormData({
+                name: user.name || "",
+                phone: user.phone || "",
+                address: user.address_line1 || user.address?.line1 || "",
+                postcode: user.postcode || user.address?.postcode || "",
+            });
+            setProfileImage(user.profile_image || user.profileImage || null);
+        }
+    }, [user]);
 
     function updateField(field, value) {
         setFormData((prev) => ({ ...prev, [field]: value }));
     }
+
+    const pickImage = async () => {
+        try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to make this work!');
+                return;
+            }
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.5,
+            });
+
+            if (!result.canceled) {
+                setNewImage(result.assets[0]);
+                setProfileImage(result.assets[0].uri);
+            }
+        } catch (error) {
+            console.error("Error picking image:", error);
+            Alert.alert("Error", "Failed to pick image");
+        }
+    };
 
     async function handleSave() {
         if (!formData.name.trim()) {
@@ -38,6 +81,32 @@ export default function EditProfileScreen({ navigation }) {
 
         try {
             setLoading(true);
+
+            let uploadedImageUrl = profileImage;
+
+            // Upload new image if selected
+            if (newImage) {
+                // Determine file type
+                const fileType = newImage.type === 'image' ? 'image/jpeg' : newImage.type;
+                const fileName = newImage.fileName || 'profile.jpg';
+
+                const imageFile = {
+                    uri: newImage.uri,
+                    name: fileName,
+                    type: fileType || 'image/jpeg',
+                };
+
+                try {
+                    const uploadResult = await uploadAPI.uploadImage(imageFile);
+                    uploadedImageUrl = uploadResult.url;
+                } catch (uploadError) {
+                    console.error("Image upload failed:", uploadError);
+                    Alert.alert("Upload Error", "Failed to upload profile image. Continuing with text updates.");
+                    // Optional: return or continue? Continuing with old image or failing.
+                    // For now, let's stop but keep the logic simple.
+                    // If strict, return here.
+                }
+            }
 
             // Backwards compatibility: Split name into firstName and lastName for /api/me
             const nameParts = formData.name.trim().split(" ");
@@ -49,6 +118,7 @@ export default function EditProfileScreen({ navigation }) {
                 firstName,
                 lastName,
                 phone: formData.phone,
+                profileImage: uploadedImageUrl,
                 address: {
                     line1: formData.address,
                     postcode: formData.postcode,
@@ -60,7 +130,13 @@ export default function EditProfileScreen({ navigation }) {
 
             // Update context
             if (updateUser) {
-                updateUser({ ...user, ...formData });
+                const newUserData = {
+                    ...user,
+                    ...formData,
+                    profile_image: uploadedImageUrl, // Ensure context updates with new image
+                    profileImage: uploadedImageUrl   // Redundancy for different usage
+                };
+                updateUser(newUserData);
             }
 
             Alert.alert("Success", "Profile updated successfully!", [
@@ -94,6 +170,23 @@ export default function EditProfileScreen({ navigation }) {
                 </View>
 
                 <View style={styles.formContainer}>
+                    {/* Profile Image Picker */}
+                    <View style={styles.imageContainer}>
+                        <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
+                            {profileImage ? (
+                                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                            ) : (
+                                <View style={styles.placeholderImage}>
+                                    <Feather name="user" size={40} color="#9CA3AF" />
+                                </View>
+                            )}
+                            <View style={styles.editIconBadge}>
+                                <Feather name="camera" size={16} color="#FFFFFF" />
+                            </View>
+                        </TouchableOpacity>
+                        <Text style={styles.changePhotoText}>Tap to change photo</Text>
+                    </View>
+
                     {/* Name */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Full Name <Text style={styles.required}>*</Text></Text>
@@ -319,6 +412,46 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         color: "#6B7280",
         fontSize: normalize(15),
+        fontWeight: "600",
+    },
+    imageContainer: {
+        alignItems: "center",
+        marginBottom: hp(3),
+    },
+    imageWrapper: {
+        position: "relative",
+    },
+    profileImage: {
+        width: wp(25),
+        height: wp(25),
+        borderRadius: wp(12.5),
+        borderWidth: 3,
+        borderColor: "#FFFFFF",
+    },
+    placeholderImage: {
+        width: wp(25),
+        height: wp(25),
+        borderRadius: wp(12.5),
+        backgroundColor: "#E5E7EB",
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 3,
+        borderColor: "#FFFFFF",
+    },
+    editIconBadge: {
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+        backgroundColor: "#2563EB",
+        padding: wp(2),
+        borderRadius: wp(5),
+        borderWidth: 2,
+        borderColor: "#FFFFFF",
+    },
+    changePhotoText: {
+        marginTop: hp(1),
+        fontSize: normalize(14),
+        color: "#2563EB",
         fontWeight: "600",
     },
 });

@@ -12,6 +12,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Feather } from "@expo/vector-icons";
 import LogoutModal from "../../components/LogoutModal";
 import { normalize, wp, hp } from "../../utils/responsive";
+import { Image } from "react-native";
 
 export default function HomeownerProfileTab({ navigation }) {
     const { user, logout } = useAuth();
@@ -51,9 +52,16 @@ export default function HomeownerProfileTab({ navigation }) {
             {/* Header / Profile Card */}
             <View style={styles.header}>
                 <View style={styles.avatarContainer}>
-                    <Text style={styles.avatarText}>
-                        {user?.name?.charAt(0).toUpperCase() || "H"}
-                    </Text>
+                    {user?.profile_image || user?.profileImage ? (
+                        <Image
+                            source={{ uri: user.profile_image || user.profileImage }}
+                            style={styles.avatarImage}
+                        />
+                    ) : (
+                        <Text style={styles.avatarText}>
+                            {user?.name?.charAt(0).toUpperCase() || "H"}
+                        </Text>
+                    )}
                 </View>
                 <Text style={styles.name}>{user?.name || "Homeowner"}</Text>
                 <Text style={styles.email}>{user?.email || "email@example.com"}</Text>
@@ -117,7 +125,14 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
+        shadowRadius: 8,
         elevation: 4,
+        overflow: "hidden", // Added to clip image
+    },
+    avatarImage: {
+        width: "100%",
+        height: "100%",
+        borderRadius: wp(12.5),
     },
     avatarText: {
         fontSize: normalize(32),

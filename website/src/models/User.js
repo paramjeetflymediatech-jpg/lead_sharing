@@ -9,7 +9,9 @@ const userToMongoStyle = (row) => {
     ...row,
     _id: row.id, // Alias id as _id for compatibility
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    profile_image: row.profile_image, // Ensure this field is passed through
+    profileImage: row.profile_image   // Add camelCase alias for convenience
   };
 };
 

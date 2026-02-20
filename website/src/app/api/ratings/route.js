@@ -849,22 +849,51 @@ export async function POST(req) {
     console.log("  Average:", avgRating);
     console.log("  Total:", totalRatings);
 
-    // The tradespersonId from frontend is actually the tradesperson's USER ID
-    const [profile] = await db.query(
+    // ⭐ CRITICAL FIX: Get tradesperson PROFILE ID from user_id
+    console.log(`🔍 Looking up profile for user_id: ${tradespersonId}`);
+    const [tradespersonProfile] = await db.query(
       `SELECT id, user_id, company_name FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
       [tradespersonId]
     );
 
-    if (!profile || profile.length === 0) {
-      console.error(`❌ No tradesperson profile found for profile_id: ${tradespersonId}`);
-      return NextResponse.json(
-        { success: false, message: "Tradesperson profile not found" },
-        { status: 404 }
-      );
+    let tradespersonProfileId;
+
+    if (!tradespersonProfile || tradespersonProfile.length === 0) {
+      console.error(`❌ Tradesperson profile not found for user_id: ${tradespersonId}`);
+
+      // Auto-create profile if missing (fallback mechanism)
+      console.log("⚠️ Attempting to create missing profile for tradesperson...");
+      try {
+        // Get user name better fallback
+        const [user] = await db.query(
+          `SELECT name FROM users WHERE id = ?`,
+          [tradespersonId]
+        );
+
+        const companyName = user?.[0]?.name || "Independent Tradesperson";
+        console.log(`Using company name: ${companyName}`);
+
+        const [newProfile] = await db.query(
+          `INSERT INTO tradesperson_profiles (user_id, company_name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())`,
+          [tradespersonId, companyName]
+        );
+        console.log("✅ Created new profile with ID:", newProfile.insertId);
+
+        tradespersonProfileId = newProfile.insertId;
+      } catch (err) {
+        console.error("❌ Failed to auto-create profile:", err);
+        return NextResponse.json(
+          { success: false, message: `Tradesperson profile not found and failed to create: ${tradespersonId}` },
+          { status: 404 }
+        );
+      }
+    } else {
+      tradespersonProfileId = tradespersonProfile[0].id;
+      console.log(`✅ Found tradesperson profile: ID = ${tradespersonProfileId}, User ID = ${tradespersonProfile[0].user_id}, Name = ${tradespersonProfile[0].company_name}`);
     }
 
-    const profileId = profile[0].id;
-    console.log(`✅ Found tradesperson profile: ID = ${profileId}, User ID = ${profile[0].user_id}, Name = ${profile[0].company_name}`);
+    const profileId = tradespersonProfileId;
+
 
     // UPDATE PROFILE (WHERE id = profileId)
     const [updateResult] = await db.query(

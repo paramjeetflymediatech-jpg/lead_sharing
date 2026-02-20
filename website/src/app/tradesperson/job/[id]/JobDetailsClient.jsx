@@ -176,7 +176,7 @@ export default function JobDetailsClient({ job, leadCount, hasUnlocked, profile,
                                     ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                                     : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                                     }`}>
-                                    {hasUnlocked ? "✓ You've unlocked this lead" : `${leadCount}/3 leads unlocked`}
+                                    {hasUnlocked ? "✓ Lead Unlocked" : `${leadCount}/3 leads unlocked`}
                                 </div>
                             </div>
 
@@ -304,7 +304,7 @@ export default function JobDetailsClient({ job, leadCount, hasUnlocked, profile,
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-green-900 dark:text-green-100">Homeowner Contact</h3>
+                                        <h3 className="text-lg font-bold text-green-900 dark:text-green-100">Lead Unlocked</h3>
                                         <p className="text-sm text-green-700 dark:text-green-300">You have access to contact details</p>
                                     </div>
                                 </div>

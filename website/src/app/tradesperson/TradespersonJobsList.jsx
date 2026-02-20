@@ -198,7 +198,7 @@ export default function TradespersonJobsList({ jobs, profileId }) {
                 href={`/tradesperson/job/${job.id}`}
                 className="px-3 py-1.5 rounded-lg border border-green-600 text-green-600 text-xs font-bold hover:bg-green-50 transition-all"
               >
-                View Contact
+                View Lead
               </Link>
             </div>
           ) : job.canUnlock ? (

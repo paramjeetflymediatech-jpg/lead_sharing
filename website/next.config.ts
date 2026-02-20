@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "res.cloudinary.com",
       },
+      {
+        protocol: "http",
+        hostname: "192.168.1.5",
+        port: "3000",
+      },
     ],
   },
   async headers() {

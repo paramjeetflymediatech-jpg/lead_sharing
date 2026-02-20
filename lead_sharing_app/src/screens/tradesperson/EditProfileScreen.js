@@ -10,9 +10,11 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
+    Image,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../context/AuthContext";
-import { tradespersonAPI } from "../../services/api";
+import { tradespersonAPI, uploadAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
 import { normalize, wp, hp } from "../../utils/responsive";
 
@@ -20,6 +22,9 @@ export default function EditProfileScreen({ navigation }) {
     const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const [profileImage, setProfileImage] = useState(null);
+    const [newImage, setNewImage] = useState(null);
+
     const [formData, setFormData] = useState({
         company_name: "",
         contact_name: user?.name || "",
@@ -43,6 +48,7 @@ export default function EditProfileScreen({ navigation }) {
                     service_areas: profile.service_areas?.join(", ") || "",
                     bio: profile.bio || "",
                 });
+                setProfileImage(profile.profile_image || profile.profileImage || null);
             }
         } catch (error) {
             console.error("Error loading profile:", error);
@@ -50,6 +56,31 @@ export default function EditProfileScreen({ navigation }) {
             setLoadingProfile(false);
         }
     }
+
+    const pickImage = async () => {
+        try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to make this work!');
+                return;
+            }
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.5,
+            });
+
+            if (!result.canceled) {
+                setNewImage(result.assets[0]);
+                setProfileImage(result.assets[0].uri);
+            }
+        } catch (error) {
+            console.error("Error picking image:", error);
+            Alert.alert("Error", "Failed to pick image");
+        }
+    };
 
     function updateField(field, value) {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -64,17 +95,50 @@ export default function EditProfileScreen({ navigation }) {
         try {
             setLoading(true);
 
+            let uploadedImageUrl = profileImage;
+
+            // Upload new image if selected
+            if (newImage) {
+                // Determine file type
+                const fileType = newImage.type === 'image' ? 'image/jpeg' : newImage.type;
+                const fileName = newImage.fileName || 'profile.jpg';
+
+                const imageFile = {
+                    uri: newImage.uri,
+                    name: fileName,
+                    type: fileType || 'image/jpeg',
+                };
+
+                try {
+                    const uploadResult = await uploadAPI.uploadImage(imageFile);
+                    uploadedImageUrl = uploadResult.url;
+                } catch (uploadError) {
+                    console.error("Image upload failed:", uploadError);
+                    Alert.alert("Upload Error", "Failed to upload profile image. Continuing with text updates.");
+                }
+            }
+
             const profileData = {
-                ...formData,
-                service_areas: formData.service_areas
+                companyName: formData.company_name,
+                phone: formData.phone,
+                postcode: "", // Add postcode field if captured in UI, or ensure backend handles missing/empty
+                bio: formData.bio,
+                skills: [], // Add skills if captured
+                serviceAreas: formData.service_areas
                     ? formData.service_areas.split(",").map(s => s.trim()).filter(Boolean)
                     : [],
+                profileImage: uploadedImageUrl,
             };
 
             await tradespersonAPI.updateProfile(profileData);
 
             if (updateUser) {
-                updateUser({ ...user, name: formData.contact_name });
+                updateUser({
+                    ...user,
+                    name: formData.contact_name,
+                    profile_image: uploadedImageUrl,
+                    profileImage: uploadedImageUrl
+                });
             }
 
             Alert.alert("Success", "Profile updated successfully!", [
@@ -116,6 +180,23 @@ export default function EditProfileScreen({ navigation }) {
                 </View> */}
 
                 <View style={styles.formContainer}>
+                    {/* Profile Image Picker */}
+                    <View style={styles.imageContainer}>
+                        <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
+                            {profileImage ? (
+                                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                            ) : (
+                                <View style={styles.placeholderImage}>
+                                    <Feather name="briefcase" size={40} color="#9CA3AF" />
+                                </View>
+                            )}
+                            <View style={styles.editIconBadge}>
+                                <Feather name="camera" size={16} color="#FFFFFF" />
+                            </View>
+                        </TouchableOpacity>
+                        <Text style={styles.changePhotoText}>Tap to change photo</Text>
+                    </View>
+
                     {/* Company Name */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Company Name <Text style={styles.required}>*</Text></Text>
@@ -359,6 +440,46 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         color: "#6B7280",
         fontSize: normalize(15),
+        fontWeight: "600",
+    },
+    imageContainer: {
+        alignItems: "center",
+        marginBottom: hp(3),
+    },
+    imageWrapper: {
+        position: "relative",
+    },
+    profileImage: {
+        width: wp(25),
+        height: wp(25),
+        borderRadius: wp(12.5),
+        borderWidth: 3,
+        borderColor: "#FFFFFF",
+    },
+    placeholderImage: {
+        width: wp(25),
+        height: wp(25),
+        borderRadius: wp(12.5),
+        backgroundColor: "#E5E7EB",
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 3,
+        borderColor: "#FFFFFF",
+    },
+    editIconBadge: {
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+        backgroundColor: "#2563EB",
+        padding: wp(2),
+        borderRadius: wp(5),
+        borderWidth: 2,
+        borderColor: "#FFFFFF",
+    },
+    changePhotoText: {
+        marginTop: hp(1),
+        fontSize: normalize(14),
+        color: "#2563EB",
         fontWeight: "600",
     },
 });

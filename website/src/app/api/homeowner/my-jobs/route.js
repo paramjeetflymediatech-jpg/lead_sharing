@@ -75,6 +75,8 @@ export async function GET(req) {
           subCategory: job.subCategory,
           description: job.description,
           location: job.location,
+          city: job.city,
+          postcode: job.postcode,
           startTime: job.startTime,
           jobStage: job.jobStage,
           ownership: job.ownership,

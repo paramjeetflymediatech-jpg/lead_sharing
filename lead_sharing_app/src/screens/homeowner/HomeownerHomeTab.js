@@ -217,9 +217,17 @@ function JobCard({ job, navigation }) {
             activeOpacity={0.7}
         >
             <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle} numberOfLines={1}>
-                    {job.description || "Job Description"}
-                </Text>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                    {(job.category?.name || job.category) && (
+                        <Text style={styles.categoryName} numberOfLines={1}>
+                            {job.category?.name || job.category}
+                            {(job.subCategory?.name || job.subCategory) ? ` › ${job.subCategory?.name || job.subCategory}` : ''}
+                        </Text>
+                    )}
+                    <Text style={styles.jobTitle} numberOfLines={2}>
+                        {job.description || "Job Details"}
+                    </Text>
+                </View>
                 <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
                     <Text style={[styles.statusText, { color: statusStyle.color }]}>
                         {job.status?.charAt(0) + job.status?.slice(1).toLowerCase()}
@@ -229,7 +237,7 @@ function JobCard({ job, navigation }) {
 
             <View style={styles.jobDetailsRow}>
                 <View style={styles.jobDetailItem}>
-                    <Feather name="map-pin" size={12} color="#6B7280" style={{ marginRight: 4 }} />
+                    <Feather name="map-pin" size={13} color="#6B7280" style={{ marginRight: 4 }} />
                     <Text style={styles.jobDetailText}>
                         {job.city && job.postcode
                             ? `${job.city}, ${job.postcode}`
@@ -237,7 +245,7 @@ function JobCard({ job, navigation }) {
                     </Text>
                 </View>
                 <View style={styles.jobDetailItem}>
-                    <Feather name="clock" size={12} color="#6B7280" style={{ marginRight: 4 }} />
+                    <Feather name="clock" size={13} color="#6B7280" style={{ marginRight: 4 }} />
                     <Text style={styles.jobDetailText}>
                         {job.start_time
                             ? job.start_time
@@ -368,129 +376,317 @@ const styles = StyleSheet.create({
         fontSize: normalize(13),
         color: "rgba(255, 255, 255, 0.9)",
     },
+
     section: {
         paddingHorizontal: wp(5),
-        marginBottom: hp(3),
+        marginBottom: hp(4),
     },
+
     sectionHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: hp(2),
+        marginBottom: hp(2.5),
     },
+
     sectionTitle: {
-        fontSize: normalize(18),
-        fontWeight: "700",
+        fontSize: normalize(20),
+        fontWeight: "800",
         color: "#111827",
+        letterSpacing: 0.3,
     },
+
     viewAllText: {
         fontSize: normalize(14),
         color: "#2563EB",
         fontWeight: "600",
     },
+
     jobCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: wp(4),
-        padding: wp(4),
-        marginBottom: hp(2),
+        borderRadius: wp(5),
+        padding: wp(4.5),
+        marginBottom: hp(2.5),
+
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        elevation: 3,
+
         borderWidth: 1,
-        borderColor: "#F3F4F6",
+        borderColor: "#F9FAFB",
     },
+
     jobHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        marginBottom: hp(1.5),
+        marginBottom: hp(1.8),
     },
+
     categoryContainer: {
         flexDirection: "row",
         alignItems: "center",
     },
+
     categoryIcon: {
-        width: wp(8),
-        height: wp(8),
-        borderRadius: wp(2),
-        backgroundColor: "#EFF6FF",
+        width: wp(9),
+        height: wp(9),
+        borderRadius: wp(3),
+        backgroundColor: "#EEF2FF",
         justifyContent: "center",
         alignItems: "center",
-        marginRight: wp(2.5),
+        marginRight: wp(3),
     },
+
     categoryName: {
-        fontSize: normalize(15),
-        fontWeight: "600",
-        color: "#1F2937",
-    },
-    statusBadge: {
-        paddingHorizontal: wp(2.5),
-        paddingVertical: hp(0.5),
-        borderRadius: wp(1.5),
-        backgroundColor: "#F3F4F6",
-    },
-    statusText: {
-        fontSize: normalize(11),
+        fontSize: normalize(12),
         fontWeight: "600",
         color: "#6B7280",
+        marginBottom: hp(0.5),
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
     },
+    jobTitle: {
+        fontSize: normalize(16),
+        fontWeight: "700",
+        color: "#111827",
+        lineHeight: normalize(22),
+    },
+
+    statusBadge: {
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.6),
+        borderRadius: wp(5),
+        backgroundColor: "#E5E7EB",
+    },
+
+    statusText: {
+        fontSize: normalize(11),
+        fontWeight: "700",
+        color: "#374151",
+    },
+
     jobDescription: {
         fontSize: normalize(14),
         color: "#4B5563",
-        marginBottom: hp(2),
-        lineHeight: normalize(20),
+        marginBottom: hp(2.5),
+        lineHeight: normalize(22),
     },
+
     jobFooter: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingTop: hp(1.5),
+        paddingTop: hp(2),
         borderTopWidth: 1,
         borderTopColor: "#F3F4F6",
     },
+
     locationContainer: {
         flexDirection: "row",
         alignItems: "center",
     },
+
     locationText: {
         fontSize: normalize(13),
         color: "#6B7280",
-        marginLeft: wp(1.5),
+        marginLeft: wp(2),
     },
+
     postedTime: {
         fontSize: normalize(12),
         color: "#9CA3AF",
+        fontWeight: "500",
     },
+
+    /* Empty State Improved */
     emptyState: {
         alignItems: "center",
         justifyContent: "center",
-        padding: wp(8),
+        padding: wp(9),
         backgroundColor: "#FFFFFF",
-        borderRadius: wp(4),
-        borderWidth: 2,
-        borderColor: "#F3F4F6",
-        borderStyle: "dashed",
+        borderRadius: wp(5),
+        borderWidth: 1.5,
+        borderColor: "#E5E7EB",
     },
+
     emptyIconContainer: {
-        width: wp(16),
-        height: wp(16),
-        borderRadius: wp(8),
-        backgroundColor: "#F3F4F6",
+        width: wp(18),
+        height: wp(18),
+        borderRadius: wp(9),
+        backgroundColor: "#EEF2FF",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: hp(2),
+        marginBottom: hp(2.5),
     },
+
     emptyTitle: {
-        fontSize: normalize(16),
-        fontWeight: "700",
-        color: "#1F2937",
+        fontSize: normalize(17),
+        fontWeight: "800",
+        color: "#111827",
         marginBottom: hp(1),
     },
+
     emptyText: {
         fontSize: normalize(14),
         color: "#6B7280",
         textAlign: "center",
+        lineHeight: normalize(20),
     },
+
+    /* Footer Right Alignment Clean */
+    cardFooter: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+    dateText: {
+        marginLeft: "auto",
+        fontSize: normalize(12),
+        color: "#9CA3AF",
+        fontWeight: "500",
+    },
+    jobDetailItem: {
+        flexDirection: "row",   // makes icon + text horizontal
+        alignItems: "center",   // vertically centers them
+    },
+
+
 });
+//     section: {
+//         paddingHorizontal: wp(5),
+//         marginBottom: hp(3),
+//     },
+//     sectionHeader: {
+//         flexDirection: "row",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//         marginBottom: hp(2),
+//     },
+//     sectionTitle: {
+//         fontSize: normalize(18),
+//         fontWeight: "700",
+//         color: "#111827",
+//     },
+//     viewAllText: {
+//         fontSize: normalize(14),
+//         color: "#2563EB",
+//         fontWeight: "600",
+//     },
+//     jobCard: {
+//         backgroundColor: "#FFFFFF",
+//         borderRadius: wp(4),
+//         padding: wp(4),
+//         marginBottom: hp(2),
+//         shadowColor: "#000",
+//         shadowOffset: { width: 0, height: 2 },
+//         shadowOpacity: 0.05,
+//         shadowRadius: 8,
+//         elevation: 2,
+//         borderWidth: 1,
+//         borderColor: "#F3F4F6",
+//     },
+//     jobHeader: {
+//         flexDirection: "row",
+//         justifyContent: "space-between",
+//         alignItems: "flex-start",
+//         marginBottom: hp(1.5),
+//     },
+//     categoryContainer: {
+//         flexDirection: "row",
+//         alignItems: "center",
+//     },
+//     categoryIcon: {
+//         width: wp(8),
+//         height: wp(8),
+//         borderRadius: wp(2),
+//         backgroundColor: "#EFF6FF",
+//         justifyContent: "center",
+//         alignItems: "center",
+//         marginRight: wp(2.5),
+//     },
+//     categoryName: {
+//         fontSize: normalize(15),
+//         fontWeight: "600",
+//         color: "#1F2937",
+//     },
+//     statusBadge: {
+//         paddingHorizontal: wp(2.5),
+//         paddingVertical: hp(0.5),
+//         borderRadius: wp(1.5),
+//         backgroundColor: "#F3F4F6",
+//     },
+//     statusText: {
+//         fontSize: normalize(11),
+//         fontWeight: "600",
+//         color: "#6B7280",
+//     },
+//     jobDescription: {
+//         fontSize: normalize(14),
+//         color: "#4B5563",
+//         marginBottom: hp(2),
+//         lineHeight: normalize(20),
+//     },
+//     jobFooter: {
+//         flexDirection: "row",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//         paddingTop: hp(1.5),
+//         borderTopWidth: 1,
+//         borderTopColor: "#F3F4F6",
+//     },
+//     locationContainer: {
+//         flexDirection: "row",
+//         alignItems: "center",
+//     },
+//     locationText: {
+//         fontSize: normalize(13),
+//         color: "#6B7280",
+//         marginLeft: wp(1.5),
+//     },
+//     postedTime: {
+//         fontSize: normalize(12),
+//         color: "#9CA3AF",
+//     },
+//     emptyState: {
+//         alignItems: "center",
+//         justifyContent: "center",
+//         padding: wp(8),
+//         backgroundColor: "#FFFFFF",
+//         borderRadius: wp(4),
+//         borderWidth: 2,
+//         borderColor: "#F3F4F6",
+//         borderStyle: "dashed",
+//     },
+//     emptyIconContainer: {
+//         width: wp(16),
+//         height: wp(16),
+//         borderRadius: wp(8),
+//         backgroundColor: "#F3F4F6",
+//         justifyContent: "center",
+//         alignItems: "center",
+//         marginBottom: hp(2),
+//     },
+//     emptyTitle: {
+//         fontSize: normalize(16),
+//         fontWeight: "700",
+//         color: "#1F2937",
+//         marginBottom: hp(1),
+//     },
+//     emptyText: {
+//         fontSize: normalize(14),
+//         color: "#6B7280",
+//         textAlign: "center",
+//     },
+
+//     cardFooter: {
+//         flexDirection: "row",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//     },
+//     dateText: {
+//         marginLeft: "auto",
+//     }
+// });

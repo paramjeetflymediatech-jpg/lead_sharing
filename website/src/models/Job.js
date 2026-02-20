@@ -8,7 +8,7 @@ const detailedJobMapper = (row) => ({
   updatedAt: row.updated_at,
   budgetMin: row.budget_min,
   budgetMax: row.budget_max,
-  hasRated: row.has_rated || false, // NEW FIELD
+  hasRated: Boolean(row.has_rated), // NEW FIELD - Explicit boolean conversion
   // Populate objects if names exist, otherwise fall back to ID
   homeowner: row.homeowner_name
     ? {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     View,
     Text,
@@ -7,8 +7,10 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    Image,
 } from "react-native";
 import { jobAPI, tradespersonAPI } from "../../services/api";
+import { API_BASE_URL } from "../../config/api";
 import UnlockLeadModal from "../../components/UnlockLeadModal";
 import MessagesModal from "../../screens/MessagesModal";
 import SuccessModal from "../../components/SuccessModal";
@@ -21,7 +23,10 @@ export default function JobDetailsScreen({ route, navigation }) {
     const [unlocking, setUnlocking] = useState(false);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [showMessageModal, setShowMessageModal] = useState(false);
-    const [showSuccessModal, setShowSuccessModal] = useState(false); // Added for success modal
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const scrollViewRef = useRef(null);
+    const contactSectionY = useRef(0);
+    const jobDetailsCardY = useRef(0);
 
     useEffect(() => {
         loadJobDetails();
@@ -54,15 +59,19 @@ export default function JobDetailsScreen({ route, navigation }) {
                 priceEstimate // Backend expects string (calls .trim())
             });
 
-            // Close modal first
             setShowUnlockModal(false);
-
-            // Show success styling (or simple alert for now)
-            // Alert.alert("Success", "Lead unlocked! Your quote has been sent.");
             setShowSuccessModal(true);
-            loadJobDetails(false); // Silent reload to update UI in background
+            loadJobDetails(false);
         } catch (error) {
-            Alert.alert("Error", error.message || "Failed to unlock lead");
+            setShowUnlockModal(false);
+            const msg = error.message || "";
+            const alreadyUnlocked = /already unlocked/i.test(msg);
+            if (alreadyUnlocked) {
+                // Lead was already unlocked (e.g. by this user before) – refresh so UI shows View Lead
+                await loadJobDetails(false);
+            } else {
+                Alert.alert("Error", msg || "Failed to unlock lead");
+            }
         } finally {
             setUnlocking(false);
         }
@@ -89,6 +98,13 @@ export default function JobDetailsScreen({ route, navigation }) {
         );
     }
 
+    function handleViewLead() {
+        scrollViewRef.current?.scrollTo({
+            y: Math.max(0, contactSectionY.current - hp(2)),
+            animated: true,
+        });
+    }
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -107,8 +123,19 @@ export default function JobDetailsScreen({ route, navigation }) {
 
     const isUnlocked = job.is_unlocked || false;
 
+    // Full description and image URLs (support both API shapes)
+    const description = job.description || "";
+    const imageUrls = Array.isArray(job.images) && job.images.length > 0
+        ? job.images
+        : (Array.isArray(job.media) ? job.media.map((m) => (typeof m === "string" ? m : m && m.url)).filter(Boolean) : []);
+    const fullImageUrls = imageUrls.map((url) => (url && url.startsWith("http") ? url : `${API_BASE_URL.replace(/\/$/, "")}${url && url.startsWith("/") ? url : "/" + (url || "")}`));
+
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView
+            ref={scrollViewRef}
+            style={styles.container}
+            contentContainerStyle={styles.contentContainer}
+        >
             {/* Modal */}
             <UnlockLeadModal
                 visible={showUnlockModal}
@@ -118,16 +145,56 @@ export default function JobDetailsScreen({ route, navigation }) {
                 cost={1}
             />
 
-            {/* Job Header */}
+            {/* Job Header - short title */}
             <View style={styles.header}>
                 <View style={styles.newBadge}>
                     <Text style={styles.newText}>NEW</Text>
                 </View>
-                <Text style={styles.title}>{job.description}</Text>
+                <Text style={styles.title} numberOfLines={2}>
+                    {description.length > 80 ? description.slice(0, 80).trim() + "…" : description || "Job details"}
+                </Text>
+            </View>
+
+            {/* Job images - full width */}
+            {fullImageUrls.length > 0 && (
+                <View style={styles.imagesSection}>
+                    <Text style={styles.sectionLabel}>Photos</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesScroll}>
+                        {fullImageUrls.map((uri, index) => (
+                            <Image
+                                key={index}
+                                source={{ uri }}
+                                style={styles.jobImage}
+                                resizeMode="cover"
+                            />
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
+
+            {/* Full description */}
+            <View style={styles.card}>
+                <Text style={styles.sectionLabel}>Description</Text>
+                <Text style={styles.fullDescription}>{description}</Text>
             </View>
 
             {/* Job Details */}
-            <View style={styles.card}>
+            <View
+                style={styles.card}
+                onLayout={(e) => { jobDetailsCardY.current = e.nativeEvent.layout.y; }}
+            >
+                {(job.category_name || job.subcategory_name) && (
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailIcon}>📂</Text>
+                        <View style={styles.detailContent}>
+                            <Text style={styles.detailLabel}>Category</Text>
+                            <Text style={styles.detailValue}>
+                                {[job.category_name, job.subcategory_name].filter(Boolean).join(" › ")}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
                 <View style={styles.detailRow}>
                     <Text style={styles.detailIcon}>📍</Text>
                     <View style={styles.detailContent}>
@@ -176,8 +243,11 @@ export default function JobDetailsScreen({ route, navigation }) {
                     </View>
                 </View>
 
-                {isUnlocked && job.homeowner_name && (
-                    <View style={styles.contactSection}>
+                {isUnlocked && (job.homeowner_name || job.homeowner_phone || job.homeowner_email) && (
+                    <View
+                        style={styles.contactSection}
+                        onLayout={(e) => { contactSectionY.current = jobDetailsCardY.current + e.nativeEvent.layout.y; }}
+                    >
                         <Text style={styles.contactTitle}>Contact Details</Text>
                         <View style={styles.detailRow}>
                             <Text style={styles.detailIcon}>👤</Text>
@@ -195,7 +265,15 @@ export default function JobDetailsScreen({ route, navigation }) {
                                 </View>
                             </View>
                         )}
-
+                        {job.homeowner_email && (
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailIcon}>✉️</Text>
+                                <View style={styles.detailContent}>
+                                    <Text style={styles.detailLabel}>Email</Text>
+                                    <Text style={styles.detailValue}>{job.homeowner_email}</Text>
+                                </View>
+                            </View>
+                        )}
                     </View>
                 )}
             </View>
@@ -225,11 +303,12 @@ export default function JobDetailsScreen({ route, navigation }) {
             {isUnlocked && (
                 <View style={styles.actionRow}>
                     <TouchableOpacity
-                        style={styles.quoteButton}
-                        onPress={handleSubmitQuote}
+                        style={styles.viewLeadButton}
+                        onPress={handleViewLead}
                     >
-                        <Text style={styles.quoteButtonText}>Submit Quote</Text>
+                        <Text style={styles.viewLeadButtonText}>View Lead</Text>
                     </TouchableOpacity>
+
 
                     <TouchableOpacity
                         style={styles.messageButton}
@@ -253,11 +332,14 @@ export default function JobDetailsScreen({ route, navigation }) {
             <SuccessModal
                 visible={showSuccessModal}
                 title="Lead Unlocked!"
-                subtitle="You can now view the homeowner's contact details and send them a message."
-                buttonText="View Contact"
+                message="You can now view the homeowner's contact details and send them a message."
+                buttonText="View Lead"
                 onClose={() => {
                     setShowSuccessModal(false);
-                    navigation.navigate('JobDetails', { jobId });
+                    // Refresh state and scroll to contact
+                    setTimeout(() => {
+                        handleViewLead();
+                    }, 500);
                 }}
             />
         </ScrollView>
@@ -268,6 +350,37 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F5F7FA",
+    },
+    contentContainer: {
+        paddingBottom: hp(4),
+    },
+    sectionLabel: {
+        fontSize: normalize(13),
+        fontWeight: "600",
+        color: "#6B7280",
+        marginBottom: hp(1),
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+    },
+    fullDescription: {
+        fontSize: normalize(15),
+        color: "#1F2937",
+        lineHeight: normalize(22),
+        marginTop: hp(0.5),
+    },
+    imagesSection: {
+        marginHorizontal: wp(4),
+        marginBottom: hp(2.5),
+    },
+    imagesScroll: {
+        marginTop: hp(0.5),
+    },
+    jobImage: {
+        width: wp(85),
+        height: wp(65),
+        borderRadius: wp(2),
+        backgroundColor: "#E5E7EB",
+        marginRight: wp(3),
     },
     loadingContainer: {
         flex: 1,
@@ -392,6 +505,22 @@ const styles = StyleSheet.create({
         opacity: 0.6,
     },
     unlockButtonText: {
+        color: "#FFFFFF",
+        fontSize: normalize(17),
+        fontWeight: "700",
+    },
+    viewLeadButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: wp(3),
+        padding: wp(4),
+        alignItems: "center",
+        shadowColor: "#2563EB",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    viewLeadButtonText: {
         color: "#FFFFFF",
         fontSize: normalize(17),
         fontWeight: "700",

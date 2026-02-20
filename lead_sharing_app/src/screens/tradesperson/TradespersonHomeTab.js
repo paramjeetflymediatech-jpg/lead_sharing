@@ -231,6 +231,14 @@ function JobCard({ job, credits, navigation }) {
                 )}
             </View>
 
+            {(job.category_name || job.subcategory_name) && (
+                <View style={styles.categoryRow}>
+                    <Text style={styles.categoryText} numberOfLines={1}>
+                        {[job.category_name, job.subcategory_name].filter(Boolean).join(" › ")}
+                    </Text>
+                </View>
+            )}
+
             <View style={styles.jobDetails}>
                 <View style={styles.detailItem}>
                     <Feather name="map-pin" size={12} color="#6B7280" />
@@ -489,6 +497,13 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: "700",
         textTransform: "uppercase",
+    },
+    categoryRow: {
+        marginBottom: 8,
+    },
+    categoryText: {
+        fontSize: 12,
+        color: "#6B7280",
     },
     jobDetails: {
         flexDirection: "row",

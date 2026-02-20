@@ -8,6 +8,11 @@
   password_reset_expires DATETIME,
   auth_token VARCHAR(1000),
   auth_token_expires DATETIME,
+  profile_image VARCHAR(255) DEFAULT NULL,
+  phone VARCHAR(50) DEFAULT NULL,
+  city VARCHAR(255) DEFAULT NULL,
+  postcode VARCHAR(20) DEFAULT NULL,
+  address_line1 VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -41,6 +46,8 @@ CREATE TABLE IF NOT EXISTS tradesperson_profiles (
   skills TEXT, -- JSON or comma-separated string
   service_areas TEXT, -- JSON or comma-separated string
   credits INT DEFAULT 5,
+  average_rating DECIMAL(3, 2) DEFAULT 0.00,
+  total_ratings INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

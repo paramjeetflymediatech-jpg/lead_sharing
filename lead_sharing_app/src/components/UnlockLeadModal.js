@@ -62,6 +62,14 @@ export default function UnlockLeadModal({
             setAlertVisible(true);
             return;
         }
+
+        const numericPrice = parseFloat(priceEstimate.replace(/[^0-9.]/g, ''));
+        if (isNaN(numericPrice) || numericPrice > 99999999.99) {
+            setAlertMessage("Price estimate is too high. Please enter a valid amount.");
+            setAlertVisible(true);
+            return;
+        }
+
         onUnlock({ message, priceEstimate });
     };
 
@@ -101,6 +109,7 @@ export default function UnlockLeadModal({
                                 value={priceEstimate}
                                 onChangeText={setPriceEstimate}
                                 keyboardType="numeric"
+                                maxLength={10}
                             />
                         </View>
 

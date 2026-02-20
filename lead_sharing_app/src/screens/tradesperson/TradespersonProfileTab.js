@@ -11,6 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Feather } from "@expo/vector-icons";
 import LogoutModal from "../../components/LogoutModal";
 import { normalize, wp, hp } from "../../utils/responsive";
+import { Image } from "react-native";
 
 export default function TradespersonProfileTab({ navigation }) {
     const { user, logout } = useAuth();
@@ -52,9 +53,16 @@ export default function TradespersonProfileTab({ navigation }) {
                 <View style={styles.profileCard}>
                     <View style={styles.profileHeader}>
                         <View style={styles.avatarContainer}>
-                            <Text style={styles.avatarText}>
-                                {user?.name?.charAt(0).toUpperCase() || "T"}
-                            </Text>
+                            {user?.profile_image || user?.profileImage ? (
+                                <Image
+                                    source={{ uri: user.profile_image || user.profileImage }}
+                                    style={styles.avatarImage}
+                                />
+                            ) : (
+                                <Text style={styles.avatarText}>
+                                    {user?.name?.charAt(0).toUpperCase() || "T"}
+                                </Text>
+                            )}
                         </View>
                         <View style={styles.profileInfo}>
                             <Text style={styles.userName}>{user?.name || "Tradesperson"}</Text>
@@ -158,7 +166,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginRight: wp(4),
         borderWidth: 1,
+        borderWidth: 1,
         borderColor: "#DBEAFE",
+        overflow: "hidden", // Added to clip image
+    },
+    avatarImage: {
+        width: "100%",
+        height: "100%",
+        borderRadius: wp(8),
     },
     avatarText: {
         fontSize: normalize(24),

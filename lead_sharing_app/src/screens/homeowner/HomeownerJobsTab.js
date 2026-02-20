@@ -328,4 +328,25 @@ const styles = StyleSheet.create({
         color: "#9CA3AF",
         fontStyle: "italic",
     },
+
+    jobDetails: {
+        marginTop: 8,
+    },
+
+    detailItem: {
+        flexDirection: "row",      // icon + text horizontal
+        alignItems: "center",      // vertical center
+        marginBottom: 6,
+    },
+
+    detailText: {
+        fontSize: 13,
+        color: "#6B7280",
+        flexShrink: 1,             // prevents breaking layout
+    },
+    footer: {
+        flexDirection: "row",
+        justifyContent: "flex-end",  // pushes content to right
+        alignItems: "center",
+    },
 });

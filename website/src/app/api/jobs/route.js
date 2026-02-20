@@ -49,13 +49,17 @@ export async function GET(req) {
       }
     }
 
-    // Build query
+    // Build query (include category and subcategory names)
     let query = `
       SELECT 
         j.*,
-        u.name as homeowner_name
+        u.name as homeowner_name,
+        c.name as category_name,
+        sc.name as subcategory_name
       FROM jobs j
       LEFT JOIN users u ON j.homeowner_id = u.id
+      LEFT JOIN categories c ON j.category_id = c.id
+      LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
       WHERE j.status = ?
     `;
     const queryParams = [status];
@@ -96,6 +100,8 @@ export async function GET(req) {
           id: job.id,
           category_id: job.category_id,
           sub_category_id: job.sub_category_id,
+          category_name: job.category_name || null,
+          subcategory_name: job.subcategory_name || null,
           description: job.description,
           postcode: job.postcode,
           city: job.city,
@@ -159,11 +165,14 @@ export async function POST(req) {
       category,
       subCategory,
       description,
+      propertyType,
       postcode: dataPostcode,
       location,
       city,
-      start_time = "WITHIN_2_WEEKS",
-      job_stage = "PLANNING",
+      startTime,
+      start_time: startTimeSnake,
+      jobStage,
+      job_stage: jobStageSnake,
       ownership = "OWNER",
       budgetMin,
       budgetMax,
@@ -172,6 +181,8 @@ export async function POST(req) {
       contactPhone,
       contactEmail,
     } = body;
+    const start_time = startTimeSnake || startTime || "WITHIN_2_WEEKS";
+    const job_stage = (jobStageSnake || jobStage || "PLANNING").replace("INSURANCE_WORK", "INSURANCE");
 
     const postcode = dataPostcode || location?.postcode;
     const finalCity = city || location?.city || '';

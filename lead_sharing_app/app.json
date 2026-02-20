@@ -21,15 +21,17 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.allcarepros.app"
+      "package": "com.allcarepros.app",
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "0f874d87-7158-46ee-a8a4-c1070f2f6e9f"
+        "projectId": "4631fecd-0a2f-4f8f-a678-88df81b831af"
       }
-    }
+    },
+    "owner": "nh_aman"
   }
 }

@@ -34,8 +34,24 @@ export default function JobDetailsScreen({ route, navigation }) {
                 homeownerAPI.getJobLeads(jobId).catch(() => []),
             ]);
 
-            // Extract job from the response structure: { success, data: { job, leads }, message }
-            const jobData = jobResponse?.data?.job || jobResponse;
+            // Extract job from the response structure: { success, data: { ...job, leadCount }, message }
+            // The API returns job fields at the top level of `data` (e.g. data.id, data.has_rated)
+            // But sometimes it might be nested in `data.job` depending on the endpoint variant.
+
+            // Check if jobResponse IS the data object or if it has a .data property
+            // The apiCall wrapper returns response.json(), so jobResponse = { success: true, data: { ... } }
+            // Or if it failed, maybe something else.
+
+            // Assuming jobResponse.data IS the job object (from route.js verified earlier)
+            const jobData = jobResponse?.data?.job || jobResponse?.data || jobResponse;
+
+            console.log('📝 LOADED JOB DATA:', {
+                id: jobData?.id || jobData?._id,
+                status: jobData?.status,
+                has_rated: jobData?.has_rated,
+                hasRated: jobData?.hasRated
+            });
+
             setJob(jobData);
 
             // Extract leads: API returns { success, data: [...leads], count }
@@ -131,8 +147,17 @@ export default function JobDetailsScreen({ route, navigation }) {
     async function handleSubmitRating(rating, review) {
         if (!selectedTradespersonId) {
             Alert.alert("Error", "Tradesperson information missing");
-            throw new Error("Tradesperson ID missing");
+            console.error("❌ Stats: Tradesperson ID is null or undefined");
+            return;
         }
+
+        console.log("📝 Submitting rating:", {
+            jobId,
+            tradespersonId: selectedTradespersonId,
+            rating,
+            review
+        });
+
         try {
             await homeownerAPI.rateJob(jobId, selectedTradespersonId, rating, review);
             Alert.alert("Success", "Thank you for your feedback!");
@@ -308,7 +333,7 @@ export default function JobDetailsScreen({ route, navigation }) {
             )}
 
             {/* Rating Section (shown when COMPLETED and not rated) */}
-            {job.status === "COMPLETED" && !job.has_rated && (
+            {job.status === "COMPLETED" && !(job.has_rated || job.hasRated) && (
                 <View style={styles.section}>
                     <View style={styles.ratingPrompt}>
                         <Feather name="star" size={24} color="#FCD34D" />
@@ -337,11 +362,14 @@ export default function JobDetailsScreen({ route, navigation }) {
             )}
 
             {/* Rating Submitted Message */}
-            {job.status === "COMPLETED" && job.has_rated && (
+            {job.status === "COMPLETED" && (job.has_rated || job.hasRated) && (
                 <View style={styles.section}>
                     <View style={styles.ratedMessage}>
                         <Feather name="check-circle" size={24} color="#10B981" />
-                        <Text style={styles.ratedText}>Thank you for your feedback!</Text>
+                        <View style={{ marginLeft: 10 }}>
+                            <Text style={styles.ratedTitle}>Rating Submitted</Text>
+                            <Text style={styles.ratedText}>Thank you for rating this tradesperson!</Text>
+                        </View>
                     </View>
                 </View>
             )}
@@ -396,10 +424,10 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     title: {
-        fontSize: normalize(22),
-        fontWeight: "700",
+        fontSize: normalize(12),
+        fontWeight: "500",
         color: "#1F2937",
-        lineHeight: normalize(30),
+        lineHeight: normalize(17),
     },
     card: {
         backgroundColor: "#FFFFFF",
@@ -601,9 +629,15 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#A7F3D0',
     },
-    ratedText: {
+    ratedTitle: {
         fontSize: normalize(16),
-        fontWeight: '600',
+        fontWeight: '700',
+        color: '#065F46',
+        marginBottom: 2,
+    },
+    ratedText: {
+        fontSize: normalize(14),
+        fontWeight: '500',
         color: '#065F46',
     },
 });

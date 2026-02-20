@@ -9,15 +9,19 @@ export async function GET(req, context) {
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
-    // Fetch the job
+    // Fetch the job (with category and subcategory names)
     const [jobs] = await pool.query(
       `SELECT 
         j.*,
         u.name as homeowner_name,
         u.email as homeowner_email,
-        u.phone as homeowner_phone
+        u.phone as homeowner_phone,
+        c.name as category_name,
+        sc.name as subcategory_name
       FROM jobs j
       LEFT JOIN users u ON j.homeowner_id = u.id
+      LEFT JOIN categories c ON j.category_id = c.id
+      LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
       WHERE j.id = ?`,
       [id]
     );
@@ -97,12 +101,20 @@ export async function GET(req, context) {
     );
     const leadCount = countRows[0]?.count || 0;
 
+    // Build media array (urls for images)
+    const mediaList = Array.isArray(job.media) ? job.media : [];
+    const imageUrls = mediaList
+      .filter((m) => m && (typeof m === "string" ? m : m.url))
+      .map((m) => (typeof m === "string" ? m : m.url));
+
     // Construct response
     const response = {
       _id: job.id, // For mobile app compatibility
       id: job.id,
       category_id: job.category_id,
       sub_category_id: job.sub_category_id,
+      category_name: job.category_name || null,
+      subcategory_name: job.subcategory_name || null,
       description: job.description,
       postcode: job.postcode,
       city: job.city,
@@ -114,6 +126,8 @@ export async function GET(req, context) {
       budget_max: job.budget_max,
       status: job.status,
       created_at: job.created_at,
+      media: mediaList,
+      images: imageUrls,
       homeowner: {
         name: job.homeowner_name || "Homeowner",
         // Don't include ID/email/phone unless unlocked or authorized

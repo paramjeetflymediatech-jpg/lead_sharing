@@ -51,8 +51,13 @@ export function AuthProvider({ children }) {
     await AsyncStorage.removeItem("token");
   }
 
+  async function updateUser(userData) {
+    setUser(userData);
+    await AsyncStorage.setItem("auth_user", JSON.stringify(userData));
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

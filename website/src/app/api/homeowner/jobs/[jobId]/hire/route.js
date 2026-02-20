@@ -168,7 +168,7 @@ export async function POST(req, context) {
           j.*,
           tp.company_name as hired_tradesperson_name
          FROM jobs j
-         LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.user_id
+         LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
          WHERE j.id = ?
          LIMIT 1`,
         [jobId]
