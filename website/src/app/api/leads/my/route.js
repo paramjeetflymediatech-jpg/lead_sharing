@@ -351,7 +351,7 @@ export async function GET(req) {
       LEFT JOIN categories c ON j.category_id = c.id
       LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
       LEFT JOIN users u ON j.homeowner_id = u.id
-      LEFT JOIN tradesperson_profiles tp ON l.tradesperson_id = tp.id
+      LEFT JOIN tradesperson_profiles tp ON l.tradesperson_id = tp.user_id
       WHERE l.tradesperson_id = ?
       AND l.is_unlocked = 1
       ORDER BY 
@@ -362,7 +362,7 @@ export async function GET(req) {
           ELSE 4
         END,
         l.unlocked_at DESC
-    `, [tradespersonId]);
+    `, [userId]);
 
     // 3. Format the response
     const formattedLeads = leads.map(lead => {

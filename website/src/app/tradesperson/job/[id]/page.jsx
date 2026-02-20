@@ -130,7 +130,7 @@ export default async function JobDetailsPage({ params }) {
     // Check if user has unlocked this job - FIXED: Use MySQL-compatible queries
     const userLead = await Lead.findOne({
       job: id,
-      tradesperson: profile._id,
+      tradesperson: userId,
       isUnlocked: true,
     });
 
