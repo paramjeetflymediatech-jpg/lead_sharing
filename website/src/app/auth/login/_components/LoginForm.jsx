@@ -54,7 +54,7 @@ export default function LoginForm() {
     }
 
     return (
-        <main className="relative flex flex-1 flex-col items-center justify-center px-4 overflow-hidden bg-white">
+        <main className="relative flex flex-1 flex-col items-center justify-center px-4 overflow-hidden">
             {/* Background Blur Effects */}
             <div className="absolute top-[10%] left-[10%] h-[250px] w-[250px] rounded-full bg-[#155DFC] opacity-10 blur-[100px]" />
             <div className="absolute bottom-[10%] right-[10%] h-[200px] w-[200px] rounded-full bg-[#155DFC] opacity-5 blur-[80px]" />
@@ -62,10 +62,10 @@ export default function LoginForm() {
             <div className="relative z-10 w-full max-w-md my-10">
                 {/* Title */}
                 <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-black">
                         Welcome <span className="text-[#155DFC]">Back</span>
                     </h1>
-                    <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <p className="mt-2 text-sm text-zinc-500">
                         Log in to manage your jobs and quotes.
                     </p>
                 </div>
@@ -73,18 +73,18 @@ export default function LoginForm() {
                 {/* Form */}
                 <form
                     onSubmit={handleSubmit}
-                    className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors dark:border-zinc-800 dark:bg-zinc-900/50"
+                    className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors"
                 >
                     <div className="space-y-6">
                         {/* Email */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ml-1">
+                            <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
                                 Email Address
                             </label>
                             <input
                                 required
                                 type="email"
-                                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10"
                                 placeholder="Enter your email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
@@ -94,7 +94,7 @@ export default function LoginForm() {
                         {/* Password */}
                         <div className="space-y-1">
                             <div className="flex justify-between items-center px-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
                                     Password
                                 </label>
                                 <a
@@ -108,7 +108,7 @@ export default function LoginForm() {
                                 <input
                                     required
                                     type={showPassword ? "text" : "password"}
-                                    className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white pr-10"
+                                    className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10 pr-10"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -116,7 +116,7 @@ export default function LoginForm() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                 >
                                     {showPassword ? (
                                         <EyeSlashIcon className="w-5 h-5" />
@@ -147,7 +147,7 @@ export default function LoginForm() {
 
                 {/* Links */}
                 <div className="mt-8 flex flex-col items-center gap-4 text-sm font-medium">
-                    <p className="text-zinc-500 dark:text-zinc-400">
+                    <p className="text-zinc-500">
                         Don't have an account?{" "}
                         <a
                             href="/auth/register"
@@ -158,7 +158,7 @@ export default function LoginForm() {
                     </p>
                     <a
                         href="/"
-                        className="text-zinc-400 transition-colors hover:text-black dark:hover:text-white"
+                        className="text-zinc-400 transition-colors hover:text-black"
                     >
                         ← Back to homepage
                     </a>

@@ -245,7 +245,7 @@ function RegisterFormContent() {
     };
 
     return (
-        <div className="relative flex flex-1 w-full flex-col items-center justify-center px-4 py-12 overflow-hidden bg-white">
+        <div className="relative flex flex-1 w-full flex-col items-center justify-center px-4 py-12 overflow-hidden">
 
             {/* Unique UI element: Decorative Background Blur */}
             <div className="absolute -bottom-[10%] -right-[10%] h-[300px] w-[300px] rounded-full bg-[#155DFC] opacity-10 blur-[100px]" />
@@ -254,10 +254,10 @@ function RegisterFormContent() {
             <div className="relative z-10 w-full max-w-md">
                 {/* Header */}
                 <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-black">
                         Get <span className="text-[#155DFC]">Started</span>
                     </h1>
-                    <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <p className="mt-2 text-sm text-zinc-500">
                         {role === "HOMEOWNER"
                             ? "Find the best pros for your home project."
                             : "Grow your trade business with quality leads."}
@@ -267,23 +267,23 @@ function RegisterFormContent() {
                 {/* Form Card */}
                 <form
                     onSubmit={handleSubmit}
-                    className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors dark:border-zinc-800 dark:bg-zinc-900/50"
+                    className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors"
                 >
                     {error && (
-                        <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                        <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600">
                             {error}
                         </div>
                     )}
 
                     <div className="space-y-4">
                         {/* Unique UI: Custom Role Switcher */}
-                        <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
+                        <div className="flex rounded-xl bg-zinc-100 p-1">
                             <button
                                 type="button"
                                 onClick={() => setRole("HOMEOWNER")}
                                 className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${role === "HOMEOWNER"
-                                    ? "bg-white text-[#155DFC] shadow-sm dark:bg-zinc-700 dark:text-white"
-                                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
+                                    ? "bg-white text-[#155DFC] shadow-sm"
+                                    : "text-zinc-500 hover:text-zinc-700"
                                     }`}
                             >
                                 Homeowner
@@ -292,8 +292,8 @@ function RegisterFormContent() {
                                 type="button"
                                 onClick={() => setRole("TRADESPERSON")}
                                 className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${role === "TRADESPERSON"
-                                    ? "bg-white text-[#155DFC] shadow-sm dark:bg-zinc-700 dark:text-white"
-                                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
+                                    ? "bg-white text-[#155DFC] shadow-sm"
+                                    : "text-zinc-500 hover:text-zinc-700"
                                     }`}
                             >
                                 Tradesperson
@@ -303,14 +303,14 @@ function RegisterFormContent() {
                         <div className="grid gap-4">
                             {/* Name Field */}
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ml-1">
+                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
                                     Full Name
                                 </label>
                                 <input
                                     required
-                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.name && fieldErrors.name
-                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.name && fieldErrors.name
+                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
                                         }`}
                                     placeholder="Enter your name"
                                     value={name}
@@ -318,7 +318,7 @@ function RegisterFormContent() {
                                     onBlur={() => handleBlur("name")}
                                 />
                                 {touched.name && fieldErrors.name && (
-                                    <p className="text-xs text-red-600 dark:text-red-400 ml-1 mt-1">
+                                    <p className="text-xs text-red-600 ml-1 mt-1">
                                         {fieldErrors.name}
                                     </p>
                                 )}
@@ -327,14 +327,14 @@ function RegisterFormContent() {
                             {/* Company Name Field (for Tradesperson) */}
                             {role === "TRADESPERSON" && (
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ml-1">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
                                         Company Name
                                     </label>
                                     <input
                                         required
-                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.companyName && fieldErrors.companyName
-                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.companyName && fieldErrors.companyName
+                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
                                             }`}
                                         placeholder="Enter company name"
                                         value={companyName}
@@ -342,7 +342,7 @@ function RegisterFormContent() {
                                         onBlur={() => handleBlur("companyName")}
                                     />
                                     {touched.companyName && fieldErrors.companyName && (
-                                        <p className="text-xs text-red-600 dark:text-red-400 ml-1 mt-1">
+                                        <p className="text-xs text-red-600 ml-1 mt-1">
                                             {fieldErrors.companyName}
                                         </p>
                                     )}
@@ -351,15 +351,15 @@ function RegisterFormContent() {
 
                             {/* Email Field */}
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ml-1">
+                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
                                     Email Address
                                 </label>
                                 <input
                                     required
                                     type="email"
-                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white ${touched.email && fieldErrors.email
-                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.email && fieldErrors.email
+                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
                                         }`}
                                     placeholder="Enter your email"
                                     value={email}
@@ -367,7 +367,7 @@ function RegisterFormContent() {
                                     onBlur={() => handleBlur("email")}
                                 />
                                 {touched.email && fieldErrors.email && (
-                                    <p className="text-xs text-red-600 dark:text-red-400 ml-1 mt-1">
+                                    <p className="text-xs text-red-600 ml-1 mt-1">
                                         {fieldErrors.email}
                                     </p>
                                 )}
@@ -375,16 +375,16 @@ function RegisterFormContent() {
 
                             {/* Password Field */}
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ml-1">
+                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
                                     Password
                                 </label>
                                 <div className="relative">
                                     <input
                                         required
                                         type={showPassword ? "text" : "password"}
-                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 dark:bg-zinc-900 dark:text-white pr-10 ${touched.password && fieldErrors.password
-                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-800"
-                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10 dark:border-zinc-800"
+                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 pr-10 ${touched.password && fieldErrors.password
+                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
                                             }`}
                                         placeholder="••••••••"
                                         value={password}
@@ -394,7 +394,7 @@ function RegisterFormContent() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                     >
                                         {showPassword ? (
                                             <EyeSlashIcon className="w-5 h-5" />
@@ -404,12 +404,12 @@ function RegisterFormContent() {
                                     </button>
                                 </div>
                                 {touched.password && fieldErrors.password && (
-                                    <p className="text-xs text-red-600 dark:text-red-400 ml-1 mt-1">
+                                    <p className="text-xs text-red-600 ml-1 mt-1">
                                         {fieldErrors.password}
                                     </p>
                                 )}
                                 {!fieldErrors.password && password && (
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-1 mt-1">
+                                    <p className="text-xs text-zinc-500 ml-1 mt-1">
                                         Must be 6+ characters with uppercase, lowercase, and number
                                     </p>
                                 )}
@@ -431,13 +431,13 @@ function RegisterFormContent() {
 
                 {/* Links */}
                 <div className="mt-8 flex flex-col items-center gap-4 text-sm font-medium">
-                    <p className="text-zinc-500 dark:text-zinc-400">
+                    <p className="text-zinc-500">
                         Already have an account?{" "}
                         <a href="/auth/login" className="text-[#155DFC] hover:underline underline-offset-4">
                             Log in here
                         </a>
                     </p>
-                    <a href="/" className="text-zinc-400 transition-colors hover:text-black dark:hover:text-white">
+                    <a href="/" className="text-zinc-400 transition-colors hover:text-black">
                         ← Back to homepage
                     </a>
                 </div>
