@@ -245,7 +245,7 @@ function RegisterFormContent() {
     };
 
     return (
-        <div className="relative flex flex-1 w-full flex-col items-center justify-center px-4 py-12 overflow-hidden">
+        <div className="relative flex flex-1 w-full flex-col items-center justify-center px-4 py-12 overflow-hidden bg-white">
 
             {/* Unique UI element: Decorative Background Blur */}
             <div className="absolute -bottom-[10%] -right-[10%] h-[300px] w-[300px] rounded-full bg-[#155DFC] opacity-10 blur-[100px]" />

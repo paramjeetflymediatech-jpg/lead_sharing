@@ -54,7 +54,7 @@ export default function LoginForm() {
     }
 
     return (
-        <main className="relative flex flex-1 flex-col items-center justify-center px-4 overflow-hidden">
+        <main className="relative flex flex-1 flex-col items-center justify-center px-4 overflow-hidden bg-white">
             {/* Background Blur Effects */}
             <div className="absolute top-[10%] left-[10%] h-[250px] w-[250px] rounded-full bg-[#155DFC] opacity-10 blur-[100px]" />
             <div className="absolute bottom-[10%] right-[10%] h-[200px] w-[200px] rounded-full bg-[#155DFC] opacity-5 blur-[80px]" />
