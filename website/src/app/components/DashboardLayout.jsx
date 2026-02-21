@@ -172,7 +172,7 @@ export default function DashboardLayout({ children, navItems, user }) {
             </aside>
 
             {/* Main Content Wrapper */}
-            <div className="xl:pl-72 flex flex-col min-h-screen">
+            <div className="xl:pl-72 flex flex-col min-h-screen max-w-full overflow-x-hidden">
                 {/* Header */}
                 <header className="sticky top-0 z-30 flex items-center justify-between px-6 h-20 bg-white/80 dark:bg-black/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center xl:hidden">
