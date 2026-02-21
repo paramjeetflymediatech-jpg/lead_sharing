@@ -118,37 +118,57 @@ export default function TradespersonProfileScreen({ route, navigation }) {
             {profile.bio && (
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>About</Text>
-                    <Text style={styles.bioText}>{profile.bio}</Text>
+                    <View style={styles.contentCard}>
+                        <Text style={styles.bioText}>{profile.bio}</Text>
+                    </View>
                 </View>
             )}
 
-            {/* Recent Completed Jobs & Reviews */}
+            {/* Service Areas */}
+            {profile.serviceAreas && profile.serviceAreas.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Service Areas</Text>
+                    <View style={styles.chipsContainer}>
+                        {profile.serviceAreas.map((area, index) => (
+                            <View key={index} style={styles.chip}>
+                                <Text style={styles.chipText}>{area}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            )}
+
+            {/* Recent Work & Reviews */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Recent Work & Reviews</Text>
+                <Text style={styles.sectionTitle}>Reviews & Ratings</Text>
                 {completedJobs.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Feather name="inbox" size={48} color="#D1D5DB" />
-                        <Text style={styles.emptyText}>No completed jobs yet</Text>
+                        <Text style={styles.emptyText}>No ratings yet</Text>
                     </View>
                 ) : (
-                    completedJobs.map((job, index) => (
-                        <View key={job.id || index} style={styles.jobCard}>
-                            <Text style={styles.jobDescription} numberOfLines={2}>
-                                {job.description || 'Job completed'}
-                            </Text>
-                            <Text style={styles.jobDate}>
-                                Completed: {job.completed_at ? new Date(job.completed_at).toLocaleDateString() : 'Recently'}
-                            </Text>
-                            {job.rating && (
-                                <View style={styles.ratingContainer}>
-                                    <View style={styles.starsRow}>
-                                        {renderStars(job.rating)}
+                    completedJobs.map((review, index) => (
+                        <View key={review.id || index} style={styles.jobCard}>
+                            <View style={styles.reviewHeader}>
+                                <View style={styles.reviewerInfo}>
+                                    <View style={styles.avatarMini}>
+                                        <Text style={styles.avatarMiniText}>
+                                            {(review.homeownerName || 'H').charAt(0).toUpperCase()}
+                                        </Text>
                                     </View>
-                                    <Text style={styles.ratingValue}>{job.rating.toFixed(1)}</Text>
+                                    <View>
+                                        <Text style={styles.homeownerName}>{review.homeownerName || 'Verified Homeowner'}</Text>
+                                        <Text style={styles.reviewDate}>{review.date || 'Recently'}</Text>
+                                    </View>
                                 </View>
-                            )}
-                            {job.review && (
-                                <Text style={styles.reviewText}>"{job.review}"</Text>
+                                <View style={styles.starsRowMini}>
+                                    {renderStars(review.rating || 5)}
+                                </View>
+                            </View>
+
+                            <Text style={styles.jobTitleText}>{review.jobTitle || 'General Maintenance'}</Text>
+                            {review.comment && (
+                                <Text style={styles.reviewText}>"{review.comment}"</Text>
                             )}
                         </View>
                     ))
@@ -252,13 +272,38 @@ const styles = StyleSheet.create({
         color: '#111827',
         marginBottom: hp(1.5),
     },
+    contentCard: {
+        backgroundColor: '#FFFFFF',
+        padding: normalize(16),
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
     bioText: {
         fontSize: normalize(14),
         color: '#4B5563',
         lineHeight: normalize(20),
-        backgroundColor: '#FFFFFF',
-        padding: normalize(16),
-        borderRadius: 8,
+    },
+    chipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: normalize(8),
+    },
+    chip: {
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: normalize(12),
+        paddingVertical: normalize(6),
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    chipText: {
+        fontSize: normalize(12),
+        color: '#2563EB',
+        fontWeight: '500',
     },
     emptyState: {
         alignItems: 'center',
@@ -271,7 +316,7 @@ const styles = StyleSheet.create({
     },
     jobCard: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 8,
+        borderRadius: 12,
         padding: normalize(16),
         marginBottom: hp(1.5),
         shadowColor: '#000',
@@ -280,33 +325,53 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    jobDescription: {
-        fontSize: normalize(14),
-        fontWeight: '600',
-        color: '#111827',
-        marginBottom: hp(0.5),
+    reviewHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: hp(1.5),
     },
-    jobDate: {
-        fontSize: normalize(12),
-        color: '#6B7280',
-        marginBottom: hp(1),
-    },
-    ratingContainer: {
+    reviewerInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: normalize(8),
-        marginBottom: hp(1),
+        gap: normalize(10),
     },
-    ratingValue: {
+    avatarMini: {
+        width: normalize(36),
+        height: normalize(36),
+        borderRadius: normalize(18),
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatarMiniText: {
+        fontSize: normalize(16),
+        fontWeight: '700',
+        color: '#6B7280',
+    },
+    homeownerName: {
+        fontSize: normalize(14),
+        fontWeight: '700',
+        color: '#111827',
+    },
+    reviewDate: {
+        fontSize: normalize(12),
+        color: '#9CA3AF',
+    },
+    starsRowMini: {
+        flexDirection: 'row',
+        gap: normalize(1),
+    },
+    jobTitleText: {
         fontSize: normalize(14),
         fontWeight: '600',
-        color: '#111827',
+        color: '#374151',
+        marginBottom: hp(0.5),
     },
     reviewText: {
         fontSize: normalize(14),
         color: '#4B5563',
         fontStyle: 'italic',
         lineHeight: normalize(20),
-        marginTop: hp(0.5),
     },
 });

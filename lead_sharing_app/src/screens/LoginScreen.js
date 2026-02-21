@@ -31,8 +31,15 @@ export default function LoginScreen({ navigation }) {
     setError("");
     setLoading(true);
 
-    if (!email || !password) {
-      setError("Please fill in all fields");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password");
+      setLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError("Please enter a valid email address");
       setLoading(false);
       return;
     }
@@ -183,10 +190,11 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F7FA",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     flexGrow: 1,
+    backgroundColor: "#FFFFFF",
   },
   illustrationContainer: {
     backgroundColor: "#FFFFFF",

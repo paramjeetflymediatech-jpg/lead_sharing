@@ -29,6 +29,7 @@ export default function EditProfileScreen({ navigation }) {
         company_name: "",
         contact_name: user?.name || "",
         phone: "",
+        postcode: "",
         service_areas: "",
         bio: "",
     });
@@ -39,12 +40,14 @@ export default function EditProfileScreen({ navigation }) {
 
     async function loadProfile() {
         try {
-            const profile = await tradespersonAPI.getProfile();
+            const response = await tradespersonAPI.getProfile();
+            const profile = response.data; // Access data property
             if (profile) {
                 setFormData({
                     company_name: profile.company_name || "",
                     contact_name: profile.contact_name || user?.name || "",
                     phone: profile.phone || "",
+                    postcode: profile.postcode || "",
                     service_areas: profile.service_areas?.join(", ") || "",
                     bio: profile.bio || "",
                 });
@@ -92,6 +95,32 @@ export default function EditProfileScreen({ navigation }) {
             return;
         }
 
+        if (!formData.contact_name.trim()) {
+            Alert.alert("Error", "Contact name is required");
+            return;
+        }
+
+        if (!formData.phone.trim()) {
+            Alert.alert("Error", "Phone number is required");
+            return;
+        }
+
+        if (formData.phone.length < 10) {
+            Alert.alert("Error", "Please enter a valid 10-digit phone number");
+            return;
+        }
+
+        if (!formData.postcode.trim()) {
+            Alert.alert("Error", "Postcode is required");
+            return;
+        }
+
+        const postcodeRegex = /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i;
+        if (!postcodeRegex.test(formData.postcode.trim())) {
+            Alert.alert("Error", "Please enter a valid Canadian postcode (e.g. A1A 1A1)");
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -121,7 +150,7 @@ export default function EditProfileScreen({ navigation }) {
             const profileData = {
                 companyName: formData.company_name,
                 phone: formData.phone,
-                postcode: "", // Add postcode field if captured in UI, or ensure backend handles missing/empty
+                postcode: formData.postcode,
                 bio: formData.bio,
                 skills: [], // Add skills if captured
                 serviceAreas: formData.service_areas
@@ -136,6 +165,8 @@ export default function EditProfileScreen({ navigation }) {
                 updateUser({
                     ...user,
                     name: formData.contact_name,
+                    phone: formData.phone,
+                    postcode: formData.postcode,
                     profile_image: uploadedImageUrl,
                     profileImage: uploadedImageUrl
                 });
@@ -253,7 +284,34 @@ export default function EditProfileScreen({ navigation }) {
                                 placeholderTextColor="#9CA3AF"
                                 keyboardType="phone-pad"
                                 value={formData.phone}
-                                onChangeText={(value) => updateField("phone", value)}
+                                onChangeText={(value) => {
+                                    const numericValue = value.replace(/[^0-9]/g, '');
+                                    updateField("phone", numericValue);
+                                }}
+                                maxLength={10}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Postcode */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Postcode</Text>
+                        <View style={styles.inputWrapper}>
+                            <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. SW1 1AA"
+                                placeholderTextColor="#9CA3AF"
+                                value={formData.postcode}
+                                onChangeText={(value) => {
+                                    let formatted = value.toUpperCase();
+                                    if (formatted.length === 3 && formData.postcode.length === 2) {
+                                        formatted += " ";
+                                    }
+                                    updateField("postcode", formatted);
+                                }}
+                                maxLength={7}
+                                autoCapitalize="characters"
                             />
                         </View>
                     </View>

@@ -102,7 +102,7 @@ export default function HomeownerProfileTab({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F3F4F6",
+        backgroundColor: "#FFFFFF",
     },
     header: {
         paddingHorizontal: wp(5),

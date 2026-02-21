@@ -36,18 +36,27 @@ export async function GET(req) {
     if (typeof user.lean === "function") delete user.lean;
 
     let tradespersonProfile = null;
+    let purchasedPlanKeys = [];
 
     // 🛠️ Extra data for tradesperson
     if (role === "TRADESPERSON") {
       tradespersonProfile = await TradespersonProfile.findOne({
         user: userId,
       });
+
+      if (tradespersonProfile) {
+        const { Payment } = await import("@/models/Payment");
+        const payments = await Payment.findByTradespersonId(tradespersonProfile.id, 50);
+        const completedPayments = payments.filter(p => p.status === 'completed');
+        purchasedPlanKeys = [...new Set(completedPayments.map(p => p.plan))];
+      }
     }
 
     return NextResponse.json({
       success: true,
       user,
       tradespersonProfile,
+      purchasedPlanKeys,
     });
   } catch (error) {
     console.error("GET ME error:", error);
@@ -75,14 +84,13 @@ export async function PUT(req) {
       updates.name = firstName;
     }
 
-    if (phone) updates.phone = phone;
-    if (profileImage) updates.profile_image = profileImage;
-    // Address handling - simplistic for now, assuming columns exist or we skip
+    if (phone !== undefined) updates.phone = phone;
+    if (profileImage !== undefined) updates.profile_image = profileImage;
+    // Address handling
     if (address) {
-      if (address.city) updates.city = address.city;
-      if (address.postcode) updates.postcode = address.postcode;
-      if (address.line1) updates.address_line1 = address.line1;
-      // Note: User model map needs to support these or they will fail if strict
+      if (address.city !== undefined) updates.city = address.city;
+      if (address.postcode !== undefined) updates.postcode = address.postcode;
+      if (address.line1 !== undefined) updates.address_line1 = address.line1;
     }
 
     // Password change

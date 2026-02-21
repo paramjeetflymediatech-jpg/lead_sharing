@@ -289,23 +289,38 @@ export default function JobDetailsScreen({ route, navigation }) {
                                     )}
                                 </View>
                                 <View style={styles.actionButtons}>
-                                    <TouchableOpacity
-                                        style={styles.viewProfileButton}
-                                        onPress={() => handleViewProfile(lead.tradesperson_id)}
-                                    >
-                                        <Feather name="user" size={16} color="#2563EB" />
-                                        <Text style={styles.viewProfileText}>View Profile</Text>
-                                    </TouchableOpacity>
-                                    {job.status === "OPEN" && (
-                                        <TouchableOpacity
-                                            style={styles.hireButton}
-                                            onPress={() => handleHire(lead.id)}
-                                        >
-                                            <Text style={styles.hireButtonText}>Hire</Text>
-                                        </TouchableOpacity>
+                                    {lead.status === 'REJECTED' ? (
+                                        <View style={styles.rejectedBadge}>
+                                            <Feather name="x-circle" size={14} color="#EF4444" />
+                                            <Text style={styles.rejectedText}>Rejected</Text>
+                                        </View>
+                                    ) : (
+                                        <>
+                                            <TouchableOpacity
+                                                style={styles.viewProfileButton}
+                                                onPress={() => handleViewProfile(lead.tradesperson_id)}
+                                            >
+                                                <Feather name="user" size={16} color="#2563EB" />
+                                                <Text style={styles.viewProfileText}>View Profile</Text>
+                                            </TouchableOpacity>
+                                            {job.status === "OPEN" && (
+                                                <TouchableOpacity
+                                                    style={styles.hireButton}
+                                                    onPress={() => handleHire(lead.id)}
+                                                >
+                                                    <Text style={styles.hireButtonText}>Hire</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </>
                                     )}
                                 </View>
                             </View>
+                            {lead.status === 'HIRED' && (
+                                <View style={styles.hiredBanner}>
+                                    <Feather name="check-circle" size={14} color="#10B981" />
+                                    <Text style={styles.hiredBannerText}>You hired this tradesperson</Text>
+                                </View>
+                            )}
                             {lead.message && (
                                 <Text style={styles.leadMessage}>{lead.message}</Text>
                             )}
@@ -639,5 +654,37 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         fontWeight: '500',
         color: '#065F46',
+    },
+    rejectedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(4),
+        paddingHorizontal: normalize(12),
+        paddingVertical: normalize(6),
+        borderRadius: 6,
+        backgroundColor: '#FEF2F2',
+        borderWidth: 1,
+        borderColor: '#FEE2E2',
+    },
+    rejectedText: {
+        fontSize: normalize(12),
+        fontWeight: '600',
+        color: '#EF4444',
+    },
+    hiredBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(6),
+        backgroundColor: '#ECFDF5',
+        paddingHorizontal: normalize(8),
+        paddingVertical: normalize(4),
+        borderRadius: 4,
+        marginTop: hp(0.5),
+        alignSelf: 'flex-start',
+    },
+    hiredBannerText: {
+        fontSize: normalize(11),
+        fontWeight: '600',
+        color: '#10B981',
     },
 });

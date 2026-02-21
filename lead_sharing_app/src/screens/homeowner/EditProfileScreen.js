@@ -79,6 +79,32 @@ export default function EditProfileScreen({ navigation }) {
             return;
         }
 
+        if (!formData.phone.trim()) {
+            Alert.alert("Error", "Phone number is required");
+            return;
+        }
+
+        if (formData.phone.length < 10) {
+            Alert.alert("Error", "Please enter a valid 10-digit phone number");
+            return;
+        }
+
+        if (!formData.address.trim()) {
+            Alert.alert("Error", "Address is required");
+            return;
+        }
+
+        if (!formData.postcode.trim()) {
+            Alert.alert("Error", "Postcode is required");
+            return;
+        }
+
+        const postcodeRegex = /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i;
+        if (!postcodeRegex.test(formData.postcode.trim())) {
+            Alert.alert("Error", "Please enter a valid Canadian postcode (e.g. A1A 1A1)");
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -132,9 +158,12 @@ export default function EditProfileScreen({ navigation }) {
             if (updateUser) {
                 const newUserData = {
                     ...user,
-                    ...formData,
-                    profile_image: uploadedImageUrl, // Ensure context updates with new image
-                    profileImage: uploadedImageUrl   // Redundancy for different usage
+                    name: formData.name,
+                    phone: formData.phone,
+                    address_line1: formData.address, // Use address_line1 to match useEffect mapping
+                    postcode: formData.postcode,     // Ensure postcode is synced
+                    profile_image: uploadedImageUrl,
+                    profileImage: uploadedImageUrl
                 };
                 updateUser(newUserData);
             }
@@ -228,7 +257,11 @@ export default function EditProfileScreen({ navigation }) {
                                 placeholderTextColor="#9CA3AF"
                                 keyboardType="phone-pad"
                                 value={formData.phone}
-                                onChangeText={(value) => updateField("phone", value)}
+                                onChangeText={(value) => {
+                                    const numericValue = value.replace(/[^0-9]/g, '');
+                                    updateField("phone", numericValue);
+                                }}
+                                maxLength={10}
                             />
                         </View>
                     </View>
@@ -260,7 +293,14 @@ export default function EditProfileScreen({ navigation }) {
                                 placeholder="e.g. A1A 1A1"
                                 placeholderTextColor="#9CA3AF"
                                 value={formData.postcode}
-                                onChangeText={(value) => updateField("postcode", value.toUpperCase())}
+                                onChangeText={(value) => {
+                                    let formatted = value.toUpperCase();
+                                    if (formatted.length === 3 && formData.postcode.length === 2) {
+                                        formatted += " ";
+                                    }
+                                    updateField("postcode", formatted);
+                                }}
+                                maxLength={7}
                                 autoCapitalize="characters"
                             />
                         </View>

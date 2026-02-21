@@ -3,6 +3,7 @@
     "name": "All Care Pros",
     "slug": "allcarepros",
     "version": "1.0.0",
+    "scheme": "allcarepros",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

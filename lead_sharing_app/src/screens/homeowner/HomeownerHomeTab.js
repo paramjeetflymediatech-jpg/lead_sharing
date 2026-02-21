@@ -271,7 +271,7 @@ function JobCard({ job, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F9FAFB",
+        backgroundColor: "#FFFFFF",
     },
     loadingContainer: {
         flex: 1,

@@ -125,7 +125,7 @@ export default function SignupScreen({ navigation }) {
                     <View style={styles.header}>
                         <Text style={styles.title}>Sign up</Text>
                         <Text style={styles.subtitle}>
-                            Create your account and get started
+                            Join AllCarePros as a {role.toLowerCase()}
                         </Text>
                     </View>
 
@@ -174,23 +174,6 @@ export default function SignupScreen({ navigation }) {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Email Input */}
-                    <View style={styles.inputContainer}>
-                        <View style={styles.inputWrapper}>
-
-                            <TextInput
-                                style={styles.input}
-                                placeholder="abc.xyz@gmail.com"
-                                placeholderTextColor="#9CA3AF"
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                                value={email}
-                                onChangeText={(text) => setEmail(text.toLowerCase())}
-                                editable={!loading}
-                            />
-                        </View>
-                    </View>
-
                     {/* Name Input */}
                     <View style={styles.inputContainer}>
                         <View style={styles.inputWrapper}>
@@ -206,6 +189,8 @@ export default function SignupScreen({ navigation }) {
                             />
                         </View>
                     </View>
+
+                     
 
                     {/* Company Name Input (for Tradesperson) */}
                     {role === "TRADESPERSON" && (
@@ -223,6 +208,24 @@ export default function SignupScreen({ navigation }) {
                             </View>
                         </View>
                     )}
+
+
+                          {/* Email Input */}
+                    <View style={styles.inputContainer}>
+                        <View style={styles.inputWrapper}>
+
+                            <TextInput
+                                style={styles.input}
+                                placeholder="abc.xyz@gmail.com"
+                                placeholderTextColor="#9CA3AF"
+                                autoCapitalize="none"
+                                keyboardType="email-address"
+                                value={email}
+                                onChangeText={(text) => setEmail(text.toLowerCase())}
+                                editable={!loading}
+                            />
+                        </View>
+                    </View>
 
                     {/* Password Input */}
                     <View style={styles.inputContainer}>
@@ -311,10 +314,11 @@ export default function SignupScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: "#FFFFFF",
     },
     scrollContent: {
         flexGrow: 1,
+        backgroundColor: "#FFFFFF",
     },
     illustrationContainer: {
         backgroundColor: "#FFFFFF",

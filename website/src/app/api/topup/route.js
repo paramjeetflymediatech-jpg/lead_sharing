@@ -454,7 +454,9 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { plan } = await req.json();
+    const { plan, platform } = await req.json();
+    const isMobile = platform === 'mobile';
+
     if (!PLANS[plan]) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
@@ -466,6 +468,20 @@ export async function POST(req) {
     }
 
     const selectedPlan = PLANS[plan];
+
+    if (!profile.id) {
+      return NextResponse.json({ error: "Profile configuration error" }, { status: 500 });
+    }
+
+    const success_url = isMobile
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/mobile-redirect?payment=success&session_id={CHECKOUT_SESSION_ID}`
+      : `${process.env.NEXT_PUBLIC_APP_URL}/tradesperson?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+
+    const cancel_url = isMobile
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/mobile-redirect?payment=cancel`
+      : `${process.env.NEXT_PUBLIC_APP_URL}/tradesperson?payment=cancel`;
+
+    console.log("Creating Stripe Session with URLs:", { success_url, cancel_url });
 
     // ✅ Stripe Checkout
     const session = await stripe.checkout.sessions.create({
@@ -487,8 +503,8 @@ export async function POST(req) {
         credits: selectedPlan.credits.toString(),
         plan,
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tradesperson?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tradesperson?payment=cancel`,
+      success_url,
+      cancel_url,
     });
 
     // ✅ CREATE PENDING PAYMENT
@@ -509,6 +525,10 @@ export async function POST(req) {
     });
   } catch (err) {
     console.error("Topup error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: "Server error",
+      message: err.message
+    }, { status: 500 });
   }
 }

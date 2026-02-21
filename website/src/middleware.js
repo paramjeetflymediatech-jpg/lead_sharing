@@ -5,6 +5,10 @@ import { jwtVerify } from "jose";
 // const secret = ... // Remove top-level
 
 export async function middleware(req) {
+  return proxy(req);
+}
+
+export async function proxy(req) {
   let token = req.cookies.get("auth_token")?.value;
 
   // Fallback to Authorization header for mobile app
@@ -108,6 +112,8 @@ export async function middleware(req) {
     return NextResponse.json({ message: "Invalid or expired token" }, { status: 401 });
   }
 }
+
+export default proxy;
 
 export const config = {
   matcher: [

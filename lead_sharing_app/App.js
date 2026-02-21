@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ActivityIndicator, View } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
@@ -12,6 +12,7 @@ import HomeownerTabs from "./src/components/HomeownerTabs";
 import TradespersonTabs from "./src/components/TradespersonTabs";
 import AdminDashboard from "./src/screens/AdminDashboard";
 import TermsAndConditionsScreen from "./src/screens/TermsAndConditionsScreen";
+import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -109,14 +110,47 @@ function RootNavigator() {
           options={{ headerShown: false }}
         />
       )}
+      {/* Global screens accessible from any tab */}
+      <Stack.Screen
+        name="TradespersonProfile"
+        component={TradespersonProfileScreen}
+        options={{ title: "Tradesperson Profile" }}
+      />
     </Stack.Navigator>
   );
 }
 
+const MyTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#1149C7",
+    background: "#FFFFFF",
+    card: "#FFFFFF",
+    text: "#1F2937",
+    border: "#E5E7EB",
+    notification: "#EF4444",
+  },
+};
+
+// Deep linking configuration
+const linking = {
+  prefixes: ["allcarepros://"],
+  config: {
+    screens: {
+      TradespersonDashboard: {
+        screens: {
+          Home: "tradesperson",
+        },
+      },
+    },
+  },
+};
+
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
+      <NavigationContainer theme={MyTheme} linking={linking}>
         <RootNavigator />
       </NavigationContainer>
     </AuthProvider>

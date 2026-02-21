@@ -445,10 +445,10 @@ export const tradespersonAPI = {
     /**
      * Top up credits
      */
-    topUpCredits: async (plan) => {
+    topUpCredits: async (plan, platform = null) => {
         return apiCall("/api/topup", {
             method: "POST",
-            body: JSON.stringify({ plan }),
+            body: JSON.stringify({ plan, platform }),
         });
     },
 

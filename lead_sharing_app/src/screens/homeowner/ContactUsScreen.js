@@ -10,8 +10,12 @@ export default function ContactUsScreen({ navigation }) {
     const [sending, setSending] = useState(false);
 
     const handleSend = () => {
-        if (!subject.trim() || !message.trim()) {
-            Alert.alert("Error", "Please fill in all fields");
+        if (!subject.trim()) {
+            Alert.alert("Error", "Please enter a subject");
+            return;
+        }
+        if (!message.trim()) {
+            Alert.alert("Error", "Please enter your message");
             return;
         }
 

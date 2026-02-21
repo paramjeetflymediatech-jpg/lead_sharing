@@ -53,8 +53,13 @@ export default function BuyCreditsScreen({ navigation }) {
     const fetchProfile = useCallback(async () => {
         try {
             const data = await userAPI.getMe();
-            if (data.success && data.tradespersonProfile) {
-                setProfile(data.tradespersonProfile);
+            if (data.success) {
+                if (data.tradespersonProfile) {
+                    setProfile({
+                        ...data.tradespersonProfile,
+                        purchasedPlanKeys: data.purchasedPlanKeys || []
+                    });
+                }
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -78,7 +83,7 @@ export default function BuyCreditsScreen({ navigation }) {
             setProcessingPlan(plan.id);
             console.log("Processing plan:", plan.id);
 
-            const response = await tradespersonAPI.topUpCredits(plan.id);
+            const response = await tradespersonAPI.topUpCredits(plan.id, "mobile");
             console.log("Top-up response:", response);
 
             if (response.url) {
@@ -221,26 +226,39 @@ export default function BuyCreditsScreen({ navigation }) {
                                 <FeatureItem text="Credits never expire" />
                             </View>
 
-                            <TouchableOpacity
-                                style={[
-                                    styles.purchaseButton,
-                                    plan.popular ? styles.purchaseButtonPopular : styles.purchaseButtonStandard,
-                                    processingPlan === plan.id && styles.buttonDisabled
-                                ]}
-                                onPress={() => handlePurchase(plan)}
-                                disabled={!!processingPlan}
-                            >
-                                {processingPlan === plan.id ? (
-                                    <ActivityIndicator color={plan.popular ? "#fff" : "#2563EB"} />
-                                ) : (
-                                    <Text style={[
-                                        styles.purchaseButtonText,
-                                        plan.popular ? styles.reqtextWhite : styles.reqtextBlue
-                                    ]}>
-                                        Buy Now
-                                    </Text>
-                                )}
-                            </TouchableOpacity>
+                            {(() => {
+                                const isSubscribed = (profile?.credits || 0) > 0 && (profile?.purchasedPlanKeys || []).includes(plan.id);
+
+                                return (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.purchaseButton,
+                                            isSubscribed ? styles.purchaseButtonSubscribed : (plan.popular ? styles.purchaseButtonPopular : styles.purchaseButtonStandard),
+                                            (processingPlan === plan.id || isSubscribed) && styles.buttonDisabled
+                                        ]}
+                                        onPress={() => !isSubscribed && handlePurchase(plan)}
+                                        disabled={!!processingPlan || isSubscribed}
+                                    >
+                                        {processingPlan === plan.id ? (
+                                            <ActivityIndicator color={plan.popular ? "#fff" : "#2563EB"} />
+                                        ) : isSubscribed ? (
+                                            <View style={styles.subscribedButtonContent}>
+                                                <Text style={styles.checkIconSmall}>✓</Text>
+                                                <Text style={styles.purchaseButtonTextSubscribed}>
+                                                    Subscribed
+                                                </Text>
+                                            </View>
+                                        ) : (
+                                            <Text style={[
+                                                styles.purchaseButtonText,
+                                                plan.popular ? styles.reqtextWhite : styles.reqtextBlue
+                                            ]}>
+                                                Buy Now
+                                            </Text>
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })()}
                         </View>
                     </View>
                 ))}
@@ -587,5 +605,24 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         color: "#6B7280",
         lineHeight: normalize(22),
+    },
+    purchaseButtonSubscribed: {
+        backgroundColor: "#10B981", // green-500
+        borderWidth: 0,
+    },
+    subscribedButtonContent: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: wp(2),
+    },
+    checkIconSmall: {
+        color: "#FFFFFF",
+        fontSize: normalize(16),
+        fontWeight: "bold",
+    },
+    purchaseButtonTextSubscribed: {
+        color: "#FFFFFF",
+        fontSize: normalize(16),
+        fontWeight: "700",
     },
 });

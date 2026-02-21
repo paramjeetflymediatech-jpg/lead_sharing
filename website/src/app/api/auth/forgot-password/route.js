@@ -137,8 +137,7 @@ export async function POST(req) {
     // 🔗 Reset URL
     const baseUrl =
       process.env.NEXTAUTH_URL ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      "http://localhost:3000";
+      process.env.NEXT_PUBLIC_APP_URL;
 
     const resetUrl = `${baseUrl}/auth/reset-password/${resetToken}`;
 
@@ -156,9 +155,8 @@ export async function POST(req) {
     // ✉️ Send mail
     try {
       await transporter.sendMail({
-        from: `"Lead Sharing Support" <${
-          process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER
-        }>`,
+        from: `"Lead Sharing Support" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER
+          }>`,
         to: user.email,
         subject: "Reset your password",
         html: `

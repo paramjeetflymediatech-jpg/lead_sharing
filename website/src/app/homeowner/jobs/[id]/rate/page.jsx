@@ -43,7 +43,7 @@
 //       setUser(userData);
 
 //       const userId = userData?._id || userData?.id || userData?.user?._id;
-      
+
 //       if (!userId) {
 //         toast.error("Please login to continue");
 //         setTimeout(() => router.push("/auth/login"), 2000);
@@ -81,7 +81,7 @@
 //         const ratingsRes = await fetch(`/api/ratings?jobId=${jobId}`, {
 //           credentials: "include"
 //         });
-        
+
 //         if (ratingsRes.ok) {
 //           const ratingsData = await ratingsRes.json();
 //           if (ratingsData.success && ratingsData.rating) {
@@ -104,7 +104,7 @@
 
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
-    
+
 //     if (rating === 0) {
 //       toast.error("Please select a rating");
 //       return;
@@ -125,7 +125,7 @@
 
 //     // Get tradesperson ID from job
 //     const tradespersonId = job.hiredTradesperson?._id || job.hiredTradesperson?.id;
-    
+
 //     if (!tradespersonId) {
 //       toast.error("Cannot submit rating: No tradesperson was hired for this job.");
 //       return;
@@ -230,7 +230,7 @@
 //   return (
 //     <>
 //       <Toaster position="top-right" />
-      
+
 //       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12">
 //         <div className="max-w-2xl mx-auto px-4">
 //           {/* Back Button */}
@@ -444,7 +444,7 @@ export default function RateJobPage() {
       setUser(userData);
 
       const userId = userData?._id || userData?.id || userData?.user?._id;
-      
+
       if (!userId) {
         toast.error("Please login to continue");
         setTimeout(() => router.push("/auth/login"), 2000);
@@ -465,7 +465,7 @@ export default function RateJobPage() {
 
       const jobResponse = await jobRes.json();
       const jobData = jobResponse.data || jobResponse;
-      
+
       console.log("Job data received:", jobData);
       setJob(jobData);
 
@@ -501,7 +501,7 @@ export default function RateJobPage() {
 
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
-    
+
   //   if (rating === 0) {
   //     toast.error("Please select a rating");
   //     return;
@@ -527,7 +527,7 @@ export default function RateJobPage() {
 
   //   // Get tradesperson ID from job data
   //   const tradespersonId = job.hired_tradesperson_id || job.hiredTradespersonId;
-    
+
   //   if (!tradespersonId) {
   //     toast.error("Cannot submit rating: No tradesperson was hired for this job.");
   //     return;
@@ -584,90 +584,87 @@ export default function RateJobPage() {
 
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (rating === 0) {
-    toast.error("Please select a rating");
-    return;
-  }
+    e.preventDefault();
 
-  if (!user) {
-    toast.error("Please login to submit rating");
-    return;
-  }
-
-  if (!job) {
-    toast.error("Job data not loaded");
-    return;
-  }
-
-  const userId = user?._id || user?.id || user?.user?._id;
-  const userRole = user?.role || user?.user?.role;
-
-  if (userRole !== "HOMEOWNER") {
-    toast.error("Only homeowners can submit ratings");
-    return;
-  }
-
-  // Get tradesperson ID from job data
-  const tradespersonId = job.hired_tradesperson_id || job.hiredTradespersonId;
-  
-  if (!tradespersonId) {
-    toast.error("Cannot submit rating: No tradesperson was hired for this job.");
-    return;
-  }
-
-  setSubmitting(true);
-  const loadingToast = toast.loading("Submitting your rating...");
-
-  try {
-    // Send only jobId, tradespersonId, rating, and review
-    // The API will get homeownerId from headers
-    const requestBody = {
-      jobId: parseInt(jobId),
-      tradespersonId: parseInt(tradespersonId),
-      rating: parseInt(rating),
-      review: review.trim() || null
-    };
-
-    console.log("Submitting rating:", requestBody);
-
-    const res = await fetch("/api/ratings", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        'x-user-id': userId.toString(),
-        'x-user-role': 'HOMEOWNER'
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const data = await res.json();
-    toast.dismiss(loadingToast);
-
-    console.log("Response:", data);
-
-    if (res.ok && data.success) {
-      toast.success("✅ Rating submitted successfully!");
-      
-      // Refresh job data to update has_rated flag
-      await fetchUserAndJobDetails();
-      
-      setTimeout(() => {
-        router.push('/homeowner/jobs');
-      }, 1500);
-    } else {
-      toast.error(data.message || "Failed to submit rating");
+    if (rating === 0) {
+      toast.error("Please select a rating");
+      return;
     }
-  } catch (error) {
-    console.error("Error submitting rating:", error);
-    toast.dismiss(loadingToast);
-    toast.error("An error occurred while submitting rating");
-  } finally {
-    setSubmitting(false);
-  }
-};
+
+    if (!user) {
+      toast.error("Please login to submit rating");
+      return;
+    }
+
+    if (!job) {
+      toast.error("Job data not loaded");
+      return;
+    }
+
+    const userId = user?._id || user?.id || user?.user?._id;
+    const userRole = user?.role || user?.user?.role;
+
+    if (userRole !== "HOMEOWNER") {
+      toast.error("Only homeowners can submit ratings");
+      return;
+    }
+
+    // Get tradesperson ID from job data
+    const tradespersonId = job.hired_tradesperson_id || job.hiredTradespersonId;
+
+    if (!tradespersonId) {
+      toast.error("Cannot submit rating: No tradesperson was hired for this job.");
+      return;
+    }
+
+    setSubmitting(true);
+    const loadingToast = toast.loading("Submitting your rating...");
+
+    try {
+      // Send only jobId, tradespersonId, rating, and review
+      // The API will get homeownerId from headers
+      const requestBody = {
+        jobId: parseInt(jobId),
+        tradespersonId: parseInt(tradespersonId),
+        rating: parseInt(rating),
+        review: review.trim() || null
+      };
+
+      console.log("Submitting rating:", requestBody);
+
+      const res = await fetch("/api/ratings", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          'x-user-id': userId.toString(),
+          'x-user-role': 'HOMEOWNER'
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await res.json();
+      toast.dismiss(loadingToast);
+
+      console.log("Response:", data);
+
+      if (res.ok && data.success) {
+        toast.success("✅ Rating submitted successfully!");
+
+        setTimeout(() => {
+          router.push('/homeowner/jobs');
+        }, 1500);
+      } else {
+        toast.error(data.message || "Failed to submit rating");
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      toast.dismiss(loadingToast);
+      toast.error("An error occurred while submitting rating");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const getRatingLabel = (rating) => {
     const labels = {
@@ -723,7 +720,7 @@ export default function RateJobPage() {
   return (
     <>
       <Toaster position="top-right" />
-      
+
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12">
         <div className="max-w-2xl mx-auto px-4">
           {/* Back Button */}

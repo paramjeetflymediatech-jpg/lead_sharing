@@ -166,6 +166,18 @@ export default function PostJobScreen({ navigation }) {
             return;
         }
 
+        // Additional Canadian Format Validations
+        const postcodeRegex = /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i;
+        if (!postcodeRegex.test(formData.postcode.trim())) {
+            Alert.alert("Error", "Please enter a valid Canadian postcode (e.g. A1A 1A1)");
+            return;
+        }
+
+        if (formData.contactPhone.length < 10) {
+            Alert.alert("Error", "Please enter a valid 10-digit phone number");
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -395,8 +407,16 @@ export default function PostJobScreen({ navigation }) {
                                     placeholder="e.g. A1A 1A1"
                                     placeholderTextColor="#9CA3AF"
                                     value={formData.postcode}
-                                    onChangeText={(value) => updateField("postcode", value.toUpperCase())}
+                                    onChangeText={(value) => {
+                                        let formatted = value.toUpperCase();
+                                        // Auto-add space for Canadian format if missing
+                                        if (formatted.length === 3 && formData.postcode.length === 2) {
+                                            formatted += " ";
+                                        }
+                                        updateField("postcode", formatted);
+                                    }}
                                     autoCapitalize="characters"
+                                    maxLength={7}
                                 />
                             </View>
                         </View>
@@ -441,7 +461,11 @@ export default function PostJobScreen({ navigation }) {
                                 placeholderTextColor="#9CA3AF"
                                 keyboardType="phone-pad"
                                 value={formData.contactPhone}
-                                onChangeText={(value) => updateField("contactPhone", value)}
+                                onChangeText={(value) => {
+                                    const numericValue = value.replace(/[^0-9]/g, '');
+                                    updateField("contactPhone", numericValue);
+                                }}
+                                maxLength={10}
                             />
                         </View>
                         <View style={styles.inputGroup}>
@@ -475,7 +499,10 @@ export default function PostJobScreen({ navigation }) {
                                         placeholderTextColor="#9CA3AF"
                                         keyboardType="numeric"
                                         value={formData.budget_min}
-                                        onChangeText={(value) => updateField("budget_min", value)}
+                                        onChangeText={(value) => {
+                                            const numericValue = value.replace(/[^0-9.]/g, '');
+                                            updateField("budget_min", numericValue);
+                                        }}
                                     />
                                 </View>
                                 <View style={styles.halfInput}>
@@ -485,7 +512,10 @@ export default function PostJobScreen({ navigation }) {
                                         placeholderTextColor="#9CA3AF"
                                         keyboardType="numeric"
                                         value={formData.budget_max}
-                                        onChangeText={(value) => updateField("budget_max", value)}
+                                        onChangeText={(value) => {
+                                            const numericValue = value.replace(/[^0-9.]/g, '');
+                                            updateField("budget_max", numericValue);
+                                        }}
                                     />
                                 </View>
                             </View>

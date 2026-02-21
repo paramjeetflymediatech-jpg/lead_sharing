@@ -281,7 +281,7 @@ function JobCard({ job, credits, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F9FAFB",
+        backgroundColor: "#FFFFFF",
     },
     contentContainer: {
         paddingTop: 10,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F9FAFB",
+        backgroundColor: "#FFFFFF",
     },
     header: {
         flexDirection: "row",
