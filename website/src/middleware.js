@@ -24,10 +24,10 @@ export async function proxy(req) {
   // 1. Identify if the route is whitelisted for public access
   const isWhitelistedApi =
     pathname === "/api/tradesperson/search" ||
-    pathname.startsWith("/api/profile") ||
     pathname.startsWith("/api/me") ||
     pathname.startsWith("/api/tradespeople/") ||
-    pathname.startsWith("/api/tradesperson/ratings");
+    pathname.startsWith("/api/tradesperson/ratings") ||
+    pathname.startsWith("/api/auth/otp");
 
   // 2. If whitelisted and NO token, proceed as Guest immediately
   if (isWhitelistedApi && !token) {
@@ -84,10 +84,12 @@ export async function proxy(req) {
       return NextResponse.json({ message: "Only homeowners can access this resource" }, { status: 403 });
     }
 
-    // 🔓 Only TRADESPERSON can unlock lead
-    if (pathname.startsWith("/api/leads/unlock") && role !== "TRADESPERSON") {
-      return NextResponse.json({ message: "Only tradesperson can unlock lead" }, { status: 403 });
+    // 🔒 Only TRADESPERSON can access tradesperson pages
+    if (pathname.startsWith("/tradesperson") && role !== "TRADESPERSON") {
+      return NextResponse.json({ message: "Tradesperson access only" }, { status: 403 });
     }
+
+    // ✅ Forward user info to APIs
 
     // 🛡️ Admin APIs only ADMIN
     if (pathname.startsWith("/api/admin") && role !== "ADMIN") {
@@ -128,5 +130,6 @@ export const config = {
     "/api/auth/update-password",
     "/api/topup",
     "/api/ratings",
+    "/api/auth/otp/:path*",
   ],
 };

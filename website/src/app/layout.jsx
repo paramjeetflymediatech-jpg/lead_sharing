@@ -11,12 +11,16 @@ export const metadata = {
   },
 };
 
+import { AuthProvider } from "@/context/AuthContext";
+
 export default function RootLayout({ children }) {
   return (
     // Add suppressHydrationWarning to the <html> tag
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased bg-zinc-50 text-zinc-900" suppressHydrationWarning>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster
           position="top-right"
           toastOptions={{

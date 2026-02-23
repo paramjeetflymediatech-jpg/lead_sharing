@@ -16,7 +16,7 @@ import { Feather } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 
 export default function TradespersonHomeTab({ navigation }) {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [profile, setProfile] = useState(null);
     const [recentJobs, setRecentJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -50,6 +50,11 @@ export default function TradespersonHomeTab({ navigation }) {
                 credits: credits,
                 user: userData?.user || userData
             };
+
+            // Sync global verification status if it has changed to APPROVED
+            if (combinedProfile.verificationStatus === "APPROVED" && user.verificationStatus !== "APPROVED") {
+                updateUser({ ...user, verificationStatus: "APPROVED" });
+            }
 
             setProfile(combinedProfile);
 

@@ -45,6 +45,16 @@ async function checkSchema() {
         )
         .join("\n") + "\n\n";
 
+    output += "--- USERS TABLE ---\n";
+    const [users] = await db.query("DESCRIBE users");
+    output +=
+      users
+        .map(
+          (c) =>
+            `${c.Field} | ${c.Type} | Null:${c.Null} | Default:${c.Default}`,
+        )
+        .join("\n") + "\n\n";
+
     fs.writeFileSync("schema_output.txt", output);
     console.log("Schema written to schema_output.txt");
     process.exit(0);

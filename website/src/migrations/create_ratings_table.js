@@ -1,56 +1,46 @@
+/**
+ * Database Reset & Seed Script
+ * Drops all tables and recreates from scratch using the complete schema.
+ * Run: node src/migrations/create_ratings_table.js
+ */
+
 const dotenv = require("dotenv");
 const path = require("path");
-
-// Load .env from project root (3 levels up from src/migrations folder)
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
-console.log("✅ Connected to .env file");
-console.log(`🔌 Database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
-
-const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
+const mysql = require("mysql2/promise");
+
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+
+console.log(`🔌 Database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
 
 async function runMigration() {
   const connection = await mysql.createConnection({
     host: process.env.MYSQL_HOST || "localhost",
     port: process.env.MYSQL_PORT || 3306,
     database: process.env.MYSQL_DATABASE || "lead_sharing",
-    user: process.env.MYSQL_USER || "aman",
-    password: process.env.MYSQL_PASSWORD || "aman1234",
+    user: process.env.MYSQL_USER || "root",
+    password: process.env.MYSQL_PASSWORD || "",
     multipleStatements: true,
   });
 
   console.log("✅ Connected to MySQL");
 
   try {
+    /* ===== DROP ALL TABLES ===== */
     console.log("🧹 Dropping existing tables...");
     await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
-
     const tables = [
-      'blogs',
-      'reviews',
-      'tradesperson_ratings',
-      'messages',
-      'payments',
-      'leads',
-      'jobs',
-      'tradesperson_profiles',
-      'sub_categories',
-      'categories',
-      'credit_plans',
-      'seo_pages',
-      'push_tokens',
-      'auth_tokens',
-      'users'
+      "pending_users", "blogs", "tradesperson_ratings", "messages",
+      "payments", "leads", "jobs", "tradesperson_profiles",
+      "sub_categories", "categories", "credit_plans", "seo_pages",
+      "push_tokens", "auth_tokens", "migrations", "users",
     ];
-
     for (const table of tables) {
       await connection.query(`DROP TABLE IF EXISTS ${table}`);
     }
-
     await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
 
-    /* ================= USERS ================= */
+    /* ===== USERS ===== */
     await connection.query(`
       CREATE TABLE users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,21 +50,41 @@ async function runMigration() {
         role ENUM('HOMEOWNER','TRADESPERSON','ADMIN') DEFAULT 'HOMEOWNER',
         password_reset_token VARCHAR(255),
         password_reset_expires DATETIME,
-        address_line1 VARCHAR(255),
-        address_line2 VARCHAR(255),
-        city VARCHAR(100),
-        postcode VARCHAR(20),
-        phone VARCHAR(20),
-        profile_image VARCHAR(255),
         auth_token VARCHAR(1000),
         auth_token_expires DATETIME,
+        profile_image VARCHAR(255) DEFAULT NULL,
+        phone VARCHAR(20) DEFAULT NULL,
+        city VARCHAR(100) DEFAULT NULL,
+        postcode VARCHAR(20) DEFAULT NULL,
+        address_line1 VARCHAR(255) DEFAULT NULL,
+        address_line2 VARCHAR(255) DEFAULT NULL,
+        phone_verified BOOLEAN DEFAULT FALSE,
+        otp_code VARCHAR(10) DEFAULT NULL,
+        otp_expires_at DATETIME DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );
     `);
     console.log("✅ users");
 
-    /* ================= PUSH TOKENS ================= */
+    /* ===== PENDING USERS ===== */
+    await connection.query(`
+      CREATE TABLE pending_users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        company_name VARCHAR(255),
+        otp_code VARCHAR(10),
+        otp_expires_at DATETIME,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log("✅ pending_users");
+
+    /* ===== PUSH TOKENS ===== */
     await connection.query(`
       CREATE TABLE push_tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -87,7 +97,7 @@ async function runMigration() {
     `);
     console.log("✅ push_tokens");
 
-    /* ================= AUTH TOKENS ================= */
+    /* ===== AUTH TOKENS ===== */
     await connection.query(`
       CREATE TABLE auth_tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,7 +113,7 @@ async function runMigration() {
     `);
     console.log("✅ auth_tokens");
 
-    /* ================= SEO PAGES ================= */
+    /* ===== SEO PAGES ===== */
     await connection.query(`
       CREATE TABLE seo_pages (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -125,7 +135,7 @@ async function runMigration() {
     `);
     console.log("✅ seo_pages");
 
-    /* ================= CATEGORIES ================= */
+    /* ===== CATEGORIES ===== */
     await connection.query(`
       CREATE TABLE categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -137,7 +147,7 @@ async function runMigration() {
     `);
     console.log("✅ categories");
 
-    /* ================= SUB CATEGORIES ================= */
+    /* ===== SUB CATEGORIES ===== */
     await connection.query(`
       CREATE TABLE sub_categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,21 +161,29 @@ async function runMigration() {
     `);
     console.log("✅ sub_categories");
 
-    /* ================= TRADESPERSON PROFILES ================= */
+    /* ===== TRADESPERSON PROFILES ===== */
     await connection.query(`
       CREATE TABLE tradesperson_profiles (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL UNIQUE,
         company_name VARCHAR(255) NOT NULL,
-        profile_image VARCHAR(255),
+        profile_image VARCHAR(255) DEFAULT '',
         bio TEXT,
-        phone VARCHAR(50),
-        postcode VARCHAR(20),
+        phone VARCHAR(50) DEFAULT '',
+        postcode VARCHAR(20) DEFAULT '',
         skills TEXT,
         service_areas TEXT,
         credits INT DEFAULT 5,
         average_rating FLOAT DEFAULT 0,
         total_ratings INT DEFAULT 0,
+        experience_years INT DEFAULT 0,
+        verification_status ENUM('NOT_STARTED','IN_PROGRESS','PENDING_APPROVAL','APPROVED','REJECTED') DEFAULT 'NOT_STARTED',
+        id_document VARCHAR(255) DEFAULT NULL,
+        license_document VARCHAR(255) DEFAULT NULL,
+        insurance_document VARCHAR(255) DEFAULT NULL,
+        stripe_connect_id VARCHAR(255) DEFAULT NULL,
+        payouts_enabled BOOLEAN DEFAULT FALSE,
+        rejection_reason TEXT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -173,7 +191,7 @@ async function runMigration() {
     `);
     console.log("✅ tradesperson_profiles");
 
-    /* ================= JOBS ================= */
+    /* ===== JOBS ===== */
     await connection.query(`
       CREATE TABLE jobs (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -186,35 +204,19 @@ async function runMigration() {
         description TEXT NOT NULL,
         postcode VARCHAR(20) NOT NULL,
         city VARCHAR(255),
-        start_time ENUM(
-          'URGENT',
-          'WITHIN_2_DAYS',
-          'WITHIN_2_WEEKS',
-          'WITHIN_2_MONTHS',
-          'FLEXIBLE'
-        ) NOT NULL,
-        job_stage ENUM(
-          'READY_TO_HIRE',
-          'PLANNING',
-          'INSURANCE'
-        ) NOT NULL,
-        ownership ENUM(
-          'OWNER',
-          'LANDLORD',
-          'AUTHORIZED',
-          'BUYING'
-        ) NOT NULL,
-        budget_min INT,
-        budget_max INT,
+        start_time ENUM('URGENT','WITHIN_2_DAYS','WITHIN_2_WEEKS','WITHIN_2_MONTHS','FLEXIBLE') NOT NULL,
+        job_stage ENUM('READY_TO_HIRE','PLANNING','INSURANCE') NOT NULL,
+        ownership ENUM('OWNER','LANDLORD','AUTHORIZED','BUYING') NOT NULL,
+        budget_min BIGINT,
+        budget_max BIGINT,
         media TEXT,
         status ENUM('OPEN','HIRED','COMPLETED','CANCELLED') DEFAULT 'OPEN',
-        hired_tradesperson_id INT,
-        hired_at DATETIME,
+        hired_tradesperson_id INT DEFAULT NULL,
+        hired_at DATETIME DEFAULT NULL,
         has_rated TINYINT(1) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
- 
-        FOREIGN KEY (homeowner_id) REFERENCES users(id),
+        FOREIGN KEY (homeowner_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (category_id) REFERENCES categories(id),
         FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id),
         FOREIGN KEY (hired_tradesperson_id) REFERENCES users(id) ON DELETE SET NULL
@@ -222,7 +224,7 @@ async function runMigration() {
     `);
     console.log("✅ jobs");
 
-    /* ================= LEADS ================= */
+    /* ===== LEADS ===== */
     await connection.query(`
       CREATE TABLE leads (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -232,16 +234,16 @@ async function runMigration() {
         price_estimate DECIMAL(10,2),
         is_unlocked TINYINT(1) DEFAULT 0,
         status ENUM('PENDING','HIRED','REJECTED') DEFAULT 'PENDING',
-        unlocked_at DATETIME,
+        unlocked_at DATETIME DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
-        FOREIGN KEY (tradesperson_id) REFERENCES users(id) ON DELETE CASCADE
+        FOREIGN KEY (tradesperson_id) REFERENCES tradesperson_profiles(id) ON DELETE CASCADE
       );
     `);
     console.log("✅ leads");
 
-    /* ================= CREDIT PLANS ================= */
+    /* ===== CREDIT PLANS ===== */
     await connection.query(`
       CREATE TABLE credit_plans (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -257,7 +259,7 @@ async function runMigration() {
     `);
     console.log("✅ credit_plans");
 
-    /* ================= PAYMENTS ================= */
+    /* ===== PAYMENTS ===== */
     await connection.query(`
       CREATE TABLE payments (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -273,14 +275,17 @@ async function runMigration() {
         status VARCHAR(20) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (tradesperson_id) REFERENCES users(id),
-        FOREIGN KEY (user_id) REFERENCES users(id),
+        INDEX idx_tradesperson (tradesperson_id),
+        INDEX idx_user (user_id),
+        INDEX idx_session (stripe_session_id),
+        FOREIGN KEY (tradesperson_id) REFERENCES tradesperson_profiles(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (plan_id) REFERENCES credit_plans(id) ON DELETE SET NULL
-      );
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
     console.log("✅ payments");
 
-    /* ================= TRADESPERSON RATINGS ================= */
+    /* ===== TRADESPERSON RATINGS ===== */
     await connection.query(`
       CREATE TABLE tradesperson_ratings (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -297,7 +302,7 @@ async function runMigration() {
     `);
     console.log("✅ tradesperson_ratings");
 
-    /* ================= BLOGS ================= */
+    /* ===== BLOGS ===== */
     await connection.query(`
       CREATE TABLE blogs (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -323,10 +328,9 @@ async function runMigration() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );
     `);
-
     console.log("✅ blogs");
 
-    /* ================= MESSAGES ================= */
+    /* ===== MESSAGES ===== */
     await connection.query(`
       CREATE TABLE messages (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -335,12 +339,7 @@ async function runMigration() {
         receiver_id INT NOT NULL,
         content TEXT NOT NULL,
         is_read TINYINT(1) DEFAULT 0,
-        conversation_status ENUM(
-          'PENDING_HOMEOWNER_ACCEPTANCE',
-          'PENDING_TRADESPERSON_ACCEPTANCE',
-          'ACTIVE',
-          'CLOSED'
-        ) DEFAULT 'ACTIVE',
+        conversation_status ENUM('PENDING_HOMEOWNER_ACCEPTANCE','PENDING_TRADESPERSON_ACCEPTANCE','ACTIVE','CLOSED') DEFAULT 'ACTIVE',
         conversation_accepted_by_homeowner BOOLEAN DEFAULT FALSE,
         conversation_accepted_by_tradesperson BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -350,19 +349,25 @@ async function runMigration() {
         FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
-
-
     console.log("✅ messages");
 
-    /* ================= SEED DATA ================= */
-    console.log("🌱 Inserting seed data...");
+    /* ===== MIGRATIONS LOG ===== */
+    await connection.query(`
+      CREATE TABLE migrations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log("✅ migrations");
 
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    /* ===== SEED DATA ===== */
+    console.log("🌱 Inserting seed data...");
+    const hashedPassword = await bcrypt.hash("Admin@123", 10);
 
     await connection.query(
-      `INSERT INTO users (email, password, name, role)
-       VALUES (?, ?, ?, 'ADMIN')`,
-      ["leadsharing@gmail.com", hashedPassword, "Admin User"]
+      `INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, 'ADMIN')`,
+      ["admin@allcarepros.com", hashedPassword, "Admin User"]
     );
 
     await connection.query(`
@@ -371,7 +376,10 @@ async function runMigration() {
       ('Plumbing', 'plumbing'),
       ('Electrical', 'electrical'),
       ('Carpentry', 'carpentry'),
-      ('Painting & Decorating', 'painting-decorating')
+      ('Painting & Decorating', 'painting-decorating'),
+      ('Landscaping', 'landscaping'),
+      ('HVAC', 'hvac'),
+      ('General Building', 'general-building')
     `);
 
     await connection.query(`

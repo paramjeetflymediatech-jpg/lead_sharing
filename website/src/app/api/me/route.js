@@ -49,8 +49,13 @@ export async function GET(req) {
         const payments = await Payment.findByTradespersonId(tradespersonProfile.id, 50);
         const completedPayments = payments.filter(p => p.status === 'completed');
         purchasedPlanKeys = [...new Set(completedPayments.map(p => p.plan))];
+
+        // Add to user object for easy consumption by mobile app RootNavigator
+        user.verificationStatus = tradespersonProfile.verification_status || tradespersonProfile.verificationStatus;
       }
     }
+
+    user.phoneVerified = !!userRaw.phone_verified;
 
     return NextResponse.json({
       success: true,

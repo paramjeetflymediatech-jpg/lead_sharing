@@ -16,24 +16,36 @@ import { Eye, EyeOff } from "lucide-react-native";
 import { normalize, hp, wp } from "../utils/responsive";
 import { authAPI } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
+import { useAuth } from "../context/AuthContext";
 
 const { height } = Dimensions.get("window");
 
 export default function SignupScreen({ navigation }) {
+    const { login } = useAuth();
     const [role, setRole] = useState("HOMEOWNER");
     const [name, setName] = useState("");
     const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
+    const [otp, setOtp] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [step, setStep] = useState(0); // 0: Form, 1: OTP
+    const [registeredUserId, setRegisteredUserId] = useState(null);
 
     // Validation functions
     const validateName = (value) => {
         if (!value.trim()) return "Name is required";
         if (value.trim().length < 2) return "Name must be at least 2 characters";
+        return "";
+    };
+
+    const validatePhone = (value) => {
+        if (!value.trim()) return "Phone number is required";
+        if (value.trim().length < 10) return "Enter a valid phone number";
         return "";
     };
 
@@ -66,10 +78,11 @@ export default function SignupScreen({ navigation }) {
         const nameError = validateName(name);
         const companyError = validateCompanyName(companyName);
         const emailError = validateEmail(email);
+        const phoneError = validatePhone(phone);
         const passwordError = validatePassword(password);
 
-        if (nameError || companyError || emailError || passwordError) {
-            setError(nameError || companyError || emailError || passwordError);
+        if (nameError || companyError || emailError || phoneError || passwordError) {
+            setError(nameError || companyError || emailError || phoneError || passwordError);
             return;
         }
 
@@ -80,6 +93,7 @@ export default function SignupScreen({ navigation }) {
             email: email.trim().toLowerCase(),
             password,
             role,
+            phone: phone.trim(),
         };
 
         if (role === "TRADESPERSON") {
@@ -89,14 +103,47 @@ export default function SignupScreen({ navigation }) {
         try {
             const data = await authAPI.register(body);
 
-            // Show success modal
-            if (data.token || data.id) {
-                setSuccessModalVisible(true);
+            if (data.id) {
+                setRegisteredUserId(data.id);
+                // Send OTP immediately after registration
+                await authAPI.sendOTP({ phone: phone.trim() }, data.id); // Passing ID if sendOTP needs it
+                setStep(1);
             } else {
                 navigation?.navigate?.("Login");
             }
         } catch (error) {
             setError(error.message || "Registration failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleVerifyOTP() {
+        if (otp.length < 6) {
+            setError("Please enter 6-digit code");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            const data = await authAPI.verifyOTP({ otp }, registeredUserId);
+            if (data.token) {
+                // Auto-login with the new promoted user ID
+                await login({
+                    token: data.token,
+                    id: data.id,
+                    email: data.email,
+                    role: data.role,
+                    name: data.name,
+                    verificationStatus: data.verificationStatus || "NOT_STARTED",
+                });
+            }
+            setSuccessModalVisible(true);
+        } catch (error) {
+            setError(error.message || "Invalid or expired OTP");
+        } finally {
             setLoading(false);
         }
     }
@@ -122,160 +169,229 @@ export default function SignupScreen({ navigation }) {
 
                 {/* Form Card */}
                 <View style={styles.formCard}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Sign up</Text>
-                        <Text style={styles.subtitle}>
-                            Join AllCarePros as a {role.toLowerCase()}
-                        </Text>
-                    </View>
-
-                    {error ? (
-                        <View style={styles.errorContainer}>
-                            <Text style={styles.errorText}>{error}</Text>
-                        </View>
-                    ) : null}
-
-                    {/* Role Switcher */}
-                    <View style={styles.roleSwitcher}>
-                        <TouchableOpacity
-                            style={[
-                                styles.roleButton,
-                                role === "HOMEOWNER" && styles.roleButtonActive,
-                            ]}
-                            onPress={() => setRole("HOMEOWNER")}
-                            disabled={loading}
-                        >
-                            <Text
-                                style={[
-                                    styles.roleButtonText,
-                                    role === "HOMEOWNER" && styles.roleButtonTextActive,
-                                ]}
-                            >
-                                Homeowner
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.roleButton,
-                                role === "TRADESPERSON" && styles.roleButtonActive,
-                            ]}
-                            onPress={() => setRole("TRADESPERSON")}
-                            disabled={loading}
-                        >
-                            <Text
-                                style={[
-                                    styles.roleButtonText,
-                                    role === "TRADESPERSON" && styles.roleButtonTextActive,
-                                ]}
-                            >
-                                Tradesperson
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Name Input */}
-                    <View style={styles.inputContainer}>
-                        <View style={styles.inputWrapper}>
-
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Full name"
-                                placeholderTextColor="#9CA3AF"
-                                autoCapitalize="words"
-                                value={name}
-                                onChangeText={setName}
-                                editable={!loading}
-                            />
-                        </View>
-                    </View>
-
-                     
-
-                    {/* Company Name Input (for Tradesperson) */}
-                    {role === "TRADESPERSON" && (
-                        <View style={styles.inputContainer}>
-                            <View style={styles.inputWrapper}>
-
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Company name"
-                                    placeholderTextColor="#9CA3AF"
-                                    value={companyName}
-                                    onChangeText={setCompanyName}
-                                    editable={!loading}
-                                />
+                    {/* Form Cards based on Step */}
+                    {step === 0 ? (
+                        <>
+                            <View style={styles.header}>
+                                <Text style={styles.title}>Sign up</Text>
+                                <Text style={styles.subtitle}>
+                                    Join AllCarePros as a {role.toLowerCase()}
+                                </Text>
                             </View>
-                        </View>
-                    )}
 
+                            {error ? (
+                                <View style={styles.errorContainer}>
+                                    <Text style={styles.errorText}>{error}</Text>
+                                </View>
+                            ) : null}
 
-                          {/* Email Input */}
-                    <View style={styles.inputContainer}>
-                        <View style={styles.inputWrapper}>
+                            {/* Role Switcher */}
+                            <View style={styles.roleSwitcher}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.roleButton,
+                                        role === "HOMEOWNER" && styles.roleButtonActive,
+                                    ]}
+                                    onPress={() => setRole("HOMEOWNER")}
+                                    disabled={loading}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.roleButtonText,
+                                            role === "HOMEOWNER" && styles.roleButtonTextActive,
+                                        ]}
+                                    >
+                                        Homeowner
+                                    </Text>
+                                </TouchableOpacity>
 
-                            <TextInput
-                                style={styles.input}
-                                placeholder="abc.xyz@gmail.com"
-                                placeholderTextColor="#9CA3AF"
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                                value={email}
-                                onChangeText={(text) => setEmail(text.toLowerCase())}
-                                editable={!loading}
-                            />
-                        </View>
-                    </View>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.roleButton,
+                                        role === "TRADESPERSON" && styles.roleButtonActive,
+                                    ]}
+                                    onPress={() => setRole("TRADESPERSON")}
+                                    disabled={loading}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.roleButtonText,
+                                            role === "TRADESPERSON" && styles.roleButtonTextActive,
+                                        ]}
+                                    >
+                                        Tradesperson
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
 
-                    {/* Password Input */}
-                    <View style={styles.inputContainer}>
-                        <View style={styles.inputWrapper}>
+                            {/* Name Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={styles.inputWrapper}>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Full name"
+                                        placeholderTextColor="#9CA3AF"
+                                        autoCapitalize="words"
+                                        value={name}
+                                        onChangeText={setName}
+                                        editable={!loading}
+                                    />
+                                </View>
+                            </View>
 
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Password"
-                                placeholderTextColor="#9CA3AF"
-                                secureTextEntry={!showPassword}
-                                value={password}
-                                onChangeText={setPassword}
-                                editable={!loading}
-                            />
+                            {/* Company Name Input (for Tradesperson) */}
+                            {role === "TRADESPERSON" && (
+                                <View style={styles.inputContainer}>
+                                    <View style={styles.inputWrapper}>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Company name"
+                                            placeholderTextColor="#9CA3AF"
+                                            value={companyName}
+                                            onChangeText={setCompanyName}
+                                            editable={!loading}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Email Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={styles.inputWrapper}>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Email Address (abc.xyz@gmail.com)"
+                                        placeholderTextColor="#9CA3AF"
+                                        autoCapitalize="none"
+                                        keyboardType="email-address"
+                                        value={email}
+                                        onChangeText={(text) => setEmail(text.toLowerCase())}
+                                        editable={!loading}
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Phone Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={styles.inputWrapper}>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Phone Number"
+                                        placeholderTextColor="#9CA3AF"
+                                        keyboardType="phone-pad"
+                                        value={phone}
+                                        onChangeText={setPhone}
+                                        editable={!loading}
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Password Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={styles.inputWrapper}>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Password"
+                                        placeholderTextColor="#9CA3AF"
+                                        secureTextEntry={!showPassword}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        editable={!loading}
+                                    />
+                                    <TouchableOpacity
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        style={styles.eyeIcon}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff color="#9CA3AF" size={20} />
+                                        ) : (
+                                            <Eye color="#9CA3AF" size={20} />
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Terms */}
+                            <Text style={styles.terms}>
+                                By signing up you agree to our{" "}
+                                <Text
+                                    style={styles.termsLink}
+                                    onPress={() => navigation.navigate("TermsAndConditions")}
+                                >
+                                    Terms & Conditions
+                                </Text>
+                            </Text>
+
+                            {/* Signup Button */}
                             <TouchableOpacity
-                                onPress={() => setShowPassword(!showPassword)}
-                                style={styles.eyeIcon}
+                                style={[styles.signupButton, loading && styles.signupButtonDisabled]}
+                                onPress={handleSignup}
+                                disabled={loading}
                             >
-                                {showPassword ? (
-                                    <EyeOff color="#9CA3AF" size={20} />
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <Eye color="#9CA3AF" size={20} />
+                                    <Text style={styles.signupButtonText}>Continue</Text>
                                 )}
                             </TouchableOpacity>
-                        </View>
-                    </View>
+                        </>
+                    ) : (
+                        <>
+                            <View style={styles.header}>
+                                <TouchableOpacity onPress={() => setStep(0)} style={{ marginBottom: 10 }}>
+                                    <Text style={{ color: "#2563EB", fontWeight: "600" }}>← Back to details</Text>
+                                </TouchableOpacity>
+                                <Text style={styles.title}>Verify Phone</Text>
+                                <Text style={styles.subtitle}>
+                                    Enter the 6-digit code sent to {phone}
+                                </Text>
+                            </View>
 
-                    {/* Terms */}
-                    <Text style={styles.terms}>
-                        By signing up you agree to our{" "}
-                        <Text
-                            style={styles.termsLink}
-                            onPress={() => navigation.navigate("TermsAndConditions")}
-                        >
-                            Terms & Conditions
-                        </Text>
-                    </Text>
+                            {error ? (
+                                <View style={styles.errorContainer}>
+                                    <Text style={styles.errorText}>{error}</Text>
+                                </View>
+                            ) : null}
 
-                    {/* Signup Button */}
-                    <TouchableOpacity
-                        style={[styles.signupButton, loading && styles.signupButtonDisabled]}
-                        onPress={handleSignup}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.signupButtonText}>Continue</Text>
-                        )}
-                    </TouchableOpacity>
+                            {/* OTP Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={styles.inputWrapper}>
+                                    <TextInput
+                                        style={[styles.input, { letterSpacing: 10, textAlign: 'center', fontSize: 24 }]}
+                                        placeholder="000000"
+                                        placeholderTextColor="#D1D5DB"
+                                        keyboardType="number-pad"
+                                        maxLength={6}
+                                        value={otp}
+                                        onChangeText={setOtp}
+                                        editable={!loading}
+                                    />
+                                </View>
+                            </View>
+
+                            <Text style={styles.terms}>
+                                Didn't receive code?{" "}
+                                <Text
+                                    style={styles.termsLink}
+                                    onPress={() => authAPI.sendOTP({ phone: phone.trim() }, registeredUserId)}
+                                >
+                                    Resend
+                                </Text>
+                            </Text>
+
+                            <TouchableOpacity
+                                style={[styles.signupButton, (loading || otp.length < 6) && styles.signupButtonDisabled]}
+                                onPress={handleVerifyOTP}
+                                disabled={loading || otp.length < 6}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.signupButtonText}>Verify & Create Account</Text>
+                                )}
+                            </TouchableOpacity>
+                        </>
+                    )}
 
                     {/* OR Divider */}
                     <View style={styles.dividerContainer}>
@@ -304,7 +420,9 @@ export default function SignupScreen({ navigation }) {
                 buttonText="Login Now"
                 onClose={() => {
                     setSuccessModalVisible(false);
-                    navigation?.navigate?.("Login");
+                    // If we logged in automatically, navigation will handle the screen switch
+                    // but we can also navigate to Home explicitly
+                    navigation?.navigate?.("Home");
                 }}
             />
         </KeyboardAvoidingView>

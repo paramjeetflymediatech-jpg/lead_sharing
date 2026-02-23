@@ -447,7 +447,7 @@ export const TradespersonProfile = {
   async updateRatingStatsForUser(userId) {
     try {
       console.log('🔄 Updating rating stats for user_id:', userId);
-      
+
       // Get current stats from tradesperson_ratings table
       const [stats] = await pool.query(
         `SELECT 
@@ -595,7 +595,14 @@ export const TradespersonProfile = {
       column = 'skills';
       val = JSON.stringify(value || []);
     }
-    else if (['bio', 'phone', 'postcode', 'credits', 'average_rating', 'total_ratings'].includes(key)) column = key;
+    else if (['bio', 'phone', 'postcode', 'credits', 'average_rating', 'total_ratings', 'experience_years', 'verification_status', 'id_document', 'license_document', 'insurance_document', 'stripe_connect_id', 'payouts_enabled'].includes(key)) column = key;
+    else if (key === 'experienceYears') column = 'experience_years';
+    else if (key === 'verificationStatus') column = 'verification_status';
+    else if (key === 'idDocument') column = 'id_document';
+    else if (key === 'licenseDocument') column = 'license_document';
+    else if (key === 'insuranceDocument') column = 'insurance_document';
+    else if (key === 'stripeConnectId') column = 'stripe_connect_id';
+    else if (key === 'payoutsEnabled') column = 'payouts_enabled';
 
     if (column) {
       updates.push(`${column} = ?`);

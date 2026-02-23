@@ -1,5 +1,7 @@
-require('dotenv').config();
-const mysql = require('mysql2/promise');
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const dbConfig = {
     host: process.env.MYSQL_HOST,
@@ -9,15 +11,21 @@ const dbConfig = {
     waitForConnections: true,
     connectionLimit: 10,
 };
-const pool = mysql.createPool(dbConfig);
+
+// Use globalThis to persist the pool across hot-reloads in Next.js dev
+const pool = globalThis.mysqlPool || mysql.createPool(dbConfig);
+
+if (process.env.NODE_ENV !== 'production') {
+    globalThis.mysqlPool = pool;
+}
 
 pool.getConnection()
     .then(connection => {
-        console.log('✅ MySQL Database connected successfully');
+        console.log(`✅ MySQL Connected to [${dbConfig.host}] database [${dbConfig.database}] as [${dbConfig.user}]`);
         connection.release();
     })
     .catch(error => {
         console.error('❌ Error connecting to MySQL Database:', error);
     });
 
-module.exports = pool;
+export default pool;

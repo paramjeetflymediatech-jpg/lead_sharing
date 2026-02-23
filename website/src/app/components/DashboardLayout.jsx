@@ -82,7 +82,7 @@ export default function DashboardLayout({ children, navItems, user }) {
 
             {/* Sidebar */}
             <aside className={`
-        fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800
+        fixed top-0 left-0 z-50 h-screen w-72 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800
         transition-transform duration-300 ease-in-out xl:translate-x-0
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
@@ -102,7 +102,7 @@ export default function DashboardLayout({ children, navItems, user }) {
                     </div>
 
                     {/* Navigation Items */}
-                    <nav className="flex-1 px-4 space-y-1 overflow-y-auto mt-4">
+                    <nav className="flex-1 px-4 space-y-1 overflow-y-auto mt-4 no-scrollbar">
                         {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             const Icon = REQUESTED_ICONS[item.icon] || HomeIcon;
@@ -142,7 +142,7 @@ export default function DashboardLayout({ children, navItems, user }) {
                     </nav>
 
                     {/* Sidebar Footer - User Profile (Mobile Only Context) */}
-                    <div className="p-6 border-t border-zinc-200 dark:border-zinc-800">
+                    <div className="p-2 border-t border-zinc-200 dark:border-zinc-800">
                         <div className="flex items-center gap-3 mb-4 xl:hidden">
                             <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 overflow-hidden">
                                 {user?.profileImage ? (

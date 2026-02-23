@@ -654,6 +654,10 @@ export default async function TradespersonDashboard({ searchParams }) {
     redirect("/tradesperson/setup");
   }
 
+  if (profile.verification_status !== "APPROVED") {
+    redirect("/tradesperson/onboarding");
+  }
+
   // FIXED: Await searchParams before accessing it
   const params = await searchParams;
   const paymentSuccess = params?.payment === 'success';

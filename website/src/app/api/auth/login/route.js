@@ -33,6 +33,16 @@ export async function POST(req) {
   expiresAt.setDate(expiresAt.getDate() + 7); // Matches 7d from signAuthToken
   await User.saveAuthToken(user._id, token, expiresAt, { deviceId, deviceType });
 
+  // Get verification status for tradesperson
+  let verificationStatus = "NOT_STARTED";
+  if (user.role === "TRADESPERSON") {
+    const { TradespersonProfile } = await import("@/models/TradespersonProfile");
+    const profile = await TradespersonProfile.findOne({ user: user._id });
+    if (profile) {
+      verificationStatus = profile.verificationStatus || profile.verification_status || "NOT_STARTED";
+    }
+  }
+
   return NextResponse.json(
     {
       token,
@@ -40,6 +50,8 @@ export async function POST(req) {
       email: user.email,
       role: user.role,
       name: user.name,
+      phoneVerified: !!user.phone_verified,
+      verificationStatus,
     },
     { status: 200 }
   );

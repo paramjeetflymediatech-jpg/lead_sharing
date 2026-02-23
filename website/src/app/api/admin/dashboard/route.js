@@ -39,6 +39,12 @@ export async function GET() {
     );
     const revenue = parseFloat(revenueResult[0].total || 0).toFixed(2);
 
+    // Get pending verifications count
+    const [pendingVerificationsResult] = await db.query(
+      "SELECT COUNT(*) as count FROM tradesperson_profiles WHERE verification_status = 'PENDING_APPROVAL'"
+    );
+    const pendingVerifications = pendingVerificationsResult[0].count;
+
     return NextResponse.json(
       {
         totalUsers,
@@ -47,6 +53,7 @@ export async function GET() {
         totalJobs,
         totalLeads,
         revenue,
+        pendingVerifications,
       },
       { status: 200 }
     );

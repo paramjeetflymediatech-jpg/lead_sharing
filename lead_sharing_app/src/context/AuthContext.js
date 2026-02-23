@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authAPI } from "../services/api";
 
+console.log("[AuthContext] Initializing...");
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -26,6 +27,9 @@ export function AuthProvider({ children }) {
   async function login(userData) {
     setUser(userData);
     await AsyncStorage.setItem("auth_user", JSON.stringify(userData));
+    if (userData.token) {
+      await AsyncStorage.setItem("token", userData.token);
+    }
 
     // Register push token after login (if available)
     try {
@@ -52,8 +56,19 @@ export function AuthProvider({ children }) {
   }
 
   async function updateUser(userData) {
-    setUser(userData);
-    await AsyncStorage.setItem("auth_user", JSON.stringify(userData));
+    console.log("[Auth] Updating user with data:", JSON.stringify(userData));
+    setUser(prev => {
+      const updatedUser = { ...prev, ...userData };
+      console.log("[Auth] New user state verificationStatus:", updatedUser.verificationStatus);
+
+      // Background update storage
+      AsyncStorage.setItem("auth_user", JSON.stringify(updatedUser)).catch(e => console.error("[Auth] Error saving auth_user:", e));
+      if (updatedUser.token) {
+        AsyncStorage.setItem("token", updatedUser.token).catch(e => console.error("[Auth] Error saving token:", e));
+      }
+
+      return updatedUser;
+    });
   }
 
   return (

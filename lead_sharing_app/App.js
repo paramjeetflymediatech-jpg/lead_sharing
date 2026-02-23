@@ -13,6 +13,7 @@ import TradespersonTabs from "./src/components/TradespersonTabs";
 import AdminDashboard from "./src/screens/AdminDashboard";
 import TermsAndConditionsScreen from "./src/screens/TermsAndConditionsScreen";
 import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonProfileScreen";
+import OnboardingScreen from "./src/screens/tradesperson/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -92,11 +93,21 @@ function RootNavigator() {
           options={{ headerShown: false }}
         />
       ) : user.role === "TRADESPERSON" ? (
-        <Stack.Screen
-          name="TradespersonDashboard"
-          component={TradespersonTabs}
-          options={{ headerShown: false }}
-        />
+        <>
+          {(user.verificationStatus !== "APPROVED") ? (
+            <Stack.Screen
+              name="Onboarding"
+              component={OnboardingScreen}
+              options={{ headerShown: false }}
+            />
+          ) : (
+            <Stack.Screen
+              name="TradespersonDashboard"
+              component={TradespersonTabs}
+              options={{ headerShown: false }}
+            />
+          )}
+        </>
       ) : user.role === "ADMIN" ? (
         <Stack.Screen
           name="AdminDashboard"

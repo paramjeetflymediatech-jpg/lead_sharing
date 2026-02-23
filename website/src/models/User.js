@@ -1,5 +1,5 @@
 
-import pool from '../../config/db.js';
+import pool from '@/../config/db.js';
 import { Job } from './Job.js';
 import { Payment } from './Payment.js';
 
@@ -102,10 +102,10 @@ export const User = {
   },
 
   async create(userData) {
-    const { email, password, name, role } = userData;
+    const { email, password, name, role, phone } = userData;
     const [result] = await pool.query(
-      'INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)',
-      [email, password, name, role]
+      'INSERT INTO users (email, password, name, role, phone) VALUES (?, ?, ?, ?, ?)',
+      [email, password, name, role, phone]
     );
 
     return {
@@ -113,7 +113,8 @@ export const User = {
       email,
       password,
       name,
-      role
+      role,
+      phone
     };
   },
 
@@ -309,5 +310,44 @@ export const User = {
     });
 
     return mediaFiles;
+  },
+
+  // Pending user methods for delayed registration
+  async createPending(userData) {
+    const { email, password, name, role, phone, companyName } = userData;
+
+    // DEBUG
+    const [dbRes] = await pool.query("SELECT DATABASE() as db");
+    console.log(`[User.createPending] Using DB: ${dbRes[0].db}`);
+
+    const [result] = await pool.query(
+      'INSERT INTO pending_users (email, password, name, role, phone, company_name) VALUES (?, ?, ?, ?, ?, ?)',
+      [email, password, name, role, phone, companyName]
+    );
+
+    console.log(`[User.createPending] INSERT SUCCESS. ID: ${result.insertId}`);
+
+    // DEBUG: Dump table
+    const [all] = await pool.query("SELECT id, email FROM pending_users");
+    console.log(`[User.createPending] Current table state: ${JSON.stringify(all)}`);
+
+    return {
+      id: result.insertId,
+      _id: result.insertId,
+      email,
+      name,
+      role,
+      phone,
+      companyName
+    };
+  },
+
+  async findPendingById(id) {
+    const [rows] = await pool.query('SELECT * FROM pending_users WHERE id = ? LIMIT 1', [id]);
+    return rows[0] || null;
+  },
+
+  async deletePending(id) {
+    await pool.query('DELETE FROM pending_users WHERE id = ?', [id]);
   }
 };

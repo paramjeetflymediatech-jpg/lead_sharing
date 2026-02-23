@@ -6,11 +6,11 @@ import { setAuthCookie } from '@/lib/serverAuth';
 
 export async function POST(req) {
   const body = await req.json();
-  let { name, email, password, role, companyName } = body;
+  let { name, email, password, role, companyName, phone } = body;
 
   if (email) email = email.toLowerCase();
 
-  if (!name || !email || !password || !role) {
+  if (!name || !email || !password || !role || !phone) {
     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
   }
 
@@ -21,45 +21,27 @@ export async function POST(req) {
 
   const passwordHash = await hashPassword(password);
 
-  const user = await User.create({
+  // Save to pending_users instead of users table
+  const user = await User.createPending({
     name,
     email,
     password: passwordHash,
     role,
+    phone,
+    companyName: role === 'TRADESPERSON' ? companyName : null
   });
 
-  if (role === 'TRADESPERSON') {
-    if (!companyName) {
-      return NextResponse.json(
-        { message: 'companyName is required for tradesperson' },
-        { status: 400 }
-      );
-    }
-
-    await TradespersonProfile.create({
-      user: user._id,
-      companyName,
-      serviceAreas: [],
-      skills: [],
-      credits: 0,
-    });
-  }
-
-  const token = signAuthToken({ userId: user._id.toString(), role });
-  await setAuthCookie(token);
-
-  // Save token to database
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // Matches 7d from signAuthToken
-  await User.saveAuthToken(user._id, token, expiresAt);
+  // Tokens are not needed yet since user isn't fully created
+  // const token = signAuthToken({ userId: user._id.toString(), role });
+  // Removed setAuthCookie(token) - User must verify OTP and login manually
 
   return NextResponse.json(
     {
-      token,
-      id: user._id.toString(),
+      id: user.id.toString(),
       email: user.email,
       role: user.role,
       name: user.name,
+      phoneVerified: false,
     },
     { status: 201 }
   );

@@ -14,22 +14,28 @@ function RegisterFormContent() {
     const [name, setName] = useState("");
     const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
+    const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [step, setStep] = useState(0); // 0: Details, 1: OTP
+    const [registeredUserId, setRegisteredUserId] = useState(null);
 
     // Validation states
     const [fieldErrors, setFieldErrors] = useState({
         name: "",
         companyName: "",
         email: "",
+        phone: "",
         password: ""
     });
     const [touched, setTouched] = useState({
         name: false,
         companyName: false,
         email: false,
+        phone: false,
         password: false
     });
 
@@ -68,6 +74,16 @@ function RegisterFormContent() {
             if (value.trim().length > 150) {
                 return "Company name must be less than 150 characters";
             }
+        }
+        return "";
+    };
+
+    const validatePhone = (value) => {
+        if (!value.trim()) {
+            return "Phone number is required";
+        }
+        if (!/^\d{10,15}$/.test(value.trim())) {
+            return "Phone number must be between 10 and 15 digits";
         }
         return "";
     };
@@ -122,6 +138,9 @@ function RegisterFormContent() {
             case "email":
                 error = validateEmail(email);
                 break;
+            case "phone":
+                error = validatePhone(phone);
+                break;
             case "password":
                 error = validatePassword(password);
                 break;
@@ -171,6 +190,7 @@ function RegisterFormContent() {
             name: validateName(name),
             companyName: validateCompanyName(companyName),
             email: validateEmail(email),
+            phone: validatePhone(phone),
             password: validatePassword(password)
         };
 
@@ -179,6 +199,7 @@ function RegisterFormContent() {
             name: true,
             companyName: true,
             email: true,
+            phone: true,
             password: true
         });
 
@@ -202,7 +223,8 @@ function RegisterFormContent() {
             name: name.trim(),
             email: email.trim().toLowerCase(),
             password,
-            role
+            role,
+            phone: phone.trim()
         };
 
         if (role === "TRADESPERSON") {
@@ -222,7 +244,61 @@ function RegisterFormContent() {
                 throw new Error(data.message || "Registration failed");
             }
 
-            toast.success("Account created successfully! Welcome aboard!");
+            setRegisteredUserId(data.id);
+
+            // Send OTP
+            const otpRes = await fetch("/api/auth/otp/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    phone: phone.trim(),
+                    userId: data.id
+                }),
+            });
+
+            if (!otpRes.ok) {
+                const otpData = await otpRes.json();
+                throw new Error(otpData.error || "Failed to send OTP");
+            }
+
+            setStep(1);
+            toast.success("Details saved! Please verify your phone number.");
+        } catch (err) {
+            toast.error(err.message);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleVerifyOTP(e) {
+        e.preventDefault();
+        if (otp.length < 6) return;
+
+        setLoading(true);
+        setError("");
+
+        try {
+            const res = await fetch("/api/auth/otp/verify", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    otp,
+                    userId: registeredUserId
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Invalid OTP");
+            }
+
+            toast.success("Account verified successfully!");
             router.push("/auth/login");
         } catch (err) {
             toast.error(err.message);
@@ -236,12 +312,13 @@ function RegisterFormContent() {
     const isFormValid = () => {
         const nameValid = validateName(name) === "";
         const emailValid = validateEmail(email) === "";
+        const phoneValid = validatePhone(phone) === "";
         const passwordValid = validatePassword(password) === "";
         const companyNameValid = role === "TRADESPERSON"
             ? validateCompanyName(companyName) === ""
             : true;
 
-        return nameValid && emailValid && passwordValid && companyNameValid;
+        return nameValid && emailValid && phoneValid && passwordValid && companyNameValid;
     };
 
     return (
@@ -265,169 +342,260 @@ function RegisterFormContent() {
                 </div>
 
                 {/* Form Card */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors"
-                >
-                    {error && (
-                        <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600">
-                            {error}
-                        </div>
-                    )}
+                {step === 0 ? (
+                    <form
+                        onSubmit={handleSubmit}
+                        className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors"
+                    >
+                        {error && (
+                            <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600">
+                                {error}
+                            </div>
+                        )}
 
-                    <div className="space-y-4">
-                        {/* Unique UI: Custom Role Switcher */}
-                        <div className="flex rounded-xl bg-zinc-100 p-1">
-                            <button
-                                type="button"
-                                onClick={() => setRole("HOMEOWNER")}
-                                className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${role === "HOMEOWNER"
-                                    ? "bg-white text-[#155DFC] shadow-sm"
-                                    : "text-zinc-500 hover:text-zinc-700"
-                                    }`}
-                            >
-                                Homeowner
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setRole("TRADESPERSON")}
-                                className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${role === "TRADESPERSON"
-                                    ? "bg-white text-[#155DFC] shadow-sm"
-                                    : "text-zinc-500 hover:text-zinc-700"
-                                    }`}
-                            >
-                                Tradesperson
-                            </button>
-                        </div>
-
-                        <div className="grid gap-4">
-                            {/* Name Field */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
-                                    Full Name
-                                </label>
-                                <input
-                                    required
-                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.name && fieldErrors.name
-                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
-                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
+                        <div className="space-y-4">
+                            {/* Unique UI: Custom Role Switcher */}
+                            <div className="flex rounded-xl bg-zinc-100 p-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setRole("HOMEOWNER")}
+                                    className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${role === "HOMEOWNER"
+                                        ? "bg-white text-[#155DFC] shadow-sm"
+                                        : "text-zinc-500 hover:text-zinc-700"
                                         }`}
-                                    placeholder="Enter your name"
-                                    value={name}
-                                    onChange={handleNameChange}
-                                    onBlur={() => handleBlur("name")}
-                                />
-                                {touched.name && fieldErrors.name && (
-                                    <p className="text-xs text-red-600 ml-1 mt-1">
-                                        {fieldErrors.name}
-                                    </p>
-                                )}
+                                >
+                                    Homeowner
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRole("TRADESPERSON")}
+                                    className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${role === "TRADESPERSON"
+                                        ? "bg-white text-[#155DFC] shadow-sm"
+                                        : "text-zinc-500 hover:text-zinc-700"
+                                        }`}
+                                >
+                                    Tradesperson
+                                </button>
                             </div>
 
-                            {/* Company Name Field (for Tradesperson) */}
-                            {role === "TRADESPERSON" && (
+                            <div className="grid gap-4">
+                                {/* Name Field */}
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
-                                        Company Name
+                                        Full Name
                                     </label>
                                     <input
                                         required
-                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.companyName && fieldErrors.companyName
+                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.name && fieldErrors.name
                                             ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
                                             : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
                                             }`}
-                                        placeholder="Enter company name"
-                                        value={companyName}
-                                        onChange={handleCompanyNameChange}
-                                        onBlur={() => handleBlur("companyName")}
+                                        placeholder="Enter your name"
+                                        value={name}
+                                        onChange={handleNameChange}
+                                        onBlur={() => handleBlur("name")}
                                     />
-                                    {touched.companyName && fieldErrors.companyName && (
+                                    {touched.name && fieldErrors.name && (
                                         <p className="text-xs text-red-600 ml-1 mt-1">
-                                            {fieldErrors.companyName}
+                                            {fieldErrors.name}
                                         </p>
                                     )}
                                 </div>
-                            )}
 
-                            {/* Email Field */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
-                                    Email Address
-                                </label>
-                                <input
-                                    required
-                                    type="email"
-                                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.email && fieldErrors.email
-                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
-                                        : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
-                                        }`}
-                                    placeholder="Enter your email"
-                                    value={email}
-                                    onChange={handleEmailChange}
-                                    onBlur={() => handleBlur("email")}
-                                />
-                                {touched.email && fieldErrors.email && (
-                                    <p className="text-xs text-red-600 ml-1 mt-1">
-                                        {fieldErrors.email}
-                                    </p>
+                                {/* Company Name Field (for Tradesperson) */}
+                                {role === "TRADESPERSON" && (
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
+                                            Company Name
+                                        </label>
+                                        <input
+                                            required
+                                            className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.companyName && fieldErrors.companyName
+                                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                                : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
+                                                }`}
+                                            placeholder="Enter company name"
+                                            value={companyName}
+                                            onChange={handleCompanyNameChange}
+                                            onBlur={() => handleBlur("companyName")}
+                                        />
+                                        {touched.companyName && fieldErrors.companyName && (
+                                            <p className="text-xs text-red-600 ml-1 mt-1">
+                                                {fieldErrors.companyName}
+                                            </p>
+                                        )}
+                                    </div>
                                 )}
-                            </div>
 
-                            {/* Password Field */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
-                                    Password
-                                </label>
-                                <div className="relative">
+                                {/* Email Field */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
+                                        Email Address
+                                    </label>
                                     <input
                                         required
-                                        type={showPassword ? "text" : "password"}
-                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 pr-10 ${touched.password && fieldErrors.password
+                                        type="email"
+                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.email && fieldErrors.email
                                             ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
                                             : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
                                             }`}
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={handlePasswordChange}
-                                        onBlur={() => handleBlur("password")}
+                                        placeholder="Enter your email"
+                                        value={email}
+                                        onChange={handleEmailChange}
+                                        onBlur={() => handleBlur("email")}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {showPassword ? (
-                                            <EyeSlashIcon className="w-5 h-5" />
-                                        ) : (
-                                            <EyeIcon className="w-5 h-5" />
-                                        )}
-                                    </button>
+                                    {touched.email && fieldErrors.email && (
+                                        <p className="text-xs text-red-600 ml-1 mt-1">
+                                            {fieldErrors.email}
+                                        </p>
+                                    )}
                                 </div>
-                                {touched.password && fieldErrors.password && (
-                                    <p className="text-xs text-red-600 ml-1 mt-1">
-                                        {fieldErrors.password}
-                                    </p>
-                                )}
-                                {!fieldErrors.password && password && (
-                                    <p className="text-xs text-zinc-500 ml-1 mt-1">
-                                        Must be 6+ characters with uppercase, lowercase, and number
-                                    </p>
-                                )}
+
+                                {/* Phone Field */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        required
+                                        type="tel"
+                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.phone && fieldErrors.phone
+                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
+                                            }`}
+                                        placeholder="Enter your phone number"
+                                        value={phone}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, ""); // Only allow digits
+                                            setPhone(val);
+                                            if (touched.phone) setFieldErrors({ ...fieldErrors, phone: validatePhone(val) });
+                                        }}
+                                        onBlur={() => {
+                                            setTouched({ ...touched, phone: true });
+                                            setFieldErrors({ ...fieldErrors, phone: validatePhone(phone) });
+                                        }}
+                                    />
+                                    {touched.phone && fieldErrors.phone && (
+                                        <p className="text-xs text-red-600 ml-1 mt-1">
+                                            {fieldErrors.phone}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Password Field */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
+                                        Password
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            required
+                                            type={showPassword ? "text" : "password"}
+                                            className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 pr-10 ${touched.password && fieldErrors.password
+                                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                                : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
+                                                }`}
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={handlePasswordChange}
+                                            onBlur={() => handleBlur("password")}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            {showPassword ? (
+                                                <EyeSlashIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EyeIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    {touched.password && fieldErrors.password && (
+                                        <p className="text-xs text-red-600 ml-1 mt-1">
+                                            {fieldErrors.password}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || !isFormValid()}
+                                className="group relative mt-4 w-full overflow-hidden rounded-xl bg-[#155DFC] py-4 text-sm font-bold text-white transition-all hover:bg-[#1149c7] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                    {loading ? "Processing..." : "Continue"}
+                                    {!loading && <span className="transition-transform group-hover:translate-x-1">→</span>}
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                    <form
+                        onSubmit={handleVerifyOTP}
+                        className="rounded-3xl border border-zinc-100 bg-white/80 p-8 shadow-2xl shadow-[#155DFC]/5 backdrop-blur-xl transition-colors"
+                    >
+                        <div className="mb-6">
+                            <button
+                                type="button"
+                                onClick={() => setStep(0)}
+                                className="text-xs font-bold text-[#155DFC] hover:underline"
+                            >
+                                ← Edit details
+                            </button>
+                            <h2 className="mt-4 text-2xl font-bold text-black">Verify Phone</h2>
+                            <p className="text-sm text-zinc-500">
+                                Enter the 6-digit code sent to <span className="font-bold text-black">{phone}</span>
+                            </p>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading || !isFormValid()}
-                            className="group relative mt-4 w-full overflow-hidden rounded-xl bg-[#155DFC] py-4 text-sm font-bold text-white transition-all hover:bg-[#1149c7] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            <span className="relative z-10 flex items-center justify-center gap-2">
-                                {loading ? "Creating Account..." : "Create Account"}
-                                {!loading && <span className="transition-transform group-hover:translate-x-1">→</span>}
-                            </span>
-                        </button>
-                    </div>
-                </form>
+                        {error && (
+                            <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="space-y-6">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
+                                    Verification Code
+                                </label>
+                                <input
+                                    required
+                                    type="text"
+                                    maxLength={6}
+                                    className="w-full text-center tracking-[1em] font-mono text-xl rounded-xl border border-zinc-200 bg-white px-4 py-4 outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10"
+                                    placeholder="000000"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || otp.length < 6}
+                                className="group relative w-full overflow-hidden rounded-xl bg-[#155DFC] py-4 text-sm font-bold text-white transition-all hover:bg-[#1149c7] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                <span className="relative z-10">
+                                    {loading ? "Verifying..." : "Verify & Create Account"}
+                                </span>
+                            </button>
+
+                            <p className="text-center text-xs text-zinc-500">
+                                Didn't receive the code?{" "}
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    className="font-bold text-[#155DFC] hover:underline"
+                                >
+                                    Resend
+                                </button>
+                            </p>
+                        </div>
+                    </form>
+                )}
 
                 {/* Links */}
                 <div className="mt-8 flex flex-col items-center gap-4 text-sm font-medium">

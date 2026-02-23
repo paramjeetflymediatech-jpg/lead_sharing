@@ -16,6 +16,7 @@ import { API_BASE_URL } from "../config/api";
 async function getAuthToken() {
     try {
         const token = await AsyncStorage.getItem("token");
+        console.log("[API] Retrieved token from storage:", token ? "Exists" : "MISSING");
         return token;
     } catch (error) {
         console.error("Error getting token:", error);
@@ -123,6 +124,30 @@ export const authAPI = {
         return apiCall("/api/auth/update-password", {
             method: "POST",
             body: JSON.stringify({ currentPassword, newPassword }),
+        });
+    },
+
+    /**
+     * Send OTP for phone verification
+     */
+    sendOTP: async (data, userId = null) => {
+        const headers = userId ? { 'x-user-id': String(userId) } : {};
+        const body = userId ? { ...data, userId } : data;
+        return apiCall("/api/auth/otp/send", {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: headers,
+        });
+    },
+
+    /**
+     * Verify OTP for phone verification
+     */
+    verifyOTP: async (data, userId = null) => {
+        const body = userId ? { ...data, userId } : data;
+        return apiCall("/api/auth/otp/verify", {
+            method: "POST",
+            body: JSON.stringify(body),
         });
     },
 };
@@ -473,6 +498,15 @@ export const tradespersonAPI = {
         return apiCall(`/api/tradesperson/messages/${conversationId}`, {
             method: "POST",
             body: JSON.stringify({ message }),
+        });
+    },
+
+    /**
+     * Setup Stripe Connect payouts
+     */
+    setupPayouts: async () => {
+        return apiCall("/api/tradesperson/payout-setup", {
+            method: "POST",
         });
     },
 };
