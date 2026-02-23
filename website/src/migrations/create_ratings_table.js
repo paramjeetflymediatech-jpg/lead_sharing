@@ -9,9 +9,12 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const mysql = require("mysql2/promise");
 
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+// Try to load from current working directory or relative to the script
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-console.log(`🔌 Database: ${process.env.MYSQL_DATABASE}@${process.env.MYSQL_HOST}`);
+console.log(`🔌 Database: ${process.env.MYSQL_DATABASE || "undefined"}@${process.env.MYSQL_HOST || "undefined"}`);
+console.log(`👤 User: ${process.env.MYSQL_USER || "undefined"}`);
 
 async function runMigration() {
   const connection = await mysql.createConnection({
