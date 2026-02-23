@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     Alert,
     ActivityIndicator,
+    Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { Feather } from "@expo/vector-icons";
@@ -51,20 +52,36 @@ export default function HomeownerProfileTab({ navigation }) {
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Header / Profile Card */}
             <View style={styles.header}>
-                <View style={styles.avatarContainer}>
-                    {user?.profile_image || user?.profileImage ? (
-                        <Image
-                            source={{ uri: user.profile_image || user.profileImage }}
-                            style={styles.avatarImage}
-                        />
-                    ) : (
-                        <Text style={styles.avatarText}>
-                            {user?.name?.charAt(0).toUpperCase() || "H"}
-                        </Text>
-                    )}
+                <View style={styles.headerTop}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                    </TouchableOpacity>
+                    <Text style={styles.pageTitle}>Profile</Text>
                 </View>
-                <Text style={styles.name}>{user?.name || "Homeowner"}</Text>
-                <Text style={styles.email}>{user?.email || "email@example.com"}</Text>
+
+                <View style={styles.profileCard}>
+                    <View style={styles.profileHeader}>
+                        <View style={styles.avatarContainer}>
+                            {user?.profile_image || user?.profileImage ? (
+                                <Image
+                                    source={{ uri: user.profile_image || user.profileImage }}
+                                    style={styles.avatarImage}
+                                />
+                            ) : (
+                                <Text style={styles.avatarText}>
+                                    {user?.name?.charAt(0).toUpperCase() || "H"}
+                                </Text>
+                            )}
+                        </View>
+                        <View style={styles.profileInfo}>
+                            <Text style={styles.name}>{user?.name || "Homeowner"}</Text>
+                            <Text style={styles.email}>{user?.email || "email@example.com"}</Text>
+                        </View>
+                        <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate("EditProfile")}>
+                            <Feather name="edit-2" size={18} color="#6B7280" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </View>
 
             {/* Account Settings */}
@@ -105,49 +122,79 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
     },
     header: {
-        paddingHorizontal: wp(5),
-        paddingTop: hp(7), // Safe area padding
-        paddingBottom: hp(2.5),
-        alignItems: "center",
         backgroundColor: "#FFFFFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E7EB",
+        paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+        paddingBottom: hp(2),
+        paddingHorizontal: wp(5),
+    },
+    headerTop: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: hp(2.5),
+    },
+    backButton: {
+        marginRight: wp(4),
+    },
+    pageTitle: {
+        fontSize: normalize(20),
+        fontWeight: "700",
+        color: "#111827",
+    },
+    profileCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: wp(5),
+        padding: wp(4),
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
+    },
+    profileHeader: {
+        flexDirection: "row",
+        alignItems: "center",
     },
     avatarContainer: {
-        width: wp(25),
-        height: wp(25),
-        borderRadius: wp(12.5),
+        width: wp(16),
+        height: wp(16),
+        borderRadius: wp(8),
         backgroundColor: "#2563EB",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: hp(2),
-        shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        shadowRadius: 8,
-        elevation: 4,
-        overflow: "hidden", // Added to clip image
+        marginRight: wp(4),
+        overflow: "hidden",
     },
     avatarImage: {
         width: "100%",
         height: "100%",
-        borderRadius: wp(12.5),
+        borderRadius: wp(8),
     },
     avatarText: {
-        fontSize: normalize(32),
+        fontSize: normalize(24),
         fontWeight: "700",
         color: "#FFFFFF",
     },
+    profileInfo: {
+        flex: 1,
+    },
     name: {
-        fontSize: normalize(20),
-        fontWeight: "800",
+        fontSize: normalize(18),
+        fontWeight: "700",
         color: "#111827",
-        marginBottom: hp(0.5),
+        marginBottom: hp(0.2),
     },
     email: {
-        fontSize: normalize(14),
+        fontSize: normalize(13),
         color: "#6B7280",
+    },
+    editButton: {
+        padding: wp(2),
+        backgroundColor: "#F9FAFB",
+        borderRadius: wp(2),
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
     },
     section: {
         marginTop: hp(3),

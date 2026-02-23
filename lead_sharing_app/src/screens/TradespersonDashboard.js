@@ -8,7 +8,9 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
+import { normalize, wp, hp } from "../utils/responsive";
 import { useAuth } from "../context/AuthContext";
 import { tradespersonAPI, jobAPI, userAPI } from "../services/api";
 import LogoutModal from "../components/LogoutModal";
@@ -117,20 +119,10 @@ export default function TradespersonDashboard({ navigation }) {
   const totalJobs = availableJobs.length || 0;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={["#1149C7"]}
-        />
-      }
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
+    <View style={styles.container}>
+      {/* Persistent Header */}
+      <View style={styles.dashboardHeader}>
+        <View style={styles.headerContent}>
           <Text style={styles.greeting}>Welcome back,</Text>
           <Text style={styles.userName}>
             {profile?.company_name || user?.name || "Tradesperson"}
@@ -141,141 +133,155 @@ export default function TradespersonDashboard({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Credits Banner */}
-      <View style={styles.creditsBanner}>
-        <View style={styles.creditsIconContainer}>
-          <Text style={styles.creditsIcon}>💳</Text>
-        </View>
-        <View style={styles.creditsContent}>
-          <Text style={styles.creditsLabel}>Available Credits</Text>
-          <Text style={styles.creditsValue}>{credits}</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.buyCreditsButton}
-          onPress={() =>
-            Alert.alert("Buy Credits", "Credit purchase coming soon!")
-          }
-        >
-          <Text style={styles.buyCreditsText}>Buy More</Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#1149C7"]}
+          />
+        }
+      >
 
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statsRow}>
-          <StatCard
-            title="Active Leads"
-            value={activeLeads}
-            icon="📋"
-            color="#F59E0B"
-          />
-          <StatCard
-            title="Unlocked"
-            value={unlockedLeads}
-            icon="🔓"
-            color="#10B981"
-          />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard
-            title="Available Jobs"
-            value={totalJobs}
-            icon="🏗️"
-            color="#1149C7"
-          />
-          <StatCard
-            title="Profile Views"
-            value={profile?.profile_views || 0}
-            icon="👁️"
-            color="#8B5CF6"
-          />
-        </View>
-      </View>
 
-      {/* Quick Actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsContainer}>
-          <ActionButton
-            title="Browse Jobs"
-            icon="🔍"
-            color="#1149C7"
-            onPress={() =>
-              navigation?.navigate?.("BrowseJobs") ||
-              Alert.alert("Coming Soon", "Browse jobs screen not yet implemented")
-            }
-          />
-          <ActionButton
-            title="My Leads"
-            icon="📝"
-            color="#10B981"
-            onPress={() =>
-              navigation?.navigate?.("MyLeads") ||
-              Alert.alert("Coming Soon", "My leads screen not yet implemented")
-            }
-          />
-          <ActionButton
-            title="Messages"
-            icon="💬"
-            color="#F59E0B"
-            onPress={() =>
-              navigation?.navigate?.("Messages") ||
-              Alert.alert("Coming Soon", "Messages screen not yet implemented")
-            }
-          />
-          <ActionButton
-            title="Profile"
-            icon="👤"
-            color="#8B5CF6"
-            onPress={() =>
-              navigation?.navigate?.("Profile") ||
-              Alert.alert("Coming Soon", "Profile screen not yet implemented")
-            }
-          />
-        </View>
-      </View>
-
-      {/* Available Jobs */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Jobs</Text>
-          {availableJobs.length > 0 && (
-            <TouchableOpacity
-              onPress={() => navigation?.navigate?.("BrowseJobs")}
-            >
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {availableJobs.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateIcon}>📭</Text>
-            <Text style={styles.emptyStateTitle}>No jobs available</Text>
-            <Text style={styles.emptyStateText}>
-              Check back later for new opportunities
-            </Text>
+        {/* Credits Banner */}
+        <View style={styles.creditsBanner}>
+          <View style={styles.creditsIconContainer}>
+            <Text style={styles.creditsIcon}>💳</Text>
           </View>
-        ) : (
-          availableJobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              credits={credits}
+          <View style={styles.creditsContent}>
+            <Text style={styles.creditsLabel}>Available Credits</Text>
+            <Text style={styles.creditsValue}>{credits}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.buyCreditsButton}
+            onPress={() =>
+              Alert.alert("Buy Credits", "Credit purchase coming soon!")
+            }
+          >
+            <Text style={styles.buyCreditsText}>Buy More</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Cards */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Active Leads"
+              value={activeLeads}
+              icon="📋"
+              color="#F59E0B"
+            />
+            <StatCard
+              title="Unlocked"
+              value={unlockedLeads}
+              icon="🔓"
+              color="#10B981"
+            />
+          </View>
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Available Jobs"
+              value={totalJobs}
+              icon="🏗️"
+              color="#1149C7"
+            />
+            <StatCard
+              title="Profile Views"
+              value={profile?.profile_views || 0}
+              icon="👁️"
+              color="#8B5CF6"
+            />
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsContainer}>
+            <ActionButton
+              title="Browse Jobs"
+              icon="🔍"
+              color="#1149C7"
               onPress={() =>
-                navigation?.navigate?.("JobDetail", { jobId: job.id }) ||
-                Alert.alert("Job Details", `${job.description}`)
+                navigation?.navigate?.("BrowseJobs") ||
+                Alert.alert("Coming Soon", "Browse jobs screen not yet implemented")
               }
             />
-          ))
-        )}
-      </View>
-      <LogoutModal
-        visible={logoutModalVisible}
-        onClose={() => setLogoutModalVisible(false)}
-        onLogout={confirmLogout}
-      />
-    </ScrollView>
+            <ActionButton
+              title="My Leads"
+              icon="📝"
+              color="#10B981"
+              onPress={() =>
+                navigation?.navigate?.("MyLeads") ||
+                Alert.alert("Coming Soon", "My leads screen not yet implemented")
+              }
+            />
+            <ActionButton
+              title="Messages"
+              icon="💬"
+              color="#F59E0B"
+              onPress={() =>
+                navigation?.navigate?.("Messages") ||
+                Alert.alert("Coming Soon", "Messages screen not yet implemented")
+              }
+            />
+            <ActionButton
+              title="Profile"
+              icon="👤"
+              color="#8B5CF6"
+              onPress={() =>
+                navigation?.navigate?.("Profile") ||
+                Alert.alert("Coming Soon", "Profile screen not yet implemented")
+              }
+            />
+          </View>
+        </View>
+
+        {/* Available Jobs */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Available Jobs</Text>
+            {availableJobs.length > 0 && (
+              <TouchableOpacity
+                onPress={() => navigation?.navigate?.("BrowseJobs")}
+              >
+                <Text style={styles.viewAllText}>View All</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {availableJobs.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateIcon}>📭</Text>
+              <Text style={styles.emptyStateTitle}>No jobs available</Text>
+              <Text style={styles.emptyStateText}>
+                Check back later for new opportunities
+              </Text>
+            </View>
+          ) : (
+            availableJobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                credits={credits}
+                onPress={() =>
+                  navigation?.navigate?.("JobDetail", { jobId: job.id }) ||
+                  Alert.alert("Job Details", `${job.description}`)
+                }
+              />
+            ))
+          )}
+        </View>
+        <LogoutModal
+          visible={logoutModalVisible}
+          onClose={() => setLogoutModalVisible(false)}
+          onLogout={confirmLogout}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -383,9 +389,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
   },
+  dashboardHeader: {
+    backgroundColor: "#FFFFFF",
+    paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+    paddingBottom: hp(2),
+    paddingHorizontal: wp(5),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerContent: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: wp(4),
+    paddingBottom: hp(4),
   },
   loadingContainer: {
     flex: 1,
@@ -394,36 +417,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F9FA",
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
+    marginTop: hp(1.5),
+    fontSize: normalize(16),
     color: "#6B7280",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 20,
-  },
   greeting: {
-    fontSize: 16,
+    fontSize: normalize(14),
     color: "#6B7280",
   },
   userName: {
-    fontSize: 24,
+    fontSize: normalize(20),
     fontWeight: "700",
     color: "#1F2937",
-    marginTop: 4,
+    marginTop: hp(0.2),
   },
   logoutButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: wp(2),
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#F3F4F6",
+    backgroundColor: "#F9FAFB",
   },
   logoutText: {
     color: "#EF4444",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "600",
   },
   creditsBanner: {

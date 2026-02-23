@@ -242,7 +242,7 @@ function JobCard({ job, credits, navigation }) {
             <View style={styles.jobDetails}>
                 <View style={styles.detailItem}>
                     <Feather name="map-pin" size={12} color="#6B7280" />
-                    <Text style={styles.detailText}>
+                    <Text style={styles.detailText} numberOfLines={1}>
                         {job.city && job.postcode
                             ? `${job.city}, ${job.postcode}`
                             : job.postcode || job.city || "Location not specified"}
@@ -261,17 +261,21 @@ function JobCard({ job, credits, navigation }) {
                             : "Flexible"}
                     </Text>
                 </View>
-                <View style={styles.divider} />
-                <View style={styles.detailItem}>
-                    <Text style={styles.currencySymbol}>$</Text>
-                    <Text style={styles.detailText}>
-                        {job.budget_min ? `${job.budget_min} - ${job.budget_max}` : "Budget N/A"}
-                    </Text>
-                </View>
+            </View>
+
+            <View style={styles.budgetRow}>
+                <Feather name="dollar-sign" size={12} color="#6B7280" />
+                <Text style={styles.budgetText}>
+                    {job.budget_min ? `${job.budget_min} - ${job.budget_max}` : "Budget N/A"}
+                </Text>
             </View>
 
             <View style={styles.tapHint}>
-                <Text style={styles.costText}>1 Credit</Text>
+                {job.is_unlocked ? (
+                    <Text style={styles.unlockedText}>Unlocked</Text>
+                ) : (
+                    <Text style={styles.costText}>1 Credit</Text>
+                )}
                 <Feather name="chevron-right" size={16} color="#D1D5DB" />
             </View>
         </TouchableOpacity>
@@ -518,18 +522,25 @@ const styles = StyleSheet.create({
     detailText: {
         fontSize: 13,
         color: "#6B7280",
+        maxWidth: 150, // Added to prevent pushing other items
     },
-    currencySymbol: {
-        fontSize: 14,
+    budgetRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        marginBottom: 12,
+    },
+    budgetText: {
+        fontSize: 13,
         color: "#6B7280",
         fontWeight: "600",
-        marginRight: 4,
     },
     divider: {
         width: 1,
         height: 12,
         backgroundColor: "#E5E7EB",
         marginHorizontal: 12,
+
     },
     tapHint: {
         flexDirection: "row",
@@ -543,6 +554,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
         color: "#F59E0B",
+    },
+    unlockedText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#10B981",
     },
     footerSpace: {
         height: 100, // Space for floating tab bar

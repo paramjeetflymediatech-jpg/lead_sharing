@@ -147,8 +147,15 @@ export default function JobDetailsScreen({ route, navigation }) {
 
             {/* Job Header - short title */}
             <View style={styles.header}>
-                <View style={styles.newBadge}>
-                    <Text style={styles.newText}>NEW</Text>
+                <View style={{ flexDirection: 'row', gap: wp(2), marginBottom: hp(1.5) }}>
+                    <View style={styles.newBadge}>
+                        <Text style={styles.newText}>NEW</Text>
+                    </View>
+                    {isUnlocked && (
+                        <View style={styles.unlockedBadge}>
+                            <Text style={styles.unlockedBadgeText}>UNLOCKED</Text>
+                        </View>
+                    )}
                 </View>
                 <Text style={styles.title} numberOfLines={2}>
                     {description.length > 80 ? description.slice(0, 80).trim() + "…" : description || "Job details"}
@@ -302,12 +309,17 @@ export default function JobDetailsScreen({ route, navigation }) {
 
             {isUnlocked && (
                 <View style={styles.actionRow}>
+                    <View style={styles.unlockedInfo}>
+                        <Text style={styles.unlockedInfoIcon}>🔓</Text>
+                        <Text style={styles.unlockedInfoText}>Lead Unlocked</Text>
+                    </View>
+{/* 
                     <TouchableOpacity
                         style={styles.viewLeadButton}
                         onPress={handleViewLead}
                     >
                         <Text style={styles.viewLeadButtonText}>View Lead</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
 
                     <TouchableOpacity
@@ -559,6 +571,35 @@ const styles = StyleSheet.create({
         color: "#2563EB",
         fontSize: normalize(17),
         fontWeight: "700",
+    },
+    unlockedBadge: {
+        backgroundColor: "#D1FAE5",
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.8),
+        borderRadius: wp(2),
+    },
+    unlockedBadgeText: {
+        color: "#10B981",
+        fontSize: normalize(13),
+        fontWeight: "700",
+    },
+    unlockedInfo: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#D1FAE5",
+        padding: wp(3),
+        borderRadius: wp(2.5),
+        marginBottom: hp(0.5),
+    },
+    unlockedInfoIcon: {
+        fontSize: normalize(18),
+        marginRight: wp(2),
+    },
+    unlockedInfoText: {
+        fontSize: normalize(14),
+        fontWeight: "600",
+        color: "#10B981",
     },
 });
 

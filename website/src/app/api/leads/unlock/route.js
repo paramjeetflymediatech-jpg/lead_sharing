@@ -88,10 +88,10 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    // Check if already unlocked (leads.tradesperson_id = users.id)
+    // Check if already unlocked (leads.tradesperson_id = tradesperson_profiles.id)
     const [existingLeads] = await db.query(
       `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-      [jobId, userId]
+      [jobId, profile.id]
     );
 
     if (existingLeads && existingLeads.length > 0) {
@@ -125,7 +125,7 @@ export async function POST(req) {
       const [result] = await db.query(
         `INSERT INTO leads (job_id, tradesperson_id, message, price_estimate, is_unlocked, unlocked_at) 
            VALUES (?, ?, ?, ?, TRUE, NOW())`,
-        [jobId, userId, message.trim(), cleanPrice]
+        [jobId, profile.id, message.trim(), cleanPrice]
       );
       leadResult = result;
     } catch (err) {

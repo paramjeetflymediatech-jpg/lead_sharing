@@ -11,12 +11,15 @@ import {
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { homeownerAPI, tradespersonAPI } from "../services/api";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
+import { Platform } from "react-native";
+import { normalize, wp, hp } from "../utils/responsive";
 import MessagesModal from "./MessagesModal";
 
 export default function MessagesListScreen() {
     const { user } = useAuth();
+    const navigation = useNavigation();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -154,7 +157,12 @@ export default function MessagesListScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Messages</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                </TouchableOpacity>
+                <View>
+                    <Text style={styles.headerTitle}>Messages</Text>
+                </View>
             </View>
 
             {conversations.length === 0 ? (
@@ -205,14 +213,19 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: "#FFFFFF",
-        paddingTop: 60,
-        paddingBottom: 20,
-        paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+        paddingBottom: hp(2),
+        paddingHorizontal: wp(5),
+        flexDirection: "row",
+        alignItems: "center",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
+    backButton: {
+        marginRight: wp(4),
+    },
     headerTitle: {
-        fontSize: 24,
+        fontSize: normalize(20),
         fontWeight: "700",
         color: "#1F2937",
     },

@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     RefreshControl,
     ScrollView,
+    Platform,
 } from "react-native";
 import { homeownerAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
@@ -84,6 +85,9 @@ export default function HomeownerJobsTab({ navigation, route }) {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Feather name="arrow-left" size={24} color="#111827" />
+                </TouchableOpacity>
                 <Text style={styles.headerTitle}>My Jobs</Text>
             </View>
 
@@ -205,16 +209,21 @@ const styles = StyleSheet.create({
         backgroundColor: "#F9FAFB",
     },
     header: {
-        paddingTop: hp(7),
-        paddingHorizontal: wp(5),
-        paddingBottom: hp(2),
         backgroundColor: "#FFFFFF",
+        paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+        paddingBottom: hp(2),
+        paddingHorizontal: wp(5),
+        flexDirection: "row",
+        alignItems: "center",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
+    backButton: {
+        marginRight: wp(6),
+    },
     headerTitle: {
-        fontSize: normalize(24),
-        fontWeight: "800",
+        fontSize: normalize(20),
+        fontWeight: "700",
         color: "#111827",
     },
     filterContainer: {

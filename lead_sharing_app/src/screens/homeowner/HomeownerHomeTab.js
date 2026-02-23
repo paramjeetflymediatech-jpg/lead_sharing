@@ -72,10 +72,11 @@ export default function HomeownerHomeTab({ navigation }) {
         );
     }
 
-    const activeJobs = dashboard?.activeJobs || recentJobs.filter((j) => j.status === "OPEN").length || 0;
-    const totalJobs = dashboard?.totalJobs || recentJobs.length || 0;
-    const pendingQuotes = dashboard?.pendingQuotes || 0;
-    const completedJobs = dashboard?.completedJobs || 0;
+    const statsData = dashboard?.stats || dashboard || {};
+    const activeJobs = statsData.activeJobs || recentJobs.filter((j) => j.status === "OPEN" || j.status === "HIRED").length || 0;
+    const totalJobs = statsData.totalJobs || recentJobs.length || 0;
+    const quotesReceived = statsData.quotesReceived || statsData.pendingQuotes || 0;
+    const completedJobs = statsData.completedJobs || 0;
 
     return (
         <ScrollView
@@ -109,9 +110,9 @@ export default function HomeownerHomeTab({ navigation }) {
                     onPress={() => navigation.navigate("Jobs", { screen: "JobsMain", params: { initialFilter: "OPEN" } })}
                 />
                 <StatCard
-                    icon="clock"
-                    value={pendingQuotes}
-                    label="Pending"
+                    icon="message-circle"
+                    value={quotesReceived}
+                    label="Quotes Received"
                     color="#F59E0B"
                     bgColor="#FFFBEB"
                     onPress={() => navigation.navigate("Jobs", { screen: "JobsMain", params: { initialFilter: "OPEN" } })}

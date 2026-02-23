@@ -6,6 +6,7 @@ import {
     StyleSheet,
     ActivityIndicator,
     TouchableOpacity,
+    Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { tradespersonAPI } from '../../services/api';
@@ -86,6 +87,9 @@ export default function TradespersonProfileScreen({ route, navigation }) {
         <ScrollView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                </TouchableOpacity>
                 <View style={styles.profileIcon}>
                     <Feather name="user" size={40} color="#2563EB" />
                 </View>
@@ -203,19 +207,26 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: '#FFFFFF',
-        padding: normalize(24),
+        paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+        paddingBottom: hp(3),
+        paddingHorizontal: wp(5),
+        flexDirection: 'row',
         alignItems: 'center',
         borderBottomWidth: 1,
         borderBottomColor: '#E5E7EB',
     },
+    backButton: {
+        marginRight: wp(6),
+        marginTop: -hp(2), // Align better with icon
+    },
     profileIcon: {
-        width: normalize(80),
-        height: normalize(80),
-        borderRadius: normalize(40),
+        width: normalize(60),
+        height: normalize(60),
+        borderRadius: normalize(30),
         backgroundColor: '#EFF6FF',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: hp(2),
+        marginRight: wp(4),
     },
     name: {
         fontSize: normalize(24),

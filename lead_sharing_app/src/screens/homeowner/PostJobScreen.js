@@ -149,6 +149,23 @@ export default function PostJobScreen({ navigation }) {
             Alert.alert("Error", "Please enter a job description");
             return;
         }
+
+        // Description validation: 25 characters, 10-30 words
+        const descriptionText = formData.description.trim();
+        const words = descriptionText.split(/\s+/).filter(word => word.length > 0);
+
+        if (descriptionText.length < 25) {
+            Alert.alert("Error", "Job description must be at least 25 characters long.");
+            return;
+        }
+        if (words.length < 10) {
+            Alert.alert("Error", "Description is too short. Please use at least 10 words.");
+            return;
+        }
+        if (words.length > 30) {
+            Alert.alert("Error", "Description is too long. Please use maximum 30 words.");
+            return;
+        }
         if (!formData.postcode.trim()) {
             Alert.alert("Error", "Please enter your postcode");
             return;
@@ -163,6 +180,21 @@ export default function PostJobScreen({ navigation }) {
         }
         if (!formData.contactEmail.trim()) {
             Alert.alert("Error", "Please enter your email address");
+            return;
+        }
+
+        // Budget validation (cap at 1 billion to avoid DB overflow)
+        const maxBudgetVal = 1000000000;
+        if (formData.budget_min && parseFloat(formData.budget_min) > maxBudgetVal) {
+            Alert.alert("Error", "Minimum budget is too high. Max allowed is $1,000,000,000");
+            return;
+        }
+        if (formData.budget_max && parseFloat(formData.budget_max) > maxBudgetVal) {
+            Alert.alert("Error", "Maximum budget is too high. Max allowed is $1,000,000,000");
+            return;
+        }
+        if (formData.budget_min && formData.budget_max && parseFloat(formData.budget_min) > parseFloat(formData.budget_max)) {
+            Alert.alert("Error", "Minimum budget cannot be greater than maximum budget");
             return;
         }
 
@@ -445,40 +477,46 @@ export default function PostJobScreen({ navigation }) {
                     <View style={styles.card}>
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Full Name <Text style={styles.required}>*</Text></Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Your Full Name"
-                                placeholderTextColor="#9CA3AF"
-                                value={formData.contactName}
-                                onChangeText={(value) => updateField("contactName", value)}
-                            />
+                            <View style={styles.inputWrapper}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Your Full Name"
+                                    placeholderTextColor="#9CA3AF"
+                                    value={formData.contactName}
+                                    onChangeText={(value) => updateField("contactName", value)}
+                                />
+                            </View>
                         </View>
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Phone Number <Text style={styles.required}>*</Text></Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Your Phone Number"
-                                placeholderTextColor="#9CA3AF"
-                                keyboardType="phone-pad"
-                                value={formData.contactPhone}
-                                onChangeText={(value) => {
-                                    const numericValue = value.replace(/[^0-9]/g, '');
-                                    updateField("contactPhone", numericValue);
-                                }}
-                                maxLength={10}
-                            />
+                            <View style={styles.inputWrapper}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Your Phone Number"
+                                    placeholderTextColor="#9CA3AF"
+                                    keyboardType="phone-pad"
+                                    value={formData.contactPhone}
+                                    onChangeText={(value) => {
+                                        const numericValue = value.replace(/[^0-9]/g, '');
+                                        updateField("contactPhone", numericValue);
+                                    }}
+                                    maxLength={10}
+                                />
+                            </View>
                         </View>
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Email Address <Text style={styles.required}>*</Text></Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Your Email Address"
-                                placeholderTextColor="#9CA3AF"
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                value={formData.contactEmail}
-                                onChangeText={(value) => updateField("contactEmail", value)}
-                            />
+                            <View style={styles.inputWrapper}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Your Email Address"
+                                    placeholderTextColor="#9CA3AF"
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    value={formData.contactEmail}
+                                    onChangeText={(value) => updateField("contactEmail", value)}
+                                />
+                            </View>
                         </View>
                     </View>
 
@@ -493,30 +531,34 @@ export default function PostJobScreen({ navigation }) {
                             <Text style={styles.label}>Budget Range ($)</Text>
                             <View style={styles.row}>
                                 <View style={styles.halfInput}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Min"
-                                        placeholderTextColor="#9CA3AF"
-                                        keyboardType="numeric"
-                                        value={formData.budget_min}
-                                        onChangeText={(value) => {
-                                            const numericValue = value.replace(/[^0-9.]/g, '');
-                                            updateField("budget_min", numericValue);
-                                        }}
-                                    />
+                                    <View style={styles.inputWrapper}>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Min"
+                                            placeholderTextColor="#9CA3AF"
+                                            keyboardType="numeric"
+                                            value={formData.budget_min}
+                                            onChangeText={(value) => {
+                                                const numericValue = value.replace(/[^0-9.]/g, '');
+                                                updateField("budget_min", numericValue);
+                                            }}
+                                        />
+                                    </View>
                                 </View>
                                 <View style={styles.halfInput}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Max"
-                                        placeholderTextColor="#9CA3AF"
-                                        keyboardType="numeric"
-                                        value={formData.budget_max}
-                                        onChangeText={(value) => {
-                                            const numericValue = value.replace(/[^0-9.]/g, '');
-                                            updateField("budget_max", numericValue);
-                                        }}
-                                    />
+                                    <View style={styles.inputWrapper}>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Max"
+                                            placeholderTextColor="#9CA3AF"
+                                            keyboardType="numeric"
+                                            value={formData.budget_max}
+                                            onChangeText={(value) => {
+                                                const numericValue = value.replace(/[^0-9.]/g, '');
+                                                updateField("budget_max", numericValue);
+                                            }}
+                                        />
+                                    </View>
                                 </View>
                             </View>
                         </View>
@@ -679,7 +721,7 @@ const styles = StyleSheet.create({
         borderColor: "#E5E7EB",
         borderRadius: wp(3),
         paddingHorizontal: wp(3),
-        height: hp(7), // Increased height for better visibility
+        height: hp(6.5),
     },
     pickerContainer: {
         backgroundColor: "#F9FAFB",
@@ -687,22 +729,22 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#E5E7EB",
         overflow: "hidden",
-        height: hp(5), // Match input height
+        height: hp(6.5),
         justifyContent: "center",
     },
     picker: {
         height: hp(10),
         width: "100%",
-        color: "#1F2937", // Ensure text is visible
+        color: "#1F2937",
     },
     inputIcon: {
         marginRight: wp(2.5),
     },
     input: {
         flex: 1,
-        fontSize: normalize(13), // Reduced for better fit on small screens
+        fontSize: normalize(15),
         color: "#1F2937",
-        height: "100%", // Take full height of wrapper
+        height: "100%",
     },
     textArea: {
         backgroundColor: "#F9FAFB",

@@ -49,20 +49,29 @@ export async function GET(req, context) {
     let contactInfo = null;
 
     if (userId && role === "TRADESPERSON") {
-      // Check for unlocked lead directly using userId
-      const [leadRows] = await pool.query(
-        `SELECT id FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = 1 LIMIT 1`,
-        [id, userId]
+      // Get tradesperson profile ID
+      const [profileRows] = await pool.query(
+        `SELECT id FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
+        [userId]
       );
 
-      if (leadRows && leadRows.length > 0) {
-        isUnlocked = true;
-        // Return contact info if unlocked
-        contactInfo = {
-          name: job.contact_name || job.homeowner_name,
-          email: job.contact_email || job.homeowner_email,
-          phone: job.contact_phone || job.homeowner_phone,
-        };
+      if (profileRows && profileRows.length > 0) {
+        const tradespersonProfileId = profileRows[0].id;
+        // Check for unlocked lead using profile id
+        const [leadRows] = await pool.query(
+          `SELECT id FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = 1 LIMIT 1`,
+          [id, tradespersonProfileId]
+        );
+
+        if (leadRows && leadRows.length > 0) {
+          isUnlocked = true;
+          // Return contact info if unlocked
+          contactInfo = {
+            name: job.contact_name || job.homeowner_name,
+            email: job.contact_email || job.homeowner_email,
+            phone: job.contact_phone || job.homeowner_phone,
+          };
+        }
       }
     }
 

@@ -6,6 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Alert,
+    Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { Feather } from "@expo/vector-icons";
@@ -48,7 +49,12 @@ export default function TradespersonProfileTab({ navigation }) {
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Header / Profile Card */}
             <View style={styles.header}>
-                <Text style={styles.pageTitle}>Profile</Text>
+                <View style={styles.headerTop}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                    </TouchableOpacity>
+                    <Text style={styles.pageTitle}>Profile</Text>
+                </View>
 
                 <View style={styles.profileCard}>
                     <View style={styles.profileHeader}>
@@ -133,15 +139,23 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
     },
     header: {
+        backgroundColor: "#FFFFFF",
+        paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+        paddingBottom: hp(2),
         paddingHorizontal: wp(5),
-        paddingTop: hp(7), // Safe area padding
-        paddingBottom: hp(2.5),
+    },
+    headerTop: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: hp(2.5),
+    },
+    backButton: {
+        marginRight: wp(4),
     },
     pageTitle: {
-        fontSize: normalize(32),
-        fontWeight: "800",
+        fontSize: normalize(20),
+        fontWeight: "700",
         color: "#111827",
-        marginBottom: hp(2.5),
     },
     profileCard: {
         backgroundColor: "#FFFFFF",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,10 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
+import { normalize, wp, hp } from "../utils/responsive";
+import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { homeownerAPI, jobAPI } from "../services/api";
 import LogoutModal from "../components/LogoutModal";
@@ -21,9 +24,11 @@ export default function HomeownerDashboard({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+    }, [])
+  );
 
   async function loadDashboard() {
     try {
@@ -86,22 +91,17 @@ export default function HomeownerDashboard({ navigation }) {
   }
 
   // Calculate stats (with fallbacks)
-  const activeJobs = dashboard?.activeJobs || recentJobs.filter(j => j.status === 'OPEN').length || 0;
-  const totalJobs = dashboard?.totalJobs || recentJobs.length || 0;
-  const pendingQuotes = dashboard?.pendingQuotes || 0;
-  const completedJobs = dashboard?.completedJobs || recentJobs.filter(j => j.status === 'COMPLETED').length || 0;
+  const stats = dashboard?.stats || dashboard || {};
+  const activeJobs = stats.activeJobs || recentJobs.filter(j => j.status === 'OPEN' || j.status === 'HIRED').length || 0;
+  const totalJobs = stats.totalJobs || recentJobs.length || 0;
+  const quotesReceived = stats.quotesReceived || stats.pendingQuotes || 0;
+  const completedJobs = stats.completedJobs || recentJobs.filter(j => j.status === 'COMPLETED').length || 0;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#1149C7"]} />
-      }
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
+    <View style={styles.container}>
+      {/* Persistent Header */}
+      <View style={styles.dashboardHeader}>
+        <View style={styles.headerContent}>
           <Text style={styles.greeting}>Welcome back,</Text>
           <Text style={styles.userName}>{user?.name || "Homeowner"}</Text>
         </View>
@@ -110,118 +110,127 @@ export default function HomeownerDashboard({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statsRow}>
-          <StatCard
-            title="Active Jobs"
-            value={activeJobs}
-            icon="🏗️"
-            color="#1149C7"
-          />
-          <StatCard
-            title="Pending Quotes"
-            value={pendingQuotes}
-            icon="📋"
-            color="#F59E0B"
-          />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard
-            title="Total Jobs"
-            value={totalJobs}
-            icon="📊"
-            color="#10B981"
-          />
-          <StatCard
-            title="Completed"
-            value={completedJobs}
-            icon="✅"
-            color="#8B5CF6"
-          />
-        </View>
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#1149C7"]} />
+        }
+      >
 
-      {/* Quick Actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsContainer}>
-          <ActionButton
-            title="Post New Job"
-            icon="➕"
-            color="#1149C7"
-            onPress={() => navigation?.navigate?.("PostJob") ||
-              Alert.alert("Coming Soon", "Post job screen not yet implemented")}
-          />
-          <ActionButton
-            title="My Jobs"
-            icon="📝"
-            color="#10B981"
-            onPress={() => navigation?.navigate?.("MyJobs") ||
-              Alert.alert("Coming Soon", "My jobs screen not yet implemented")}
-          />
-          <ActionButton
-            title="Messages"
-            icon="💬"
-            color="#F59E0B"
-            onPress={() => navigation?.navigate?.("Messages") ||
-              Alert.alert("Coming Soon", "Messages screen not yet implemented")}
-          />
-          <ActionButton
-            title="Profile"
-            icon="👤"
-            color="#8B5CF6"
-            onPress={() => navigation?.navigate?.("Profile") ||
-              Alert.alert("Coming Soon", "Profile screen not yet implemented")}
-          />
+        {/* Stats Cards */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Active Jobs"
+              value={activeJobs}
+              icon="🏗️"
+              color="#1149C7"
+            />
+            <StatCard
+              title="Quotes Received"
+              value={quotesReceived}
+              icon="💬"
+              color="#F59E0B"
+            />
+          </View>
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Total Jobs"
+              value={totalJobs}
+              icon="📊"
+              color="#10B981"
+            />
+            <StatCard
+              title="Completed"
+              value={completedJobs}
+              icon="✅"
+              color="#8B5CF6"
+            />
+          </View>
         </View>
-      </View>
 
-      {/* Recent Jobs */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Jobs</Text>
-          {recentJobs.length > 0 && (
-            <TouchableOpacity onPress={() => navigation?.navigate?.("MyJobs")}>
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsContainer}>
+            <ActionButton
+              title="Post New Job"
+              icon="➕"
+              color="#1149C7"
+              onPress={() => navigation?.navigate?.("PostJob") ||
+                Alert.alert("Coming Soon", "Post job screen not yet implemented")}
+            />
+            <ActionButton
+              title="My Jobs"
+              icon="📝"
+              color="#10B981"
+              onPress={() => navigation?.navigate?.("MyJobs") ||
+                Alert.alert("Coming Soon", "My jobs screen not yet implemented")}
+            />
+            <ActionButton
+              title="Messages"
+              icon="💬"
+              color="#F59E0B"
+              onPress={() => navigation?.navigate?.("Messages") ||
+                Alert.alert("Coming Soon", "Messages screen not yet implemented")}
+            />
+            <ActionButton
+              title="Profile"
+              icon="👤"
+              color="#8B5CF6"
+              onPress={() => navigation?.navigate?.("Profile") ||
+                Alert.alert("Coming Soon", "Profile screen not yet implemented")}
+            />
+          </View>
+        </View>
+
+        {/* Recent Jobs */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Jobs</Text>
+            {recentJobs.length > 0 && (
+              <TouchableOpacity onPress={() => navigation?.navigate?.("MyJobs")}>
+                <Text style={styles.viewAllText}>View All</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {recentJobs.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateIcon}>📭</Text>
+              <Text style={styles.emptyStateTitle}>No jobs yet</Text>
+              <Text style={styles.emptyStateText}>
+                Post your first job to get started
+              </Text>
+              <TouchableOpacity
+                style={styles.emptyStateButton}
+                onPress={() => navigation?.navigate?.("PostJob") ||
+                  Alert.alert("Coming Soon", "Post job feature coming soon")}
+              >
+                <Text style={styles.emptyStateButtonText}>Post a Job</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            recentJobs.map((job, index) => (
+              <JobCard
+                key={job._id || job.id || index}
+                job={job}
+                onPress={() =>
+                  navigation?.navigate?.("JobDetails", { jobId: job._id || job.id }) ||
+                  Alert.alert("Job Details", `${job.description}`)
+                }
+              />
+            ))
           )}
         </View>
-
-        {recentJobs.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateIcon}>📭</Text>
-            <Text style={styles.emptyStateTitle}>No jobs yet</Text>
-            <Text style={styles.emptyStateText}>
-              Post your first job to get started
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyStateButton}
-              onPress={() => navigation?.navigate?.("PostJob") ||
-                Alert.alert("Coming Soon", "Post job feature coming soon")}
-            >
-              <Text style={styles.emptyStateButtonText}>Post a Job</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          recentJobs.map((job, index) => (
-            <JobCard
-              key={job._id || job.id || index}
-              job={job}
-              onPress={() =>
-                navigation?.navigate?.("JobDetails", { jobId: job._id || job.id }) ||
-                Alert.alert("Job Details", `${job.description}`)
-              }
-            />
-          ))
-        )}
-      </View>
-      <LogoutModal
-        visible={logoutModalVisible}
-        onClose={() => setLogoutModalVisible(false)}
-        onLogout={confirmLogout}
-      />
-    </ScrollView>
+        <LogoutModal
+          visible={logoutModalVisible}
+          onClose={() => setLogoutModalVisible(false)}
+          onLogout={confirmLogout}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -349,9 +358,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
   },
+  dashboardHeader: {
+    backgroundColor: "#FFFFFF",
+    paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+    paddingBottom: hp(2),
+    paddingHorizontal: wp(5),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerContent: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: wp(4),
+    paddingBottom: hp(4),
   },
   loadingContainer: {
     flex: 1,
@@ -360,36 +386,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F9FA",
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
+    marginTop: hp(1.5),
+    fontSize: normalize(16),
     color: "#6B7280",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 24,
-  },
   greeting: {
-    fontSize: 16,
+    fontSize: normalize(14),
     color: "#6B7280",
   },
   userName: {
-    fontSize: 24,
+    fontSize: normalize(20),
     fontWeight: "700",
     color: "#1F2937",
-    marginTop: 4,
+    marginTop: hp(0.2),
   },
   logoutButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: wp(2),
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#F3F4F6",
+    backgroundColor: "#F9FAFB",
   },
   logoutText: {
     color: "#EF4444",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "600",
   },
   statsContainer: {

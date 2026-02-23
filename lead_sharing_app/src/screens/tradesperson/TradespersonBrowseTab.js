@@ -7,9 +7,11 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     RefreshControl,
+    Platform,
 } from "react-native";
 import { jobAPI } from "../../services/api";
 import { normalize, wp, hp } from "../../utils/responsive";
+import { Feather } from "@expo/vector-icons";
 
 export default function TradespersonBrowseTab({ navigation }) {
     const [jobs, setJobs] = useState([]);
@@ -60,8 +62,13 @@ export default function TradespersonBrowseTab({ navigation }) {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Browse Jobs</Text>
-                <Text style={styles.headerSubtitle}>{jobs.length} available jobs</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                </TouchableOpacity>
+                <View>
+                    <Text style={styles.headerTitle}>Browse Jobs</Text>
+                    <Text style={styles.headerSubtitle}>{jobs.length} available jobs</Text>
+                </View>
             </View>
 
             {/* Jobs List */}
@@ -133,10 +140,22 @@ function JobCard({ job, navigation }) {
             )}
 
             <View style={styles.jobFooter}>
-                <View style={styles.creditBadge}>
-                    <Text style={styles.creditText}>1 Credit</Text>
-                </View>
-                <Text style={styles.unlockText}>Unlock to Quote →</Text>
+                {job.is_unlocked ? (
+                    <>
+                        <View style={styles.unlockedBadge}>
+                            <Feather name="unlock" size={14} color="#10B981" style={{ marginRight: 4 }} />
+                            <Text style={styles.unlockedBadgeText}>UNLOCKED</Text>
+                        </View>
+                        <Text style={styles.unlockedText}>Unlocked</Text>
+                    </>
+                ) : (
+                    <>
+                        <View style={styles.creditBadge}>
+                            <Text style={styles.creditText}>1 Credit</Text>
+                        </View>
+                        <Text style={styles.unlockText}>Unlock to Quote →</Text>
+                    </>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -154,18 +173,27 @@ const styles = StyleSheet.create({
         backgroundColor: "#F5F7FA",
     },
     header: {
-        padding: wp(5),
-        paddingBottom: hp(1.5),
+        backgroundColor: "#FFFFFF",
+        paddingTop: Platform.OS === 'ios' ? hp(6) : hp(5),
+        paddingBottom: hp(2),
+        paddingHorizontal: wp(5),
+        flexDirection: "row",
+        alignItems: "center",
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E7EB",
+    },
+    backButton: {
+        marginRight: wp(4),
     },
     headerTitle: {
-        fontSize: normalize(26),
+        fontSize: normalize(20),
         fontWeight: "700",
         color: "#1F2937",
     },
     headerSubtitle: {
-        fontSize: normalize(14),
+        fontSize: normalize(12),
         color: "#6B7280",
-        marginTop: hp(0.5),
+        marginTop: hp(0.2),
     },
     listContent: {
         padding: wp(4),
@@ -281,6 +309,24 @@ const styles = StyleSheet.create({
     unlockText: {
         fontSize: normalize(14),
         color: "#2563EB",
+        fontWeight: "600",
+    },
+    unlockedBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#D1FAE5",
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.8),
+        borderRadius: wp(2),
+    },
+    unlockedBadgeText: {
+        color: "#10B981",
+        fontSize: normalize(13),
+        fontWeight: "700",
+    },
+    unlockedText: {
+        fontSize: normalize(14),
+        color: "#10B981",
         fontWeight: "600",
     },
 });

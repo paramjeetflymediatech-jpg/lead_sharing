@@ -65,7 +65,7 @@ export async function GET(req, context) {
         // Verify tradesperson has unlocked this lead
         const [leads] = await db.query(
             `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-            [jobId, userId]
+            [jobId, tradespersonId]
         );
 
         if (!leads || leads.length === 0) {
@@ -225,7 +225,7 @@ export async function POST(req, context) {
         // Verify tradesperson has unlocked this lead
         const [leads] = await db.query(
             `SELECT * FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
-            [jobId, userId]
+            [jobId, tradespersonId]
         );
 
         if (!leads || leads.length === 0) {

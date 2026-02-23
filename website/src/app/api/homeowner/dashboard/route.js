@@ -59,13 +59,16 @@ export async function GET(req) {
 
     // Calculate stats
     const stats = {
-      activeJobs: jobs.filter(job => job.status === 'OPEN' || job.status === 'IN_PROGRESS').length,
+      activeJobs: jobs.filter(job => job.status === 'OPEN' || job.status === 'HIRED').length,
       quotesReceived: jobsWithLeads.reduce((total, job) => {
         return total + (job.leadCount || 0);
       }, 0),
+      hiredPros: new Set(jobs.filter(j => j.hiredTradesperson).map(j => j.hiredTradesperson)).size,
       totalSpent: 0, // You'll need to add payment logic for this
-      totalJobs: jobs.length
+      totalJobs: jobs.length,
+      completedJobs: jobs.filter(job => job.status === 'COMPLETED').length
     };
+    stats.pendingQuotes = stats.quotesReceived; // For backward compatibility if needed
 
     // Get recent jobs (last 5)
     const recentJobs = jobsWithLeads.slice(0, 5);
