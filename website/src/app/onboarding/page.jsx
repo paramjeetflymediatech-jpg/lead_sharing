@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -24,7 +24,7 @@ const STEPS = [
     { id: "pending", title: "Admin Review", icon: Clock },
 ];
 
-export default function TradespersonOnboarding() {
+function OnboardingContent() {
     console.log("[Onboarding] Component Rendering (SSR check)");
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -559,5 +559,18 @@ export default function TradespersonOnboarding() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function TradespersonOnboarding() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="font-bold text-gray-500 animate-pulse uppercase tracking-widest text-xs">Loading Onboarding...</p>
+            </div>
+        }>
+            <OnboardingContent />
+        </Suspense>
     );
 }
