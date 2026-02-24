@@ -8,19 +8,18 @@ import {
     CheckCircle,
     Smartphone,
     FileText,
-    CreditCard,
     Clock,
     UploadCloud,
     ArrowRight,
     Camera,
     XCircle,
-    AlertCircle
+    AlertCircle,
+    LogOut
 } from "lucide-react";
- 
+
 const STEPS = [
     { id: "verify", title: "Verify Phone", icon: Smartphone },
     { id: "docs", title: "Documents", icon: FileText },
-    { id: "bank", title: "Payout Setup", icon: CreditCard },
     { id: "pending", title: "Admin Review", icon: Clock },
 ];
 
@@ -28,7 +27,7 @@ function OnboardingContent() {
     console.log("[Onboarding] Component Rendering (SSR check)");
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user, refreshUser } = useAuth();
+    const { user, refreshUser, logout } = useAuth();
     const [currentStep, setCurrentStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [profile, setProfile] = useState(null);
@@ -51,8 +50,6 @@ function OnboardingContent() {
         console.log(`[Onboarding] EFFECT: user=${!!user}, step=${searchParams.get("step")}`);
         if (user) {
             fetchProfile();
-            const step = searchParams.get("step");
-            if (step === "bank") setCurrentStep(2);
         }
     }, [user, searchParams]);
 
@@ -69,16 +66,13 @@ function OnboardingContent() {
                 // Logic to determine current step if not explicitly in URL
                 const urlStep = searchParams.get("step");
                 if (urlStep) {
-                    if (urlStep === "bank") setCurrentStep(2);
-                    else if (urlStep === "pending") setCurrentStep(3);
+                    if (urlStep === "pending") setCurrentStep(2);
                 } else {
                     if (profileData.verificationStatus === "REJECTED") {
-                        setCurrentStep(3);
+                        setCurrentStep(2);
                         setRejectionReason(profileData.rejectionReason || "Please verify your documents and try again.");
                     } else if (profileData.verificationStatus === "PENDING_APPROVAL" || profileData.verificationStatus === "APPROVED") {
-                        setCurrentStep(3);
-                    } else if (profileData.payoutsEnabled) {
-                        setCurrentStep(3);
+                        setCurrentStep(2);
                     } else if (profileData.idDocument && profileData.insuranceDocument) {
                         setCurrentStep(2);
                     } else if (profileData.phoneVerified) {
@@ -154,6 +148,12 @@ function OnboardingContent() {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Restriction: Only images allowed
+        if (!file.type.startsWith("image/")) {
+            toast.error("Format not supported. Please upload an image (JPG, PNG).");
+            return;
+        }
+
         setLoading(true);
         const formData = new FormData();
         formData.append("file", file);
@@ -195,7 +195,7 @@ function OnboardingContent() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    verificationStatus: "IN_PROGRESS"
+                    verificationStatus: "PENDING_APPROVAL"
                 })
             });
             if (res.ok) {
@@ -209,22 +209,6 @@ function OnboardingContent() {
         }
     };
 
-    const startBankSetup = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/tradesperson/payout-setup", { method: "POST" });
-            const data = await res.json();
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                toast.error(data.error || "Failed to start payout setup");
-            }
-        } catch (err) {
-            toast.error("Failed to start payment setup");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const submitForApproval = async () => {
         setLoading(true);
@@ -235,7 +219,7 @@ function OnboardingContent() {
                 body: JSON.stringify({ verificationStatus: "PENDING_APPROVAL" })
             });
             if (res.ok) {
-                setCurrentStep(3);
+                setCurrentStep(2);
                 setRejectionReason(""); // Clear any previous rejection
                 toast.success("Application submitted for approval");
             }
@@ -270,7 +254,18 @@ function OnboardingContent() {
         <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 md:py-12 px-4">
             <div className="max-w-3xl w-full">
                 {/* Header */}
-                <div className="mb-8 md:mb-10 text-center">
+                <div className="mb-8 md:mb-10 flex flex-col items-center relative">
+                    {/* Logout Button (Small, Top Right relative to container) */}
+                    <div className="absolute -top-4 -right-2 md:right-0">
+                        <button
+                            onClick={logout}
+                            className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors py-2 px-3 rounded-xl hover:bg-red-50 text-xs font-bold uppercase tracking-wider"
+                        >
+                            <LogOut size={14} />
+                            Sign Out
+                        </button>
+                    </div>
+
                     <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Tradesperson Onboarding</h1>
                     <p className="text-sm md:text-base text-gray-500">Complete these steps to start applying for jobs</p>
                 </div>
@@ -370,14 +365,14 @@ function OnboardingContent() {
                             <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div>
                                     <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 text-center md:text-left">Upload Documents</h2>
-                                    <p className="text-sm md:text-base text-gray-500 text-center md:text-left">Please provide clear photos or scans of your credentials.</p>
+                                    <p className="text-sm md:text-base text-gray-500 text-center md:text-left">Please provide clear photos of your credentials (Only images accepted).</p>
                                 </div>
 
                                 <div className="grid gap-4 md:gap-6">
                                     {[
-                                        { id: 'id', title: 'Government ID', subtitle: 'Driving License or Passport', field: 'idDocument' },
-                                        { id: 'insurance', title: 'Insurance Certificate', subtitle: 'Liability Insurance', field: 'insuranceDocument' },
-                                        { id: 'license', title: 'Trade License', subtitle: 'Optional (e.g. Master Electrician)', field: 'licenseDocument' },
+                                        { id: 'id', title: 'Government ID', subtitle: 'Images Only (License/Passport)', field: 'idDocument' },
+                                        { id: 'insurance', title: 'Insurance Certificate', subtitle: 'Images Only (Liability)', field: 'insuranceDocument' },
+                                        { id: 'license', title: 'Trade License', subtitle: 'Images Only (Optional)', field: 'licenseDocument' },
                                     ].map((docType) => {
                                         const isUploaded = !!docs[docType.id] || !!profile?.[docType.field];
                                         return (
@@ -387,7 +382,7 @@ function OnboardingContent() {
                                                     id={docType.id}
                                                     className="hidden"
                                                     onChange={(e) => handleFileUpload(e, docType.id)}
-                                                    accept="image/*,.pdf"
+                                                    accept="image/*"
                                                 />
                                                 <label
                                                     htmlFor={docType.id}
@@ -413,58 +408,26 @@ function OnboardingContent() {
                                     })}
                                 </div>
 
-                                <button
-                                    onClick={submitDocs}
-                                    disabled={loading || !(docs.id || profile?.idDocument) || !(docs.insurance || profile?.insuranceDocument)}
-                                    className="w-full py-3.5 md:py-4 bg-[#1149C7] hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
-                                >
-                                    Save & Continue
-                                </button>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <button
+                                        onClick={submitDocs}
+                                        disabled={loading || !(docs.id || profile?.idDocument) || !(docs.insurance || profile?.insuranceDocument)}
+                                        className="flex-1 py-3.5 md:py-4 bg-[#1149C7] hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
+                                    >
+                                        Save & Continue
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentStep(0)}
+                                        className="md:w-1/3 py-3.5 md:py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold transition-all"
+                                    >
+                                        Back
+                                    </button>
+                                </div>
                             </div>
                         )}
 
-                        {/* Step 2: Bank Setup */}
+                        {/* Step 2: Pending Approval / Rejected / Approved */}
                         {currentStep === 2 && (
-                            <div className="space-y-6 md:space-y-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 px-2">
-                                <div className="w-16 h-16 md:w-24 md:h-24 bg-blue-100 text-[#1149C7] rounded-full flex items-center justify-center mx-auto">
-                                    <CreditCard size={32} className="md:w-10 md:h-10" />
-                                </div>
-                                <div className="max-w-md mx-auto">
-                                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 text-center">Payout Method</h2>
-                                    <p className="text-sm md:text-base text-gray-500 text-center leading-relaxed">Link your bank account via Stripe to receive payments securely from AllCarePros customers.</p>
-                                </div>
-
-                                <div className="bg-blue-50 rounded-2xl p-4 md:p-6 text-left max-w-sm mx-auto">
-                                    <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm md:text-base">
-                                        <CheckCircle size={16} /> Secure & Fast
-                                    </h4>
-                                    <p className="text-[11px] md:text-sm text-blue-800 leading-relaxed">
-                                        We use Stripe Connect (trusted by millions) to handle your financial data.
-                                        AllCarePros never stores your card or bank details.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-4 max-w-sm mx-auto">
-                                    <button
-                                        onClick={startBankSetup}
-                                        disabled={loading}
-                                        className="w-full py-3.5 md:py-4 bg-black hover:bg-zinc-800 text-white rounded-2xl font-bold flex items-center justify-center gap-2 md:gap-3 transition-all text-sm md:text-base"
-                                    >
-                                        Set up Payouts with <b>Stripe</b>
-                                    </button>
-
-                                    <button
-                                        onClick={submitForApproval}
-                                        className="w-full py-2 text-[#1149C7] text-xs md:text-sm font-bold hover:underline"
-                                    >
-                                        Skip for now and submit for review
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Step 3: Pending Approval / Rejected */}
-                        {currentStep === 3 && (
                             <div className="space-y-6 md:space-y-8 text-center animate-in zoom-in duration-500 px-2">
                                 {profile?.verificationStatus === "REJECTED" ? (
                                     <>
@@ -482,7 +445,7 @@ function OnboardingContent() {
                                                 <div>
                                                     <h4 className="font-bold text-red-900 text-sm md:text-base mb-1">Reason for Rejection:</h4>
                                                     <p className="text-sm md:text-base text-red-800 leading-relaxed italic">
-                                                        "{rejectionReason}"
+                                                        "{rejectionReason || profile?.rejectionReason || "Please check your documents and try again."}"
                                                     </p>
                                                 </div>
                                             </div>
@@ -496,16 +459,54 @@ function OnboardingContent() {
                                             >
                                                 {loading ? "Please wait..." : "Fix & Re-submit Documents"}
                                             </button>
-                                            <br />
+                                            <div className="flex flex-col md:flex-row gap-4 justify-center">
+                                                <button
+                                                    onClick={() => router.push("/tradesperson")}
+                                                    className="w-full md:w-auto px-12 py-3.5 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all text-sm"
+                                                >
+                                                    Return to Dashboard
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentStep(1)}
+                                                    className="w-full md:w-auto px-12 py-3.5 bg-white border border-gray-200 text-gray-400 rounded-2xl font-bold hover:bg-gray-50 transition-all text-sm"
+                                                >
+                                                    Back
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : profile?.verificationStatus === "APPROVED" ? (
+                                    <>
+                                        <div className="w-16 h-16 md:w-24 md:h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                                            <CheckCircle size={32} className="md:w-10 md:h-10" />
+                                        </div>
+                                        <div className="max-w-md mx-auto">
+                                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Verification Successful</h2>
+                                            <p className="text-base md:text-lg text-gray-600">Congratulations! Your account has been verified and you're ready to start working.</p>
+                                        </div>
+
+                                        <div className="bg-green-50 border border-green-100 rounded-3xl p-6 md:p-8 max-w-lg mx-auto">
+                                            <p className="text-sm md:text-base text-green-800 font-bold">
+                                                Your profile is now live and visible to potential customers.
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-4 md:pt-6 flex flex-col md:flex-row gap-4 justify-center">
                                             <button
                                                 onClick={() => router.push("/tradesperson")}
-                                                className="w-full md:w-auto px-8 py-2 text-gray-400 font-bold hover:text-gray-600 transition-all text-sm"
+                                                className="w-full md:w-auto px-12 py-4 bg-[#1149C7] hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all text-base tracking-wide"
                                             >
                                                 Return to Dashboard
                                             </button>
+                                            <button
+                                                onClick={() => setCurrentStep(1)}
+                                                className="w-full md:w-auto px-12 py-4 bg-white border border-gray-200 text-gray-400 rounded-2xl font-bold hover:bg-gray-50 transition-all text-sm"
+                                            >
+                                                Back
+                                            </button>
                                         </div>
                                     </>
-                                ) : (
+                                ) : ( // PENDING_APPROVAL or other statuses default to Under Review
                                     <>
                                         <div className="w-16 h-16 md:w-24 md:h-24 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
                                             <Clock size={32} className="md:w-10 md:h-10" />
@@ -538,18 +539,25 @@ function OnboardingContent() {
 
                                         <div className="pt-4 md:pt-6">
                                             <p className="text-xs md:text-sm text-gray-400 mb-6 italic px-4">This usually takes 24-48 business hours. We'll email you once you're approved!</p>
-                                            <button
-                                                onClick={() => router.push("/tradesperson")}
-                                                className="w-full md:w-auto px-8 py-3.5 border-2 border-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-50 transition-all text-sm md:text-base"
-                                            >
-                                                Return to Dashboard
-                                            </button>
+                                            <div className="flex flex-col md:flex-row gap-4 justify-center">
+                                                <button
+                                                    onClick={() => router.push("/tradesperson")}
+                                                    className="w-full md:w-auto px-12 py-3.5 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all text-sm"
+                                                >
+                                                    Return to Dashboard
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentStep(1)}
+                                                    className="w-full md:w-auto px-12 py-3.5 bg-white border border-gray-200 text-gray-400 rounded-2xl font-bold hover:bg-gray-50 transition-all text-sm"
+                                                >
+                                                    Back
+                                                </button>
+                                            </div>
                                         </div>
                                     </>
                                 )}
                             </div>
                         )}
-
                     </div>
                 </div>
 

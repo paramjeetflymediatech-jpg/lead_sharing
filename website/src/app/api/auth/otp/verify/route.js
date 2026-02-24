@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/../config/db.js";
 import { jwtVerify } from "jose";
 import { signAuthToken } from "@/lib/auth";
+import { setAuthCookie } from "@/lib/serverAuth";
 
 export async function POST(req) {
     try {
@@ -144,6 +145,9 @@ async function verifyPendingUser(pendingUser, otp) {
 
         // Generate token for the newly promoted user
         const token = signAuthToken({ userId: newUserId.toString(), role });
+
+        // Auto-login the user
+        await setAuthCookie(token);
 
         return NextResponse.json({
             success: true,

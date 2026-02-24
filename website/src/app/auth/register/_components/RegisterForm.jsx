@@ -301,7 +301,13 @@ function RegisterFormContent() {
             }
 
             toast.success("Account verified successfully!");
-            router.push("/auth/login");
+
+            // Redirect based on role
+            if (data.role === "TRADESPERSON") {
+                window.location.href = "/onboarding";
+            } else {
+                window.location.href = "/homeowner";
+            }
         } catch (err) {
             toast.error(err.message);
             setError(err.message);
