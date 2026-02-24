@@ -671,7 +671,6 @@ export default function JobCreationForm() {
           return false;
         }
         // Phone validation removed as per request
-        return true;
         if (!form.contactEmail.trim() || !form.contactEmail.includes('@')) {
           toast.error("Please enter a valid email address", {
             position: "top-center",
@@ -1442,15 +1441,14 @@ export default function JobCreationForm() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    disabled={!canProceed()}
-                    className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition text-sm sm:text-base"
                   >
                     Next step →
                   </button>
                 ) : (
                   <button
                     type="submit"
-                    disabled={!canProceed() || loading}
+                    disabled={loading}
                     className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 bg-[#1149C7] text-white rounded-lg font-medium hover:bg-[#0d38a0] transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     {loading ? "Creating..." : "Submit Job"}
