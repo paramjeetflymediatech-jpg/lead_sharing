@@ -16,7 +16,7 @@ import {
     XCircle,
     AlertCircle
 } from "lucide-react";
-
+ 
 const STEPS = [
     { id: "verify", title: "Verify Phone", icon: Smartphone },
     { id: "docs", title: "Documents", icon: FileText },
