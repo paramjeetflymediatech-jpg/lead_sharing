@@ -1,5 +1,6 @@
 
 import pool from '@/../config/db.js';
+import { logToFile } from '@/lib/serverAuth';
 import { Job } from './Job.js';
 import { Payment } from './Payment.js';
 
@@ -17,7 +18,9 @@ const userToMongoStyle = (row) => {
 
 export const User = {
   async findById(id) {
+    logToFile(`User.findById START id=${id}`);
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [id]);
+    logToFile(`User.findById QUERY DONE found=${!!rows[0]}`);
     const user = rows[0] ? userToMongoStyle(rows[0]) : null;
     if (!user) return null;
 
@@ -275,8 +278,13 @@ export const User = {
       // Here we focus on DB cleanup. File cleanup should ideally be handled by a service or job.
 
       // 9. Finally delete the user
+      await pool.query('DELETE FROM auth_tokens WHERE user_id = ?', [id]);
       const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
-      return result.affectedRows > 0;
+
+      // 10. Also check and delete from pending_users
+      const [pendingResult] = await pool.query('DELETE FROM pending_users WHERE id = ?', [id]);
+
+      return result.affectedRows > 0 || pendingResult.affectedRows > 0;
     } catch (error) {
       console.error('Error in User.findByIdAndDelete (manual cascade):', error);
       throw error;
@@ -319,6 +327,11 @@ export const User = {
     // DEBUG
     const [dbRes] = await pool.query("SELECT DATABASE() as db");
     console.log(`[User.createPending] Using DB: ${dbRes[0].db}`);
+
+    // ✅ CLEANUP: Delete any existing pending registrations for this email
+    // This prevents clutter and ensures only the latest OTP is active.
+    await pool.query('DELETE FROM pending_users WHERE email = ?', [email]);
+    console.log(`[User.createPending] Cleared old pending entries for: ${email}`);
 
     const [result] = await pool.query(
       'INSERT INTO pending_users (email, password, name, role, phone, company_name) VALUES (?, ?, ?, ?, ?, ?)',

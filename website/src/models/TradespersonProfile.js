@@ -384,6 +384,13 @@ const profileToMongoStyle = (row) => {
     credits: row.credits || 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    verificationStatus: row.verification_status,
+    rejectionReason: row.rejection_reason,
+    idDocument: row.id_document,
+    licenseDocument: row.license_document,
+    insuranceDocument: row.insurance_document,
+    stripeConnectId: row.stripe_connect_id,
+    payoutsEnabled: row.payouts_enabled,
     average_rating: row.average_rating || 0,
     total_ratings: row.total_ratings || 0
   };
@@ -422,7 +429,9 @@ export const TradespersonProfile = {
     sql += ' LIMIT 1';
     try {
       const [rows] = await pool.query(sql, params);
-      return profileToMongoStyle(rows[0]);
+      const profile = profileToMongoStyle(rows[0]);
+      console.log(`[TradespersonProfile.findOne] Query:`, query, `Found:`, !!profile, `Status:`, profile?.verificationStatus);
+      return profile;
     } catch (error) {
       console.error('Error in findOne:', error);
       return null;

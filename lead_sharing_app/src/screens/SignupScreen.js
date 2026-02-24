@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 import { normalize, hp, wp } from "../utils/responsive";
+import { Picker } from "@react-native-picker/picker";
 import { authAPI } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
 import { useAuth } from "../context/AuthContext";
@@ -27,6 +28,7 @@ export default function SignupScreen({ navigation }) {
     const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [countryCode, setCountryCode] = useState("+91");
     const [password, setPassword] = useState("");
     const [otp, setOtp] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +47,9 @@ export default function SignupScreen({ navigation }) {
 
     const validatePhone = (value) => {
         if (!value.trim()) return "Phone number is required";
-        if (value.trim().length < 10) return "Enter a valid phone number";
+        const digitsOnly = value.replace(/\D/g, "");
+        if (digitsOnly.length < 8 || digitsOnly.length > 15)
+            return "Enter a valid phone number (8-15 digits)";
         return "";
     };
 
@@ -93,7 +97,7 @@ export default function SignupScreen({ navigation }) {
             email: email.trim().toLowerCase(),
             password,
             role,
-            phone: phone.trim(),
+            phone: `${countryCode}${phone.trim().replace(/\D/g, "")}`,
         };
 
         if (role === "TRADESPERSON") {
@@ -271,11 +275,26 @@ export default function SignupScreen({ navigation }) {
                                 </View>
                             </View>
 
-                            {/* Phone Input */}
+                            {/* Phone Input with Country Code */}
                             <View style={styles.inputContainer}>
-                                <View style={styles.inputWrapper}>
+                                <View style={styles.phoneInputWrapper}>
+                                    <View style={styles.countryPickerContainer}>
+                                        <Picker
+                                            selectedValue={countryCode}
+                                            onValueChange={(itemValue) => setCountryCode(itemValue)}
+                                            style={styles.countryPicker}
+                                            dropdownIconColor="#6B7280"
+                                        >
+                                            <Picker.Item label="🇮🇳 +91" value="+91" />
+                                            <Picker.Item label="🇬🇧 +44" value="+44" />
+                                            <Picker.Item label="🇺🇸 +1" value="+1" />
+                                            <Picker.Item label="🇨🇦 +1" value="+1" />
+                                            <Picker.Item label="🇦🇺 +61" value="+61" />
+                                            <Picker.Item label="🇦🇪 +971" value="+971" />
+                                        </Picker>
+                                    </View>
                                     <TextInput
-                                        style={styles.input}
+                                        style={styles.phoneInput}
                                         placeholder="Phone Number"
                                         placeholderTextColor="#9CA3AF"
                                         keyboardType="phone-pad"
@@ -530,6 +549,34 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
+        fontSize: normalize(14),
+        color: "#1F2937",
+        height: '100%',
+    },
+    phoneInputWrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#F9FAFB",
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        height: hp(6),
+    },
+    countryPickerContainer: {
+        width: wp(28),
+        height: '100%',
+        justifyContent: 'center',
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+    },
+    countryPicker: {
+        width: '100%',
+        height: '100%',
+        color: '#1F2937',
+    },
+    phoneInput: {
+        flex: 1,
+        paddingHorizontal: 12,
         fontSize: normalize(14),
         color: "#1F2937",
         height: '100%',

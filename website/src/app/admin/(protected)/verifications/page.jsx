@@ -17,6 +17,9 @@ export default function AdminVerifications() {
     const [loading, setLoading] = useState(true);
     const [selectedProfile, setSelectedProfile] = useState(null);
     const [rejectionReason, setRejectionReason] = useState("");
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [viewerUrl, setViewerUrl] = useState("");
+    const [viewerLabel, setViewerLabel] = useState("");
 
     useEffect(() => {
         fetchPending();
@@ -167,13 +170,16 @@ export default function AdminVerifications() {
                                             <div>
                                                 <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">{doc.label}</p>
                                                 {selectedProfile[doc.id] ? (
-                                                    <a
-                                                        href={selectedProfile[doc.id]}
-                                                        target="_blank"
+                                                    <button
+                                                        onClick={() => {
+                                                            setViewerUrl(selectedProfile[doc.id]);
+                                                            setViewerLabel(doc.label);
+                                                            setViewerOpen(true);
+                                                        }}
                                                         className="text-blue-600 font-bold hover:text-blue-800 flex items-center gap-1.5 text-sm justify-center"
                                                     >
                                                         Review <ExternalLink size={14} />
-                                                    </a>
+                                                    </button>
                                                 ) : (
                                                     <span className="text-gray-300 text-xs italic">Not Uploaded</span>
                                                 )}
@@ -249,6 +255,80 @@ export default function AdminVerifications() {
                     )}
                 </div>
             </div>
+
+            {/* Document Viewer Modal */}
+            {viewerOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-5xl h-[85vh] shadow-2xl border border-white/20 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+                        {/* Modal Header */}
+                        <div className="p-6 md:p-8 border-b border-gray-100 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+                            <div>
+                                <h3 className="text-xl md:text-2xl font-black text-gray-900">{viewerLabel}</h3>
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Reviewing Application Profile: TP-{selectedProfile?.id}</p>
+                            </div>
+                            <button
+                                onClick={() => setViewerOpen(false)}
+                                className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-2xl transition-all active:scale-90 group"
+                            >
+                                <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="flex-1 bg-zinc-50 overflow-auto p-4 md:p-8 flex items-center justify-center">
+                            {viewerUrl.toLowerCase().endsWith('.pdf') ? (
+                                <iframe
+                                    src={viewerUrl}
+                                    className="w-full h-full rounded-2xl border-none shadow-inner"
+                                    title={viewerLabel}
+                                />
+                            ) : (
+                                <div className="relative group w-full h-full flex items-center justify-center">
+                                    <img
+                                        src={viewerUrl}
+                                        alt={viewerLabel}
+                                        className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/5 pointer-events-none">
+                                        <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-900 shadow-xl border border-white">
+                                            High Resolution Preview
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 md:p-8 bg-white border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 sticky bottom-0 z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                    <Shield size={20} />
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Document Status</p>
+                                    <p className="font-bold text-sm text-gray-900">Pending Verification</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                <a
+                                    href={viewerUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex-1 md:flex-none px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                >
+                                    Open Externally <ExternalLink size={14} />
+                                </a>
+                                <button
+                                    onClick={() => setViewerOpen(false)}
+                                    className="flex-1 md:flex-none px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/30 transition-all active:scale-95"
+                                >
+                                    Close Preview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

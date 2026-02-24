@@ -4,16 +4,26 @@ import { cookies, headers } from "next/headers";
 import { User } from "@/models/User";
 // import { connectToDatabase } from "@/lib/mongodb"; // Removed
 import jwt from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
+
+export function logToFile(message) {
+  try {
+    const logPath = path.join(process.cwd(), 'debug_log.txt');
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${message}\n`);
+  } catch (e) { }
+}
 
 const AUTH_COOKIE_NAME = "auth_token";
-const JWT_SECRET = process.env.JWT_SECRET; // Ensure this is set
+// const JWT_SECRET = process.env.JWT_SECRET; // Move inside
 
 // Helper to validate secret lazily
 function getJwtSecret() {
-  if (!JWT_SECRET) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
     throw new Error("Please define the JWT_SECRET environment variable in .env.local");
   }
-  return JWT_SECRET;
+  return secret;
 }
 
 export async function setAuthCookie(token) {
@@ -33,6 +43,7 @@ export async function clearAuthCookie() {
 }
 
 export async function getCurrentUser() {
+  logToFile("getCurrentUser ENTER");
   const cookieStore = await cookies();
   const tokenFromCookie = cookieStore.get(AUTH_COOKIE_NAME)?.value;
 
@@ -42,10 +53,12 @@ export async function getCurrentUser() {
     auth && auth.toLowerCase().startsWith("bearer ") ? auth.slice(7) : null;
 
   const token = tokenFromHeader || tokenFromCookie;
+  console.log(`[serverAuth.getCurrentUser] Token found: ${!!token}`);
   if (!token) return null;
 
   try {
     const decoded = jwt.verify(token, getJwtSecret());
+    logToFile(`JWT verified for userId: ${decoded.userId || decoded.id}`);
     // await connectToDatabase(); // Removed
 
     // User.findById now returns a promise that resolves to user object (or mock lean)
@@ -61,7 +74,7 @@ export async function getCurrentUser() {
     // Simpler to update this usage since I control both.
 
     const user = await User.findById(decoded.userId);
-
+    logToFile(`User findById result: ${!!user}`);
     if (!user) return null;
     return {
       id: user.id, // User model returns id as well
@@ -71,6 +84,7 @@ export async function getCurrentUser() {
       profileImage: user.profile_image || user.profileImage, // Map from DB snake_case or existing camelCase
     };
   } catch (err) {
+    console.error("[serverAuth.getCurrentUser] Error:", err.message);
     return null;
   }
 }

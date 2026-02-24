@@ -15,6 +15,7 @@ function RegisterFormContent() {
     const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [countryCode, setCountryCode] = useState("+91");
     const [password, setPassword] = useState("");
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
@@ -82,8 +83,9 @@ function RegisterFormContent() {
         if (!value.trim()) {
             return "Phone number is required";
         }
-        if (!/^\d{10,15}$/.test(value.trim())) {
-            return "Phone number must be between 10 and 15 digits";
+        const digitsOnly = value.replace(/\D/g, "");
+        if (digitsOnly.length < 8 || digitsOnly.length > 15) {
+            return "Phone number must be between 8 and 15 digits";
         }
         return "";
     };
@@ -224,7 +226,7 @@ function RegisterFormContent() {
             email: email.trim().toLowerCase(),
             password,
             role,
-            phone: phone.trim()
+            phone: `${countryCode}${phone.trim().replace(/\D/g, "")}`
         };
 
         if (role === "TRADESPERSON") {
@@ -253,7 +255,7 @@ function RegisterFormContent() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    phone: phone.trim(),
+                    phone: `${countryCode}${phone.trim().replace(/\D/g, "")}`,
                     userId: data.id
                 }),
             });
@@ -300,6 +302,31 @@ function RegisterFormContent() {
 
             toast.success("Account verified successfully!");
             router.push("/auth/login");
+        } catch (err) {
+            toast.error(err.message);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleResendOTP() {
+        if (!registeredUserId) return;
+        setLoading(true);
+        setError("");
+        try {
+            const res = await fetch("/api/auth/otp/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    phone: `${countryCode}${phone.trim().replace(/\D/g, "")}`,
+                    userId: registeredUserId
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to resend OTP");
+            toast.success("Verification code resent!");
+            setOtp(""); // Clear previous OTP
         } catch (err) {
             toast.error(err.message);
             setError(err.message);
@@ -451,30 +478,44 @@ function RegisterFormContent() {
                                     )}
                                 </div>
 
-                                {/* Phone Field */}
+                                {/* Phone Field with Country Code */}
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 ml-1">
                                         Phone Number
                                     </label>
-                                    <input
-                                        required
-                                        type="tel"
-                                        className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.phone && fieldErrors.phone
-                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
-                                            : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
-                                            }`}
-                                        placeholder="Enter your phone number"
-                                        value={phone}
-                                        onChange={(e) => {
-                                            const val = e.target.value.replace(/\D/g, ""); // Only allow digits
-                                            setPhone(val);
-                                            if (touched.phone) setFieldErrors({ ...fieldErrors, phone: validatePhone(val) });
-                                        }}
-                                        onBlur={() => {
-                                            setTouched({ ...touched, phone: true });
-                                            setFieldErrors({ ...fieldErrors, phone: validatePhone(phone) });
-                                        }}
-                                    />
+                                    <div className="flex gap-2">
+                                        <select
+                                            className="w-32 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-sm outline-none transition-all focus:border-[#155DFC] focus:ring-4 focus:ring-[#155DFC]/10"
+                                            value={countryCode}
+                                            onChange={(e) => setCountryCode(e.target.value)}
+                                        >
+                                            <option value="+91">🇮🇳 +91</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+1">🇨🇦 +1</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                            <option value="+971">🇦🇪 +971</option>
+                                        </select>
+                                        <input
+                                            required
+                                            type="tel"
+                                            className={`flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition-all focus:ring-4 ${touched.phone && fieldErrors.phone
+                                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                                : "border-zinc-200 bg-white focus:border-[#155DFC] focus:ring-[#155DFC]/10"
+                                                }`}
+                                            placeholder="Enter phone number"
+                                            value={phone}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, ""); // Only allow digits
+                                                setPhone(val);
+                                                if (touched.phone) setFieldErrors({ ...fieldErrors, phone: validatePhone(val) });
+                                            }}
+                                            onBlur={() => {
+                                                setTouched({ ...touched, phone: true });
+                                                setFieldErrors({ ...fieldErrors, phone: validatePhone(phone) });
+                                            }}
+                                        />
+                                    </div>
                                     {touched.phone && fieldErrors.phone && (
                                         <p className="text-xs text-red-600 ml-1 mt-1">
                                             {fieldErrors.phone}
@@ -587,10 +628,11 @@ function RegisterFormContent() {
                                 Didn't receive the code?{" "}
                                 <button
                                     type="button"
-                                    onClick={handleSubmit}
-                                    className="font-bold text-[#155DFC] hover:underline"
+                                    onClick={handleResendOTP}
+                                    disabled={loading}
+                                    className="font-bold text-[#155DFC] hover:underline disabled:opacity-50"
                                 >
-                                    Resend
+                                    {loading ? "Sending..." : "Resend"}
                                 </button>
                             </p>
                         </div>

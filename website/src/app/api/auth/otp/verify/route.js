@@ -11,8 +11,8 @@ export async function POST(req) {
         // DEBUG: log what we received
         console.log("[OTP Verify] Received body:", JSON.stringify(body));
 
-        // Priority: x-user-id header > body.userId > Bearer token
-        let userId = req.headers.get("x-user-id") || body.userId;
+        // Priority: body.userId > x-user-id header > Bearer token
+        let userId = body.userId || req.headers.get("x-user-id");
 
         if (!userId) {
             // Try to extract from Bearer token (for logged-in users like OnboardingScreen)
@@ -102,7 +102,13 @@ async function verifyPendingUser(pendingUser, otp) {
 
     console.log("[verifyPendingUser] stored:", otp_code, "received:", otp, "match:", String(otp_code).trim() === String(otp).trim());
 
-    if (!otp_code || String(otp_code).trim() !== String(otp).trim()) {
+    if (!otp_code) {
+        return NextResponse.json({
+            error: "No active verification code found for this registration. Please click 'Resend' to get a new code."
+        }, { status: 400 });
+    }
+
+    if (String(otp_code).trim() !== String(otp).trim()) {
         return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
     }
 

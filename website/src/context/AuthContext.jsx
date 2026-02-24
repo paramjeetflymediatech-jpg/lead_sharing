@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log("[AuthContext] Mounting, fetching user...");
         fetchUser();
     }, []);
 
@@ -22,7 +23,7 @@ export function AuthProvider({ children }) {
             const res = await fetch('/api/profile');
             const data = await res.json();
             if (data.success && data.data) {
-                // Return data.data which includes { ...user, profile } from the API
+                console.log("[AuthContext] user fetched:", data.data.id, data.data.role);
                 setUser(data.data);
             } else {
                 setUser(null);

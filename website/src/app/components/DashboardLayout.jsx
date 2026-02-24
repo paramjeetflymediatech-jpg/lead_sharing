@@ -25,7 +25,10 @@ import {
     CurrencyDollarIcon,
     Cog6ToothIcon,
     QuestionMarkCircleIcon,
-    StarIcon
+    StarIcon,
+    ShieldCheckIcon,
+    ArrowTrendingUpIcon,
+    DocumentTextIcon
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
 
@@ -49,7 +52,10 @@ const REQUESTED_ICONS = {
     MagnifyingGlassPlusIcon,
     CurrencyDollarIcon,
     Cog6ToothIcon,
-    QuestionMarkCircleIcon
+    QuestionMarkCircleIcon,
+    ShieldCheckIcon,
+    ArrowTrendingUpIcon,
+    DocumentTextIcon
 };
 
 export default function DashboardLayout({ children, navItems, user }) {

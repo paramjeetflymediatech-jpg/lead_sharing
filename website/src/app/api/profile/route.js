@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 // import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
+import { logToFile } from "@/lib/serverAuth";
 
 export async function GET(req) {
     try {
@@ -10,13 +11,17 @@ export async function GET(req) {
 
         const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-user-role");
+        logToFile(`API Profile GET userId=${userId} role=${role}`);
 
         if (!userId) {
+            console.log("[API Profile] No user ID found in headers");
             return NextResponse.json(
                 { success: true, data: null, message: "Guest session" },
                 { status: 200 }
             );
         }
+
+        console.log("[API Profile] Fetching profile for user:", userId, "Role:", role);
 
         // 👤 User
         const userRaw = await User.findById(userId);
@@ -37,6 +42,7 @@ export async function GET(req) {
             profile = await TradespersonProfile.findOne({ user: userId });
         }
 
+        console.log("[API Profile] Success. Profile status:", profile?.verificationStatus);
         return NextResponse.json({
             success: true,
             data: { ...user, profile },

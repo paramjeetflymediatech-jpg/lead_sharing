@@ -38,13 +38,13 @@ export default function LoginForm() {
 
             switch (data.role) {
                 case "HOMEOWNER":
-                    router.push("/homeowner");
+                    window.location.href = "/homeowner";
                     break;
                 case "TRADESPERSON":
-                    router.push("/tradesperson");
+                    window.location.href = "/tradesperson";
                     break;
                 default:
-                    router.push("/");
+                    window.location.href = "/";
             }
         } catch (err) {
             toast.error(err.message || "Something went wrong!");

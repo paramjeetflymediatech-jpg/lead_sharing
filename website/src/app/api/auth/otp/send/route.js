@@ -1,63 +1,63 @@
 import { NextResponse } from "next/server";
 import pool from "@/../config/db.js";
+import { sendSMS } from "@/lib/sms";
 
 export async function POST(req) {
     try {
         const body = await req.json();
-        const { phone } = body;
-        let userId = req.headers.get("x-user-id") || body.userId;
+        // Priority: body.userId > x-user-id header (Register flow needs body.userId to override stale cookies)
+        let userId = body.userId || req.headers.get("x-user-id");
+        let phone = body.phone; // Fallback, but we'll try to get it from DB
 
-        if (!phone) {
-            return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized or User ID missing" }, { status: 401 });
         }
 
         // Generate 6-digit OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
         console.log("[OTP Send] userId:", userId, "type:", typeof userId);
 
-        // DEBUG: Show current database and ALL pending_users
-        const [dbResult] = await pool.query("SELECT DATABASE() as db");
-        const [allPending] = await pool.query("SELECT id, email FROM pending_users");
-        const [allUsers] = await pool.query("SELECT id, email FROM users");
-        console.log("[OTP Send] Connected DB:", dbResult[0].db);
-        console.log("[OTP Send] ALL pending_users:", JSON.stringify(allPending));
-        console.log("[OTP Send] ALL users:", JSON.stringify(allUsers));
-
-        // Fetch user email to send dual-channel OTP
+        // Fetch user info from database
         let user = null;
         let isPending = false;
 
-        const [users] = await pool.query(
-            "SELECT email, name FROM users WHERE id = ?",
+        // Try pending_users first (new signup flow)
+        const [pending] = await pool.query(
+            "SELECT email, name, phone FROM pending_users WHERE id = ?",
             [userId]
         );
 
-        console.log("[OTP Send] users table result:", users.length);
-
-        if (users.length > 0) {
-            user = users[0];
+        if (pending.length > 0) {
+            user = pending[0];
+            isPending = true;
         } else {
-            // Check pending_users
-            const [pending] = await pool.query(
-                "SELECT email, name FROM pending_users WHERE id = ?",
+            // Check main users table
+            const [users] = await pool.query(
+                "SELECT email, name, phone FROM users WHERE id = ?",
                 [userId]
             );
-            console.log("[OTP Send] pending_users table result:", pending.length);
-            if (pending.length > 0) {
-                user = pending[0];
-                isPending = true;
+            if (users.length > 0) {
+                user = users[0];
             }
         }
 
         if (!user) {
+            // DEBUG: Show why it failed
+            const [allPending] = await pool.query("SELECT id, email FROM pending_users");
             console.log("[OTP Send] User NOT FOUND for userId:", userId);
+            console.log("[OTP Send] Current pending_users IDs:", allPending.map(p => p.id));
             return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // Use phone from database primarily
+        if (user.phone) {
+            phone = user.phone;
+        }
+
+        if (!phone) {
+            return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
         }
 
         // Store OTP in database
@@ -101,9 +101,23 @@ export async function POST(req) {
             }
         }
 
-        // TODO: Integrate actual SMS gateway (Twilio, AWS SNS, etc.)
-        // For now, we log it to console for development
-        console.log(`[OTP] SMS (Logged) to ${phone}: ${otpCode}`);
+        // Send via SMS
+        console.log(`[OTP] Sending SMS to ${phone}: ${otpCode}`);
+        try {
+            const smsResult = await sendSMS({
+                to: phone,
+                message: `Your AllCarePros verification code is: ${otpCode}. Valid for 10 minutes.`
+            });
+
+            if (!smsResult.success) {
+                console.error("[OTP] SMS delivery failed:", smsResult.error);
+                // We proceed since email was sent, but this is a warning
+            } else {
+                console.log("[OTP] SMS sent successfully");
+            }
+        } catch (smsError) {
+            console.error("[OTP] SMS error:", smsError);
+        }
 
         return NextResponse.json({
             success: true,
