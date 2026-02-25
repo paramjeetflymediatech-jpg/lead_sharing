@@ -232,6 +232,12 @@ export default function AdminLayout({
                                 onPress={() => handleMenuPress("Jobs")}
                             />
                             <MenuItem
+                                icon="shield"
+                                label="Verifications"
+                                active={activeScreen === "Verifications"}
+                                onPress={() => handleMenuPress("Verifications")}
+                            />
+                            <MenuItem
                                 icon="file-text"
                                 label="Leads"
                                 active={activeScreen === "Leads"}

@@ -663,6 +663,20 @@ export const adminAPI = {
             method: "DELETE",
         });
     },
+
+    /**
+     * Tradesperson Verifications
+     */
+    getTradespersons: async (status = "PENDING_APPROVAL") => {
+        return apiCall(`/api/admin/tradespersons?status=${status}`);
+    },
+
+    verifyTradesperson: async (data) => {
+        return apiCall("/api/admin/tradespersons", {
+            method: "PUT",
+            body: JSON.stringify(data),
+        });
+    },
 };
 
 // Export all as default

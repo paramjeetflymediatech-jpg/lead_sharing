@@ -11,7 +11,9 @@ import {
     TextInput,
     Modal,
     ScrollView,
+    Linking,
 } from "react-native";
+import { API_BASE_URL } from "../config/api";
 import { Picker } from "@react-native-picker/picker";
 import AdminLayout from "../components/admin/AdminLayout";
 import { adminAPI } from "../services/api";
@@ -49,16 +51,18 @@ export default function AdminDashboard({ navigation }) {
     // Subcategories state
     const [subcategories, setSubcategories] = useState([]);
 
-    // Jobs state
-    const [jobs, setJobs] = useState([]);
-
-    // Leads state
-    const [leads, setLeads] = useState([]);
+    // Verifications state
+    const [verifications, setVerifications] = useState([]);
+    const [verificationStatus, setVerificationStatus] = useState("PENDING_APPROVAL");
 
     // Modal states
     const [showUserModal, setShowUserModal] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showSubcategoryModal, setShowSubcategoryModal] = useState(false);
+    const [showRejectionModal, setShowRejectionModal] = useState(false);
+    const [showVerificationDetailsModal, setShowVerificationDetailsModal] = useState(false);
+    const [selectedTradesperson, setSelectedTradesperson] = useState(null);
+    const [rejectionReason, setRejectionReason] = useState("");
 
     // Edit states
     const [editingUser, setEditingUser] = useState(null);
@@ -97,6 +101,9 @@ export default function AdminDashboard({ navigation }) {
                     break;
                 case "Leads":
                     await loadLeads();
+                    break;
+                case "Verifications":
+                    await loadVerifications();
                     break;
                 default:
                     break;
@@ -179,6 +186,41 @@ export default function AdminDashboard({ navigation }) {
         } catch (error) {
             console.error("Leads error:", error);
             setLeads([]);
+        }
+    }
+
+    async function loadVerifications() {
+        try {
+            setLoading(true);
+            const data = await adminAPI.getTradespersons(verificationStatus);
+            const list = data.data || data || [];
+            setVerifications(Array.isArray(list) ? list : []);
+        } catch (error) {
+            console.error("Verifications error:", error);
+            setVerifications([]);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleVerifyTradesperson(profileId, status, reason = "") {
+        try {
+            setLoading(true);
+            await adminAPI.verifyTradesperson({
+                profileId,
+                status,
+                rejectionReason: reason
+            });
+
+            Alert.alert("Success", `Account ${status === 'APPROVED' ? 'approved' : 'rejected'} successfully`);
+            setShowRejectionModal(false);
+            setShowVerificationDetailsModal(false);
+            setRejectionReason("");
+            await loadVerifications();
+        } catch (error) {
+            Alert.alert("Error", error.message || "Failed to update verification status");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -492,6 +534,22 @@ export default function AdminDashboard({ navigation }) {
                 return <JobsScreen jobs={jobs} />;
             case "Leads":
                 return <LeadsScreen leads={leads} />;
+            case "Verifications":
+                return (
+                    <VerificationsScreen
+                        verifications={verifications}
+                        status={verificationStatus}
+                        onStatusChange={(newStatus) => {
+                            setVerificationStatus(newStatus);
+                            loadData();
+                        }}
+                        onReview={(tp) => {
+                            setSelectedTradesperson(tp);
+                            setShowVerificationDetailsModal(true);
+                        }}
+                        onRefresh={onRefresh}
+                    />
+                );
             case "Revenue":
                 return <RevenueScreen revenue={stats.revenue} />;
             case "SEO Management":
@@ -547,6 +605,24 @@ export default function AdminDashboard({ navigation }) {
                 onFormChange={setSubcategoryForm}
                 onSave={handleSaveSubcategory}
                 onClose={() => setShowSubcategoryModal(false)}
+            />
+
+            {/* Rejection Reason Modal */}
+            <RejectionReasonModal
+                visible={showRejectionModal}
+                reason={rejectionReason}
+                onReasonChange={setRejectionReason}
+                onConfirm={() => handleVerifyTradesperson(selectedTradesperson?.id, "REJECTED", rejectionReason)}
+                onCancel={() => setShowRejectionModal(false)}
+            />
+
+            {/* Verification Details Modal */}
+            <VerificationDetailsModal
+                visible={showVerificationDetailsModal}
+                tradesperson={selectedTradesperson}
+                onApprove={() => handleVerifyTradesperson(selectedTradesperson?.id, "APPROVED")}
+                onReject={() => setShowRejectionModal(true)}
+                onClose={() => setShowVerificationDetailsModal(false)}
             />
         </AdminLayout>
     );
@@ -934,7 +1010,7 @@ function RevenueScreen({ revenue }) {
                     </Text>
                 </View>
             </View>
-            
+
         </>
     );
 }
@@ -1624,4 +1700,409 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         color: "#FFFFFF",
     },
+    // Verification Screen Styles
+    statusFilterContainer: {
+        flexDirection: "row",
+        backgroundColor: "#F1F5F9",
+        borderRadius: wp(2),
+        padding: wp(1),
+        marginBottom: hp(2),
+    },
+    statusFilterItem: {
+        flex: 1,
+        paddingVertical: hp(1),
+        alignItems: "center",
+        borderRadius: wp(1.5),
+    },
+    statusFilterItemActive: {
+        backgroundColor: "#FFFFFF",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    statusFilterText: {
+        fontSize: normalize(12),
+        fontWeight: "600",
+        color: "#64748B",
+    },
+    statusFilterTextActive: {
+        color: "#2563EB",
+    },
+    emptyContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: hp(10),
+    },
+    emptyText: {
+        fontSize: normalize(16),
+        color: "#94A3B8",
+        marginTop: hp(2),
+    },
+    verificationCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: wp(3),
+        padding: wp(4),
+        marginBottom: hp(2),
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+    },
+    verificationHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: hp(1.5),
+    },
+    verificationInfo: {
+        flex: 1,
+    },
+    verificationName: {
+        fontSize: normalize(16),
+        fontWeight: "700",
+        color: "#1E293B",
+    },
+    verificationCompany: {
+        fontSize: normalize(14),
+        color: "#64748B",
+        marginTop: hp(0.2),
+    },
+    statusBadge: {
+        paddingHorizontal: wp(2),
+        paddingVertical: hp(0.5),
+        borderRadius: wp(1),
+    },
+    statusBadgeText: {
+        fontSize: normalize(11),
+        fontWeight: "700",
+    },
+    verificationFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: hp(1),
+        paddingTop: hp(1),
+        borderTopWidth: 1,
+        borderTopColor: "#F1F5F9",
+    },
+    verificationTime: {
+        fontSize: normalize(12),
+        color: "#94A3B8",
+    },
+    reviewButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#2563EB",
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.8),
+        borderRadius: wp(1.5),
+    },
+    reviewButtonText: {
+        fontSize: normalize(12),
+        fontWeight: "600",
+        color: "#FFFFFF",
+    },
+    detailSection: {
+        marginBottom: hp(2.5),
+    },
+    detailLabel: {
+        fontSize: normalize(14),
+        fontWeight: "600",
+        color: "#64748B",
+        marginBottom: hp(0.8),
+    },
+    detailValue: {
+        fontSize: normalize(16),
+        color: "#1E293B",
+    },
+    documentLink: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#F8FAFC",
+        padding: wp(3),
+        borderRadius: wp(2),
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+        marginBottom: hp(1),
+    },
+    documentIcon: {
+        marginRight: wp(3),
+    },
+    documentText: {
+        fontSize: normalize(14),
+        color: "#2563EB",
+        fontWeight: "500",
+        flex: 1,
+    },
+    noDocument: {
+        fontSize: normalize(14),
+        color: "#94A3B8",
+        fontStyle: "italic",
+    },
+    rejectButton: {
+        flex: 1,
+        backgroundColor: "#FEE2E2",
+        paddingVertical: hp(1.5),
+        borderRadius: wp(2),
+        alignItems: "center",
+    },
+    rejectButtonText: {
+        fontSize: normalize(16),
+        fontWeight: "600",
+        color: "#EF4444",
+    },
+    approveButton: {
+        flex: 2,
+        backgroundColor: "#10B981",
+        paddingVertical: hp(1.5),
+        borderRadius: wp(2),
+        alignItems: "center",
+    },
+    approveButtonText: {
+        fontSize: normalize(16),
+        fontWeight: "600",
+        color: "#FFFFFF",
+    },
 });
+
+// ============================================
+// VERIFICATIONS SCREEN
+// ============================================
+function VerificationsScreen({ verifications, status, onStatusChange, onReview, onRefresh }) {
+    const statuses = [
+        { label: "Pending", value: "PENDING_APPROVAL" },
+        { label: "Approved", value: "APPROVED" },
+        { label: "Rejected", value: "REJECTED" }
+    ];
+
+    return (
+        <View style={{ flex: 1 }}>
+            <View style={styles.statusFilterContainer}>
+                {statuses.map((s) => (
+                    <TouchableOpacity
+                        key={s.value}
+                        style={[
+                            styles.statusFilterItem,
+                            status === s.value && styles.statusFilterItemActive
+                        ]}
+                        onPress={() => onStatusChange(s.value)}
+                    >
+                        <Text style={[
+                            styles.statusFilterText,
+                            status === s.value && styles.statusFilterTextActive
+                        ]}>
+                            {s.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {verifications.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Feather name="shield" size={48} color="#CBD5E1" />
+                    <Text style={styles.emptyText}>No applications found</Text>
+                    <TouchableOpacity onPress={onRefresh} style={{ marginTop: 20 }}>
+                        <Text style={{ color: "#2563EB", fontWeight: "600" }}>Refresh</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                verifications.map((item) => (
+                    <TouchableOpacity
+                        key={item.id}
+                        style={styles.verificationCard}
+                        onPress={() => onReview(item)}
+                    >
+                        <View style={styles.verificationHeader}>
+                            <View style={styles.verificationInfo}>
+                                <Text style={styles.verificationName}>{item.name}</Text>
+                                <Text style={styles.verificationCompany}>{item.company_name}</Text>
+                            </View>
+                            <View style={[
+                                styles.statusBadge,
+                                {
+                                    backgroundColor:
+                                        item.verification_status === "APPROVED" ? "#DCFCE7" :
+                                            item.verification_status === "REJECTED" ? "#FEE2E2" : "#FEF3C7"
+                                }
+                            ]}>
+                                <Text style={[
+                                    styles.statusBadgeText,
+                                    {
+                                        color:
+                                            item.verification_status === "APPROVED" ? "#166534" :
+                                                item.verification_status === "REJECTED" ? "#991B1B" : "#854D0E"
+                                    }
+                                ]}>
+                                    {item.verification_status}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={styles.verificationFooter}>
+                            <Text style={styles.verificationTime}>
+                                Submitted: {new Date(item.created_at).toLocaleDateString()}
+                            </Text>
+                            <View style={styles.reviewButton}>
+                                <Text style={styles.reviewButtonText}>Review</Text>
+                                <Feather name="chevron-right" size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                ))
+            )}
+        </View>
+    );
+}
+
+// ============================================
+// VERIFICATION DETAILS MODAL
+// ============================================
+function VerificationDetailsModal({ visible, tradesperson, onApprove, onReject, onClose }) {
+    if (!tradesperson) return null;
+
+    const handleOpenDocument = async (path) => {
+        if (!path) return;
+        // Ensure path starts with / if it's relative
+        const formattedPath = path.startsWith('http') ? path : (path.startsWith('/') ? path : `/${path}`);
+        const url = path.startsWith('http') ? path : `${API_BASE_URL}${formattedPath}`;
+
+        try {
+            const supported = await Linking.canOpenURL(url);
+            if (supported) {
+                await Linking.openURL(url);
+            } else {
+                Alert.alert("Error", "Don't know how to open this URL: " + url);
+            }
+        } catch (error) {
+            Alert.alert("Error", "Could not open document");
+            console.error(error);
+        }
+    };
+
+    const renderDocument = (label, path) => (
+        <View style={{ marginBottom: 12 }}>
+            <Text style={styles.detailLabel}>{label}</Text>
+            {path ? (
+                <TouchableOpacity
+                    style={styles.documentLink}
+                    onPress={() => handleOpenDocument(path)}
+                >
+                    <Feather name="file-text" size={20} color="#2563EB" style={styles.documentIcon} />
+                    <Text style={styles.documentText} numberOfLines={1}>{path.split('/').pop()}</Text>
+                </TouchableOpacity>
+            ) : (
+                <Text style={styles.noDocument}>Not provided</Text>
+            )}
+        </View>
+    );
+
+    return (
+        <Modal
+            visible={visible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Review Application</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Text style={styles.modalClose}>×</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={styles.modalBody}>
+                        <View style={styles.detailSection}>
+                            <Text style={styles.detailLabel}>Tradesperson Name</Text>
+                            <Text style={styles.detailValue}>{tradesperson.name}</Text>
+                        </View>
+
+                        <View style={styles.detailSection}>
+                            <Text style={styles.detailLabel}>Company Name</Text>
+                            <Text style={styles.detailValue}>{tradesperson.company_name}</Text>
+                        </View>
+
+                        <View style={styles.detailSection}>
+                            <Text style={styles.detailLabel}>Email</Text>
+                            <Text style={styles.detailValue}>{tradesperson.email}</Text>
+                        </View>
+
+                        <View style={styles.detailSection}>
+                            <Text style={styles.detailLabel}>Phone</Text>
+                            <Text style={styles.detailValue}>{tradesperson.phone || "N/A"} {tradesperson.phone_verified ? "(Verified)" : "(Unverified)"}</Text>
+                        </View>
+
+                        <View style={styles.detailSection}>
+                            <Text style={[styles.detailLabel, { marginBottom: 12 }]}>Documents</Text>
+                            {renderDocument("Government ID", tradesperson.id_document)}
+                            {renderDocument("Insurance Certificate", tradesperson.insurance_document)}
+                            {renderDocument("Trade License", tradesperson.license_document)}
+                        </View>
+
+                        {tradesperson.verification_status === "REJECTED" && tradesperson.rejection_reason && (
+                            <View style={[styles.detailSection, { backgroundColor: "#FEE2E2", padding: 12, borderRadius: 8 }]}>
+                                <Text style={[styles.detailLabel, { color: "#991B1B" }]}>Previous Rejection Reason</Text>
+                                <Text style={{ color: "#991B1B" }}>{tradesperson.rejection_reason}</Text>
+                            </View>
+                        )}
+                    </ScrollView>
+
+                    {tradesperson.verification_status === "PENDING_APPROVAL" && (
+                        <View style={styles.modalFooter}>
+                            <TouchableOpacity style={styles.rejectButton} onPress={onReject}>
+                                <Text style={styles.rejectButtonText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.approveButton} onPress={onApprove}>
+                                <Text style={styles.approveButtonText}>Approve Account</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+// ============================================
+// REJECTION REASON MODAL
+// ============================================
+function RejectionReasonModal({ visible, reason, onReasonChange, onConfirm, onCancel }) {
+    return (
+        <Modal
+            visible={visible}
+            animationType="fade"
+            transparent={true}
+            onRequestClose={onCancel}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={[styles.modalContainer, { maxHeight: hp(40) }]}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Rejection Reason</Text>
+                    </View>
+                    <View style={styles.modalBody}>
+                        <Text style={styles.inputLabel}>Please provide a reason for rejection:</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            multiline
+                            placeholder="e.g., ID document is expired or blurry"
+                            value={reason}
+                            onChangeText={onReasonChange}
+                        />
+                    </View>
+                    <View style={styles.modalFooter}>
+                        <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.saveButton, { backgroundColor: "#EF4444" }]}
+                            onPress={onConfirm}
+                            disabled={!reason.trim()}
+                        >
+                            <Text style={styles.saveButtonText}>Confirm Reject</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+}
