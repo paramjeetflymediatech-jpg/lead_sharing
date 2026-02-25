@@ -106,7 +106,6 @@ export async function GET(req, context) {
 
     console.log("Fetching job details for jobId:", jobId, "userId:", userId);
 
-    // 🔎 Fetch job with category and subcategory using JOIN
     const [jobs] = await db.query(
       `SELECT 
         j.id,
@@ -114,11 +113,14 @@ export async function GET(req, context) {
         j.category_id,
         j.sub_category_id,
         j.postcode,
+        j.city,
         j.description,
         j.budget_min,
         j.budget_max,
         j.status,
+        j.media,
         j.hired_tradesperson_id,
+        j.hired_at,
         j.has_rated,
         j.created_at,
         j.updated_at,
@@ -145,6 +147,23 @@ export async function GET(req, context) {
 
     const job = jobs[0];
 
+    // Parse media JSON
+    try {
+      if (job.media && typeof job.media === 'string') {
+        job.media = JSON.parse(job.media);
+      } else if (!Array.isArray(job.media)) {
+        job.media = [];
+      }
+    } catch (e) {
+      job.media = [];
+    }
+
+    // Build flat image URLs array
+    const mediaList = Array.isArray(job.media) ? job.media : [];
+    const images = mediaList
+      .filter(m => m && (typeof m === 'string' ? m : m.url))
+      .map(m => (typeof m === 'string' ? m : m.url));
+
     // Count leads for this job
     const [leadCountResult] = await db.query(
       `SELECT COUNT(*) as count FROM leads WHERE job_id = ?`,
@@ -157,6 +176,8 @@ export async function GET(req, context) {
       success: true,
       data: {
         ...job,
+        media: mediaList,
+        images,
         leadCount,
       },
     });

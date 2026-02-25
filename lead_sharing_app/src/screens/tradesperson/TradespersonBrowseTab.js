@@ -146,7 +146,9 @@ function JobCard({ job, navigation }) {
                             <Feather name="unlock" size={14} color="#10B981" style={{ marginRight: 4 }} />
                             <Text style={styles.unlockedBadgeText}>UNLOCKED</Text>
                         </View>
-                        <Text style={styles.unlockedText}>Unlocked</Text>
+                        <View style={styles.viewLeadButtonInner}>
+                            <Text style={styles.viewLeadText}>View Lead →</Text>
+                        </View>
                     </>
                 ) : (
                     <>
@@ -324,9 +326,17 @@ const styles = StyleSheet.create({
         fontSize: normalize(13),
         fontWeight: "700",
     },
-    unlockedText: {
-        fontSize: normalize(14),
-        color: "#10B981",
-        fontWeight: "600",
+    viewLeadButtonInner: {
+        backgroundColor: "#EBF5FF",
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.5),
+        borderRadius: wp(2),
+        borderWidth: 1,
+        borderColor: "#BFDBFE",
+    },
+    viewLeadText: {
+        fontSize: normalize(13),
+        color: "#2563EB",
+        fontWeight: "700",
     },
 });

@@ -67,6 +67,7 @@ export async function POST(req) {
             return NextResponse.json({
                 success: true,
                 message: "Phone number already verified"
+                
             });
         }
 
@@ -83,6 +84,15 @@ export async function POST(req) {
             "UPDATE users SET phone_verified = TRUE, otp_code = NULL, otp_expires_at = NULL WHERE id = ?",
             [userId]
         );
+
+        // Sync phone to tradesperson profile if it's a tradesperson
+        const [userRoleRows] = await pool.query("SELECT role, phone FROM users WHERE id = ?", [userId]);
+        if (userRoleRows[0]?.role === "TRADESPERSON" && userRoleRows[0].phone) {
+            await pool.query(
+                "UPDATE tradesperson_profiles SET phone = ? WHERE user_id = ? AND (phone IS NULL OR phone = '')",
+                [userRoleRows[0].phone, userId]
+            );
+        }
 
         return NextResponse.json({
             success: true,
@@ -132,9 +142,9 @@ async function verifyPendingUser(pendingUser, otp) {
         // If tradesperson, create profile
         if (role === "TRADESPERSON" && company_name) {
             await conn.query(
-                `INSERT INTO tradesperson_profiles (user_id, company_name, credits, created_at, updated_at)
-                 VALUES (?, ?, 5, NOW(), NOW())`,
-                [newUserId, company_name]
+                `INSERT INTO tradesperson_profiles (user_id, company_name, phone, credits, created_at, updated_at)
+                 VALUES (?, ?, ?, 5, NOW(), NOW())`,
+                [newUserId, company_name, phone]
             );
         }
 
@@ -158,6 +168,7 @@ async function verifyPendingUser(pendingUser, otp) {
             email,
             role,
             name,
+            phone,
             phoneVerified: true,
             verificationStatus: role === "TRADESPERSON" ? "NOT_STARTED" : undefined
         });

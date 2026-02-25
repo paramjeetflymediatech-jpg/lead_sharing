@@ -236,13 +236,8 @@ export const User = {
       await pool.query('DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?', [id, id]);
 
       // 2. Delete tradesperson_ratings
-      // As homeowner (using user_id)
-      await pool.query('DELETE FROM tradesperson_ratings WHERE homeowner_id = ?', [id]);
-
-      // As tradesperson (using profile_id)
-      if (profileId) {
-        await pool.query('DELETE FROM tradesperson_ratings WHERE tradesperson_id = ?', [profileId]);
-      }
+      // Note: Both homeowner_id and tradesperson_id in tradesperson_ratings reference users.id
+      await pool.query('DELETE FROM tradesperson_ratings WHERE homeowner_id = ? OR tradesperson_id = ?', [id, id]);
 
       // 3. Delete leads (as tradesperson - using profile_id)
       if (profileId) {
@@ -265,10 +260,9 @@ export const User = {
         }
       }
 
-      // 6. Nullify hired_tradesperson_id in jobs if this user was hired (as tradesperson - using profile_id)
-      if (profileId) {
-        await pool.query('UPDATE jobs SET hired_tradesperson_id = NULL WHERE hired_tradesperson_id = ?', [profileId]);
-      }
+      // 6. Nullify hired_tradesperson_id in jobs if this user was hired (as tradesperson)
+      // Note: jobs.hired_tradesperson_id references users.id
+      await pool.query('UPDATE jobs SET hired_tradesperson_id = NULL WHERE hired_tradesperson_id = ?', [id]);
 
       // 7. Delete tradesperson_profiles
       await pool.query('DELETE FROM tradesperson_profiles WHERE user_id = ?', [id]);
@@ -278,6 +272,7 @@ export const User = {
       // Here we focus on DB cleanup. File cleanup should ideally be handled by a service or job.
 
       // 9. Finally delete the user
+      await pool.query('DELETE FROM push_tokens WHERE user_id = ?', [id]);
       await pool.query('DELETE FROM auth_tokens WHERE user_id = ?', [id]);
       const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
 

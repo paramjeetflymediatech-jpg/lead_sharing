@@ -61,9 +61,12 @@ export async function POST(req, context) {
       );
     }
 
-    // 🔎 Verify lead exists for this job
+    // 🔎 Verify lead exists for this job & get the correct users.id
     const [leads] = await db.query(
-      `SELECT * FROM leads WHERE id = ? AND job_id = ? LIMIT 1`,
+      `SELECT l.*, tp.user_id as tradesperson_user_id
+       FROM leads l
+       JOIN tradesperson_profiles tp ON l.tradesperson_id = tp.id
+       WHERE l.id = ? AND l.job_id = ? LIMIT 1`,
       [leadId, jobId]
     );
 
@@ -75,6 +78,8 @@ export async function POST(req, context) {
     }
 
     const lead = leads[0];
+    // hired_tradesperson_id must reference users.id (not tradesperson_profiles.id)
+    const tradespersonUserId = lead.tradesperson_user_id;
 
     // ✅ Start transaction for atomic updates
     const connection = await db.getConnection();
@@ -82,7 +87,7 @@ export async function POST(req, context) {
     try {
       await connection.beginTransaction();
 
-      // ✅ UPDATE JOB STATUS TO HIRED
+      // ✅ UPDATE JOB STATUS TO HIRED (use users.id, not tradesperson_profiles.id)
       await connection.query(
         `UPDATE jobs 
          SET status = 'HIRED', 
@@ -90,7 +95,7 @@ export async function POST(req, context) {
              hired_at = NOW(),
              updated_at = NOW()
          WHERE id = ?`,
-        [lead.tradesperson_id, jobId]
+        [tradespersonUserId, jobId]
       );
 
       // ✅ Check if leads table has a status column
@@ -166,9 +171,11 @@ export async function POST(req, context) {
       const [updatedJob] = await db.query(
         `SELECT 
           j.*,
-          tp.company_name as hired_tradesperson_name
+          tp.company_name as hired_tradesperson_name,
+          u.name as hired_tradesperson_user_name
          FROM jobs j
-         LEFT JOIN tradesperson_profiles tp ON j.hired_tradesperson_id = tp.id
+         LEFT JOIN users u ON j.hired_tradesperson_id = u.id
+         LEFT JOIN tradesperson_profiles tp ON tp.user_id = j.hired_tradesperson_id
          WHERE j.id = ?
          LIMIT 1`,
         [jobId]

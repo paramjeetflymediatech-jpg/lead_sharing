@@ -33,14 +33,30 @@ function OnboardingContent() {
     const [profile, setProfile] = useState(null);
 
     // Form States
+    const [countryCode, setCountryCode] = useState("+1");
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
     const [isPhoneVerified, setIsPhoneVerified] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
 
-    // Docs State
+    const countries = [
+        { name: "CA/US", code: "+1" },
+        { name: "UK", code: "+44" },
+        { name: "AU", code: "+61" },
+        { name: "IN", code: "+91" },
+        
+    ];
+
+    // Docs State — these hold URLs (from DB) or local preview URLs
     const [docs, setDocs] = useState({
+        id: null,
+        license: null,
+        insurance: null
+    });
+
+    // Pending local files — held in memory until "Save & Continue" is clicked
+    const [pendingFiles, setPendingFiles] = useState({
         id: null,
         license: null,
         insurance: null
@@ -62,6 +78,11 @@ function OnboardingContent() {
                 const profileData = data.data;
                 setProfile(profileData);
                 setPhone(profileData.phone || "");
+                setDocs({
+                    id: profileData.idDocument || null,
+                    license: profileData.licenseDocument || null,
+                    insurance: profileData.insuranceDocument || null
+                });
 
                 // Logic to determine current step if not explicitly in URL
                 const urlStep = searchParams.get("step");
@@ -88,6 +109,7 @@ function OnboardingContent() {
 
     const sendOtp = async () => {
         setLoading(true);
+        const fullPhone = phone.startsWith("+") ? phone : `${countryCode}${phone}`;
         try {
             const res = await fetch("/api/auth/otp/send", {
                 method: "POST",
@@ -95,7 +117,7 @@ function OnboardingContent() {
                     "Content-Type": "application/json",
                     "x-user-id": user?.id
                 },
-                body: JSON.stringify({ phone })
+                body: JSON.stringify({ phone: fullPhone })
             });
             const data = await res.json();
             if (data.success) {
@@ -144,66 +166,96 @@ function OnboardingContent() {
         }
     };
 
-    const handleFileUpload = async (e, type) => {
+    const handleFileUpload = (e, type) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Restriction: Only images allowed
-        if (!file.type.startsWith("image/")) {
-            toast.error("Format not supported. Please upload an image (JPG, PNG).");
+        // ✅ Allowed file types
+        const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+        const allowedDocTypes = [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ];
+        const isImage = allowedImageTypes.includes(file.type);
+        const isDoc = allowedDocTypes.includes(file.type);
+
+        if (!isImage && !isDoc) {
+            toast.error("Format not supported. Please upload an image (JPG, PNG) or document (PDF, Word).");
             return;
         }
 
-        setLoading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                body: formData
-            });
-            const data = await res.json();
-            if (data.url) {
-                setDocs(prev => ({ ...prev, [type]: data.url }));
-                toast.success(`${type.toUpperCase()} uploaded`);
-
-                // Save document path immediately to DB
-                await fetch("/api/tradesperson/profile", {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        [`${type}Document`]: data.url
-                    })
-                });
-            }
-        } catch (err) {
-            toast.error("Upload failed");
-        } finally {
-            setLoading(false);
+        // ✅ Dynamic size limits
+        const maxSize = isImage ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            toast.error(`File too large. Max limit is ${maxSize / (1024 * 1024)}MB.`);
+            return;
         }
+
+        // ✅ Store file locally — NO server upload yet
+        // Create a local preview URL just to show "selected" state
+        const localPreviewUrl = URL.createObjectURL(file);
+        setPendingFiles(prev => ({ ...prev, [type]: file }));
+        // Use a special marker to indicate local selection (not yet saved to DB)
+        setDocs(prev => ({ ...prev, [type]: localPreviewUrl }));
+        toast.success(`${type.replace('id', 'ID').replace('license', 'License').replace('insurance', 'Insurance')} selected — click Save & Continue to upload`);
     };
 
     const submitDocs = async () => {
-        // ID and Insurance are usually mandatory for tradespersons in Canada
-        if (!docs.id && !profile?.idDocument) return toast.error("Please upload your Government ID");
-        if (!docs.insurance && !profile?.insuranceDocument) return toast.error("Please upload your Insurance Certificate");
+        // Check: must have either a pending local file OR an already-saved DB URL
+        const hasId = pendingFiles.id || profile?.idDocument;
+        const hasInsurance = pendingFiles.insurance || profile?.insuranceDocument;
+
+        if (!hasId) return toast.error("Please upload your Government ID");
+        if (!hasInsurance) return toast.error("Please upload your Insurance Certificate");
 
         setLoading(true);
         try {
+            // ✅ Step 1: Upload any pending local files to the server NOW
+            const uploadFile = async (file) => {
+                if (!file) return null;
+                const formData = new FormData();
+                formData.append("file", file);
+                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                const data = await res.json();
+                if (!res.ok || !data.url) throw new Error("Upload failed for " + file.name);
+                return data.url;
+            };
+
+            const idUrl = pendingFiles.id
+                ? await uploadFile(pendingFiles.id)
+                : profile?.idDocument || null;
+
+            const insuranceUrl = pendingFiles.insurance
+                ? await uploadFile(pendingFiles.insurance)
+                : profile?.insuranceDocument || null;
+
+            const licenseUrl = pendingFiles.license
+                ? await uploadFile(pendingFiles.license)
+                : profile?.licenseDocument || null;
+
+            // ✅ Step 2: Save to database
             const res = await fetch("/api/tradesperson/profile", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    verificationStatus: "PENDING_APPROVAL"
+                    verificationStatus: "PENDING_APPROVAL",
+                    idDocument: idUrl,
+                    insuranceDocument: insuranceUrl,
+                    licenseDocument: licenseUrl
                 })
             });
             if (res.ok) {
-                toast.success("Documents submitted");
+                toast.success("Documents submitted successfully!");
+                setPendingFiles({ id: null, license: null, insurance: null });
                 setCurrentStep(2);
+                if (refreshUser) await refreshUser();
+            } else {
+                toast.error("Submission failed. Please try again.");
             }
         } catch (err) {
-            toast.error("Submission failed");
+            console.error("submitDocs error:", err);
+            toast.error(err.message || "Submission failed");
         } finally {
             setLoading(false);
         }
@@ -311,13 +363,24 @@ function OnboardingContent() {
                                         <>
                                             <div>
                                                 <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
-                                                <input
-                                                    type="tel"
-                                                    value={phone}
-                                                    onChange={(e) => setPhone(e.target.value)}
-                                                    className="w-full px-5 py-3.5 md:py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-[#1149C7] outline-none text-base md:text-lg font-medium"
-                                                    placeholder="+1 234 567 890"
-                                                />
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        value={countryCode}
+                                                        onChange={(e) => setCountryCode(e.target.value)}
+                                                        className="w-24 md:w-32 px-2 py-3.5 md:py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-[#1149C7] outline-none text-sm md:text-base font-medium"
+                                                    >
+                                                        {countries.map(c => (
+                                                            <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
+                                                        ))}
+                                                    </select>
+                                                    <input
+                                                        type="tel"
+                                                        value={phone}
+                                                        onChange={(e) => setPhone(e.target.value)}
+                                                        className="flex-1 px-5 py-3.5 md:py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-[#1149C7] outline-none text-base md:text-lg font-medium"
+                                                        placeholder="234 567 890"
+                                                    />
+                                                </div>
                                             </div>
                                             <button
                                                 onClick={sendOtp}
@@ -365,16 +428,18 @@ function OnboardingContent() {
                             <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div>
                                     <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 text-center md:text-left">Upload Documents</h2>
-                                    <p className="text-sm md:text-base text-gray-500 text-center md:text-left">Please provide clear photos of your credentials (Only images accepted).</p>
+                                    <p className="text-sm md:text-base text-gray-500 text-center md:text-left">Please provide clear photos or documents (Images & PDF/Docs accepted).</p>
                                 </div>
 
                                 <div className="grid gap-4 md:gap-6">
                                     {[
-                                        { id: 'id', title: 'Government ID', subtitle: 'Images Only (License/Passport)', field: 'idDocument' },
-                                        { id: 'insurance', title: 'Insurance Certificate', subtitle: 'Images Only (Liability)', field: 'insuranceDocument' },
-                                        { id: 'license', title: 'Trade License', subtitle: 'Images Only (Optional)', field: 'licenseDocument' },
+                                        { id: 'id', title: 'Government ID', subtitle: 'Image or PDF (License/Passport)', field: 'idDocument' },
+                                        { id: 'insurance', title: 'Insurance Certificate', subtitle: 'Image or PDF (Liability)', field: 'insuranceDocument' },
+                                        { id: 'license', title: 'Trade License', subtitle: 'Image or PDF (Optional)', field: 'licenseDocument' },
                                     ].map((docType) => {
-                                        const isUploaded = !!docs[docType.id] || !!profile?.[docType.field];
+                                        const isPending = !!pendingFiles[docType.id]; // locally selected, not saved
+                                        const isSaved = !isPending && !!profile?.[docType.field]; // already in DB
+                                        const isAnySelected = isPending || isSaved;
                                         return (
                                             <div key={docType.id} className="relative group">
                                                 <input
@@ -382,24 +447,37 @@ function OnboardingContent() {
                                                     id={docType.id}
                                                     className="hidden"
                                                     onChange={(e) => handleFileUpload(e, docType.id)}
-                                                    accept="image/*"
+                                                    accept="image/*,.pdf,.doc,.docx"
                                                 />
                                                 <label
                                                     htmlFor={docType.id}
-                                                    className={`flex items-center gap-4 md:gap-5 p-4 md:p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${isUploaded ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-100 hover:border-blue-300 hover:bg-blue-50/30"
+                                                    className={`flex items-center gap-4 md:gap-5 p-4 md:p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${isSaved ? "bg-green-50 border-green-200" :
+                                                            isPending ? "bg-amber-50 border-amber-300" :
+                                                                "bg-gray-50 border-gray-100 hover:border-blue-300 hover:bg-blue-50/30"
                                                         }`}
                                                 >
-                                                    <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 ${isUploaded ? "bg-green-100 text-green-600" : "bg-white text-gray-400"
+                                                    <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 ${isSaved ? "bg-green-100 text-green-600" :
+                                                            isPending ? "bg-amber-100 text-amber-600" :
+                                                                "bg-white text-gray-400"
                                                         }`}>
-                                                        {isUploaded ? <CheckCircle size={24} className="md:w-[28px] md:h-[28px]" /> : <UploadCloud size={24} className="md:w-[28px] md:h-[28px]" />}
+                                                        {isSaved ? <CheckCircle size={24} className="md:w-[28px] md:h-[28px]" /> :
+                                                            isPending ? <CheckCircle size={24} className="md:w-[28px] md:h-[28px]" /> :
+                                                                <UploadCloud size={24} className="md:w-[28px] md:h-[28px]" />}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">{docType.title} {(docType.id === 'id' || docType.id === 'insurance') && <span className="text-red-500">*</span>}</h3>
-                                                        <p className="text-[10px] md:text-sm text-gray-500 truncate">{docType.subtitle}</p>
+                                                        <p className="text-[10px] md:text-sm text-gray-500 truncate">
+                                                            {isPending ? `${pendingFiles[docType.id].name} — ready to upload` : docType.subtitle}
+                                                        </p>
                                                     </div>
-                                                    {isUploaded && (
+                                                    {isSaved && (
                                                         <div className="text-[8px] md:text-xs font-bold text-green-600 bg-green-100 px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-tighter shrink-0">
-                                                            Done
+                                                            Saved ✓
+                                                        </div>
+                                                    )}
+                                                    {isPending && (
+                                                        <div className="text-[8px] md:text-xs font-bold text-amber-700 bg-amber-100 px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-tighter shrink-0">
+                                                            Ready
                                                         </div>
                                                     )}
                                                 </label>
@@ -411,10 +489,10 @@ function OnboardingContent() {
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <button
                                         onClick={submitDocs}
-                                        disabled={loading || !(docs.id || profile?.idDocument) || !(docs.insurance || profile?.insuranceDocument)}
+                                        disabled={loading || !(pendingFiles.id || profile?.idDocument) || !(pendingFiles.insurance || profile?.insuranceDocument)}
                                         className="flex-1 py-3.5 md:py-4 bg-[#1149C7] hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
                                     >
-                                        Save & Continue
+                                        {loading ? "Uploading & Saving..." : "Save & Continue"}
                                     </button>
                                     <button
                                         onClick={() => setCurrentStep(0)}

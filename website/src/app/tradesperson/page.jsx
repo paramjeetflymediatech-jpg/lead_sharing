@@ -191,7 +191,7 @@
 //                 {profile.profileImage ? (
 //                   <Image
 //                     src={profile.profileImage}
-//                     alt={profile.companyName || user.name}
+//                     alt={profile.company_name || profile.companyName || user.name}
 //                     fill
 //                     className="object-cover"
 //                     sizes="80px"
@@ -199,7 +199,7 @@
 //                 ) : (
 //                   <div className="w-full h-full bg-gradient-to-br from-[#155DFC] to-blue-400 flex items-center justify-center">
 //                     <span className="text-white text-2xl font-bold">
-//                       {getInitials(profile.companyName || user.name)}
+//                       {getInitials(profile.company_name || profile.companyName || user.name)}
 //                     </span>
 //                   </div>
 //                 )}
@@ -221,7 +221,7 @@
 //                 Business Portal
 //               </h1>
 //               <p className="text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
-//                 Hello, <span className="text-[#155DFC] font-bold">{profile.companyName || user.name || "Business"}</span>! Here are your latest opportunities.
+//                 Hello, <span className="text-[#155DFC] font-bold">{profile.company_name || profile.companyName || user.name || "Business"}</span>! Here are your latest opportunities.
 //               </p>
 
 //               {/* Quick Profile Info */}
@@ -619,6 +619,7 @@ import Image from "next/image";
 import { getCurrentUser } from "@/lib/serverAuth";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Lead } from "@/models/Lead";
+import db from "../../../config/db";
 import TradespersonJobsList from "./TradespersonJobsList";
 import {
   UserCircle,
@@ -647,11 +648,26 @@ export default async function TradespersonDashboard({ searchParams }) {
     redirect("/auth/login");
   }
 
-  // Fetch profile with all necessary fields
-  const profile = await TradespersonProfile.findOne({ user: user.id });
+  // Fetch profile from MySQL (source of truth)
+  const [profiles] = await db.query(
+    `SELECT * FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
+    [user.id]
+  );
+  const profile = profiles?.[0];
 
   if (!profile) {
     redirect("/tradesperson/setup");
+  }
+
+  // Parse JSON fields if they are strings
+  if (typeof profile.skills === 'string') {
+    try { profile.skills = JSON.parse(profile.skills); } catch (e) { profile.skills = []; }
+  }
+  if (typeof profile.serviceAreas === 'string') { // Check if it's serviceAreas or service_areas
+    try { profile.serviceAreas = JSON.parse(profile.serviceAreas); } catch (e) { profile.serviceAreas = []; }
+  } else if (typeof profile.service_areas === 'string') {
+    try { profile.service_areas = JSON.parse(profile.service_areas); } catch (e) { profile.service_areas = []; }
+    profile.serviceAreas = profile.service_areas;
   }
 
   // FIXED: Await searchParams before accessing it
@@ -659,53 +675,70 @@ export default async function TradespersonDashboard({ searchParams }) {
   const paymentSuccess = params?.payment === 'success';
 
   try {
-    const Job = (await import("@/models/Job")).default;
+    // Use MySQL to fetch open jobs
+    const [openJobs] = await db.query(
+      `SELECT j.id, j.description, j.start_time, j.job_stage, j.ownership,
+              j.budget_min, j.budget_max, j.created_at, j.city,
+              j.postcode,
+              c.name as category_name, sc.name as sub_category_name
+       FROM jobs j
+       LEFT JOIN categories c ON j.category_id = c.id
+       LEFT JOIN sub_categories sc ON j.sub_category_id = sc.id
+       WHERE j.status = 'OPEN'
+       ORDER BY j.created_at DESC`
+    );
 
-    // Simplified - get jobs without populate
-    const openJobs = await Job.find({ status: "OPEN" });
+    // Get the tradesperson's profile ID (needed to match leads.tradesperson_id)
+    const [tpProfiles] = await db.query(
+      `SELECT id FROM tradesperson_profiles WHERE user_id = ? LIMIT 1`,
+      [user.id]
+    );
+    const tpProfileId = tpProfiles?.[0]?.id || null;
 
-    // Safely map jobs with null checks
+    // Safely map jobs with MySQL-based lead info
     const jobsWithLeadInfo = await Promise.all(
       (openJobs || []).map(async (job) => {
         try {
-          // Count total leads for this job
-          const leadCount = await Lead.countDocuments({
-            job: job._id,
-            isUnlocked: true,
-          });
+          // Count total leads for this job (MySQL)
+          const [leadCountResult] = await db.query(
+            `SELECT COUNT(*) as count FROM leads WHERE job_id = ? AND is_unlocked = TRUE`,
+            [job.id]
+          );
+          const leadCount = leadCountResult[0]?.count || 0;
 
-          // Check if current tradesperson unlocked this job
-          // Note: leads table stores user_id in tradesperson_id column due to schema/logic mismatch
-          const myLead = await Lead.findOne({
-            job: job._id,
-            tradesperson: user.id,
-            isUnlocked: true,
-          });
-          const isUnlockedByMe = !!myLead;
+          // Check if THIS tradesperson already unlocked this job
+          let isUnlockedByMe = false;
+          if (tpProfileId) {
+            const [myLeads] = await db.query(
+              `SELECT id FROM leads WHERE job_id = ? AND tradesperson_id = ? AND is_unlocked = TRUE LIMIT 1`,
+              [job.id, tpProfileId]
+            );
+            isUnlockedByMe = myLeads && myLeads.length > 0;
+          }
 
           return {
-            id: job._id?.toString() || "",
-            category: job.category?.name || "Unknown Category",
-            subCategory: job.subCategory?.name || "Unknown Type",
+            id: job.id?.toString() || "",
+            category: job.category_name || "Unknown Category",
+            subCategory: job.sub_category_name || "Unknown Type",
             description: job.description || "No description available",
             location: {
-              postcode: job.location?.postcode || "",
-              city: job.location?.city || "",
+              postcode: job.postcode || "",
+              city: job.city || "",
             },
-            startTime: job.startTime || "FLEXIBLE",
-            jobStage: job.jobStage || "PLANNING",
+            startTime: job.start_time || "FLEXIBLE",
+            jobStage: job.job_stage || "PLANNING",
             ownership: job.ownership || "OWN",
-            budgetMin: job.budgetMin || 0,
-            budgetMax: job.budgetMax || 0,
-            createdAt: job.createdAt ? job.createdAt.toISOString() : null,
+            budgetMin: job.budget_min || 0,
+            budgetMax: job.budget_max || 0,
+            createdAt: job.created_at ? new Date(job.created_at).toISOString() : null,
             // Lead information
-            leadCount: leadCount || 0,
+            leadCount: leadCount,
             maxLeads: 3,
             isUnlockedByMe: isUnlockedByMe,
             canUnlock: (leadCount < 3) && !isUnlockedByMe,
           };
         } catch (error) {
-          console.error("Error processing job:", job._id, error);
+          console.error("Error processing job:", job.id, error);
           return null;
         }
       })
@@ -714,35 +747,40 @@ export default async function TradespersonDashboard({ searchParams }) {
     // Filter out any failed job processing
     const validJobs = jobsWithLeadInfo.filter((job) => job !== null);
 
-    // Get tradesperson's unlocked leads count
-    const activeLeadsCount = await Lead.countDocuments({
-      tradesperson: user.id,
-      isUnlocked: true,
-    });
+    // Get tradesperson's unlocked leads count (MySQL)
+    const [activeLeadsResult] = tpProfileId
+      ? await db.query(
+        `SELECT COUNT(*) as count FROM leads WHERE tradesperson_id = ? AND is_unlocked = TRUE`,
+        [tpProfileId]
+      )
+      : [[{ count: 0 }]];
+    const activeLeadsCount = activeLeadsResult[0]?.count || 0;
 
     // Get current month leads count
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const monthlyLeadsCount = await Lead.countDocuments({
-      tradesperson: user.id,
-      isUnlocked: true,
-      createdAt: { $gte: startOfMonth },
-    });
+    const [monthlyLeadsResult] = tpProfileId
+      ? await db.query(
+        `SELECT COUNT(*) as count FROM leads WHERE tradesperson_id = ? AND is_unlocked = TRUE AND created_at >= ?`,
+        [tpProfileId, startOfMonth]
+      )
+      : [[{ count: 0 }]];
+    const monthlyLeadsCount = monthlyLeadsResult[0]?.count || 0;
 
     // Calculate profile completion with image consideration
     const calculateProfileCompletion = () => {
       let completion = 15; // Base score
 
       // Field scoring
-      if (profile.companyName?.trim()) completion += 10;
-      if (profile.profileImage?.trim()) completion += 15; // Profile image weight
+      if (profile.company_name?.trim() || profile.companyName?.trim()) completion += 10;
+      if (profile.profile_image?.trim() || profile.profileImage?.trim()) completion += 15;
       if (profile.bio?.trim()) completion += 15;
       if (profile.phone?.trim()) completion += 10;
       if (profile.postcode?.trim()) completion += 10;
       if (profile.skills?.length > 0) completion += 15;
-      if (profile.serviceAreas?.length > 0) completion += 10;
+      if (profile.serviceAreas?.length > 0 || profile.service_areas?.length > 0) completion += 10;
 
       return Math.min(completion, 100);
     };
@@ -775,10 +813,10 @@ export default async function TradespersonDashboard({ searchParams }) {
             {/* Profile Image Section */}
             <div className="relative group">
               <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-4 border-white dark:border-zinc-900 shadow-lg">
-                {profile.profileImage ? (
+                {profile.profile_image || profile.profileImage ? (
                   <Image
-                    src={profile.profileImage}
-                    alt={profile.companyName || user.name}
+                    src={profile.profile_image || profile.profileImage}
+                    alt={profile.company_name || profile.company_name || profile.companyName || user.name}
                     fill
                     className="object-cover"
                     sizes="80px"
@@ -786,7 +824,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-[#155DFC] to-blue-400 flex items-center justify-center">
                     <span className="text-white text-2xl font-bold">
-                      {getInitials(profile.companyName || user.name)}
+                      {getInitials(profile.company_name || profile.company_name || profile.companyName || user.name)}
                     </span>
                   </div>
                 )}
@@ -808,7 +846,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                 Business Portal
               </h1>
               <p className="text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
-                Hello, <span className="text-[#155DFC] font-bold">{profile.companyName || user.name || "Business"}</span>! Here are your latest opportunities.
+                Hello, <span className="text-[#155DFC] font-bold">{profile.company_name || profile.company_name || profile.companyName || user.name || "Business"}</span>! Here are your latest opportunities.
               </p>
 
               {/* Quick Profile Info */}
@@ -927,7 +965,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                 </Link>
               </div>
               <div className="p-4">
-                <TradespersonJobsList jobs={validJobs} profileId={profile._id.toString()} />
+                <TradespersonJobsList jobs={validJobs} profileId={profile.id?.toString()} />
               </div>
             </div>
           </section>
@@ -958,7 +996,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-zinc-600 dark:text-zinc-400">Profile Image</span>
-                    <div className={`w-3 h-3 rounded-full ${profile.profileImage ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                    <div className={`w-3 h-3 rounded-full ${profile.profile_image || profile.profileImage ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-zinc-600 dark:text-zinc-400">Company Name</span>
@@ -1003,7 +1041,7 @@ export default async function TradespersonDashboard({ searchParams }) {
                 Pro Tip 💡
               </h3>
               <p className="text-sm text-zinc-400 font-medium leading-relaxed">
-                {!profile.profileImage
+                {!profile.profile_image || profile.profileImage
                   ? "Add a professional profile image to increase trust by 65%."
                   : "Fast responses (within 30 mins) increase win rates by 40%. Keep your notification bell on!"
                 }
@@ -1036,9 +1074,9 @@ export default async function TradespersonDashboard({ searchParams }) {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-xl overflow-hidden">
-                    {profile.profileImage ? (
+                    {profile.profile_image || profile.profileImage ? (
                       <Image
-                        src={profile.profileImage}
+                        src={profile.profile_image || profile.profileImage}
                         alt="Profile"
                         fill
                         className="object-cover"

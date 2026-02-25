@@ -277,7 +277,7 @@ function JobCard({ job, credits, navigation }) {
 
             <View style={styles.tapHint}>
                 {job.is_unlocked ? (
-                    <Text style={styles.unlockedText}>Unlocked</Text>
+                    <Text style={styles.unlockedText}>View Lead</Text>
                 ) : (
                     <Text style={styles.costText}>1 Credit</Text>
                 )}
@@ -562,8 +562,8 @@ const styles = StyleSheet.create({
     },
     unlockedText: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#10B981",
+        fontWeight: "700",
+        color: "#2563EB",
     },
     footerSpace: {
         height: 100, // Space for floating tab bar

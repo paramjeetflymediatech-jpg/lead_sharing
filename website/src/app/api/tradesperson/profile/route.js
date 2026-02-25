@@ -36,6 +36,7 @@ export async function GET(req) {
       `SELECT 
           tp.*,
           u.email,
+          u.phone as user_phone,
           u.phone_verified,
           u.name as user_name
         FROM tradesperson_profiles tp
@@ -69,6 +70,7 @@ export async function GET(req) {
         `SELECT 
           tp.*,
           u.email,
+          u.phone as user_phone,
           u.phone_verified,
           u.name as user_name
         FROM tradesperson_profiles tp
@@ -104,6 +106,7 @@ export async function GET(req) {
           ...profile,
           companyName: profile.company_name,
           profileImage: profile.profile_image,
+          phone: profile.phone || profile.user_phone,
           rejectionReason: profile.rejection_reason,
           serviceAreas: typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []),
           skills: typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []),
@@ -129,6 +132,7 @@ export async function GET(req) {
       ...profile,
       companyName: profile.company_name,
       profileImage: profile.profile_image,
+      phone: profile.phone || profile.user_phone,
       experienceYears: profile.experience_years,
       verificationStatus: profile.verification_status,
       rejectionReason: profile.rejection_reason,

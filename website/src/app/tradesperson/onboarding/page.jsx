@@ -65,6 +65,11 @@ export default function TradespersonOnboarding() {
                 const profileData = data.data;
                 setProfile(profileData);
                 setPhone(profileData.phone || "");
+                setDocs({
+                    id: profileData.idDocument || null,
+                    license: profileData.licenseDocument || null,
+                    insurance: profileData.insuranceDocument || null
+                });
 
                 // Logic to determine current step if not explicitly in URL
                 const urlStep = searchParams.get("step");
@@ -167,15 +172,6 @@ export default function TradespersonOnboarding() {
             if (data.url) {
                 setDocs(prev => ({ ...prev, [type]: data.url }));
                 toast.success(`${type.toUpperCase()} uploaded`);
-
-                // Save document path immediately to DB
-                await fetch("/api/tradesperson/profile", {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        [`${type}Document`]: data.url
-                    })
-                });
             }
         } catch (err) {
             toast.error("Upload failed");
@@ -195,12 +191,16 @@ export default function TradespersonOnboarding() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    verificationStatus: "IN_PROGRESS"
+                    verificationStatus: "PENDING_APPROVAL",
+                    idDocument: docs.id,
+                    insuranceDocument: docs.insurance,
+                    licenseDocument: docs.license
                 })
             });
             if (res.ok) {
                 toast.success("Documents submitted");
                 setCurrentStep(2);
+                if (refreshUser) await refreshUser();
             }
         } catch (err) {
             toast.error("Submission failed");

@@ -7,9 +7,11 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    Image,
 } from "react-native";
 import { Feather } from '@expo/vector-icons';
 import { homeownerAPI } from "../../services/api";
+import { API_BASE_URL } from "../../config/api";
 import { normalize, wp, hp } from "../../utils/responsive";
 import RatingModal from "../../components/RatingModal";
 
@@ -199,6 +201,16 @@ export default function JobDetailsScreen({ route, navigation }) {
         }
     };
 
+    // Normalize image URLs
+    const imageUrls = Array.isArray(job.media)
+        ? job.media.map((m) => (typeof m === "string" ? m : m && m.url)).filter(Boolean)
+        : [];
+    const fullImageUrls = imageUrls.map((url) =>
+        url && url.startsWith("http")
+            ? url
+            : `${API_BASE_URL.replace(/\/$/, "")}${url && url.startsWith("/") ? url : "/" + (url || "")}`
+    );
+
     return (
         <ScrollView style={styles.container}>
             {/* Job Header */}
@@ -208,6 +220,23 @@ export default function JobDetailsScreen({ route, navigation }) {
                 </View>
                 <Text style={styles.title}>{job.description}</Text>
             </View>
+
+            {/* Job Photos */}
+            {fullImageUrls.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Photos</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesScroll}>
+                        {fullImageUrls.map((uri, index) => (
+                            <Image
+                                key={index}
+                                source={{ uri }}
+                                style={styles.jobImage}
+                                resizeMode="cover"
+                            />
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
 
             {/* Job Details */}
             <View style={styles.card}>
@@ -511,6 +540,16 @@ const styles = StyleSheet.create({
         fontSize: normalize(14),
         color: "#6B7280",
         textAlign: "center",
+    },
+    imagesScroll: {
+        marginTop: hp(0.5),
+    },
+    jobImage: {
+        width: wp(80),
+        height: wp(60),
+        borderRadius: wp(3),
+        backgroundColor: "#E5E7EB",
+        marginRight: wp(3),
     },
     leadCard: {
         backgroundColor: "#FFFFFF",

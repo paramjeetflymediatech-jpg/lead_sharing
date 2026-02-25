@@ -13,6 +13,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { normalize, wp, hp } from "../../utils/responsive";
 import { tradespersonAPI, uploadAPI, authAPI } from "../../services/api";
@@ -20,94 +22,94 @@ import { useAuth } from "../../context/AuthContext";
 
 const STEPS = [
     { id: "verify", title: "Phone", icon: "smartphone" },
-    { id: "docs", title: "Verify", icon: "file-text" },
-    { id: "bank", title: "Bank", icon: "credit-card" },
-    { id: "pending", title: "Final", icon: "clock" },
+    { id: "docs", title: "Documents", icon: "file-text" },
+    { id: "pending", title: "Review", icon: "clock" },
 ];
 
 export default function OnboardingScreen({ navigation }) {
     const { user, updateUser, login, logout } = useAuth();
     const [currentStep, setCurrentStep] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [profileData, setProfileData] = useState(null);
 
+    // Step 0 — Phone
     const [phone, setPhone] = useState("");
+    const [countryCode, setCountryCode] = useState("+1");
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
 
-    const [docs, setDocs] = useState({
-        id: null,
-        license: null,
-        insurance: null,
-        profileImage: null,
-    });
+    const countries = [
+        { label: "CA/US (+1)", value: "+1" },
+        { label: "UK (+44)", value: "+44" },
+        { label: "AU (+61)", value: "+61" },
+        { label: "IN (+91)", value: "+91" },
+    ];
+
+    // Step 1 — Documents
+    // pendingFiles: local File objects (not yet uploaded)
+    // savedDocs:    URLs already in the DB
+    const [pendingFiles, setPendingFiles] = useState({ id: null, license: null, insurance: null });
+    const [savedDocs, setSavedDocs] = useState({ id: null, license: null, insurance: null });
+
+    // Step 2 — Rejection
     const [rejectionReason, setRejectionReason] = useState("");
+
+    /* ─────────────────── FETCH PROFILE ─────────────────── */
 
     useEffect(() => {
         fetchProfile();
     }, []);
 
     const fetchProfile = async () => {
-        console.log("[Onboarding] Fetching profile...");
         setLoading(true);
         try {
             const res = await tradespersonAPI.getProfile();
-            console.log("[Onboarding] Profile Response:", JSON.stringify(res));
             if (res.success) {
-                const profile = res.data;
-                console.log("[Onboarding] Verification Status:", profile.verificationStatus);
+                const p = res.data;
+                setProfileData(p);
+                setPhone(p.phone || "");
 
-                setPhone(profile.phone || "");
-
-                if (profile.verificationStatus === "REJECTED") {
-                    setRejectionReason(profile.rejectionReason || "Please verify your documents.");
-                    setCurrentStep(3);
-                } else if (profile.verificationStatus === "APPROVED") {
-                    console.log("[Onboarding] Status is APPROVED, updating user state...");
-                    Alert.alert("Status Approved", "Your account is approved! Redirecting...");
-                    await updateUser({ verificationStatus: "APPROVED" });
-                    console.log("[Onboarding] User state updated, attempting navigation...");
-                    // Explicitly navigate if the context update doesn't trigger it fast enough
-                    navigation.replace("TradespersonDashboard");
-                } else if (profile.verificationStatus === "PENDING_APPROVAL") {
-                    Alert.alert("Status", "Current status: " + profile.verificationStatus);
-                    setCurrentStep(3);
-                } else {
-                    Alert.alert("Status", "Current status: " + (profile.verificationStatus || "NOT_STARTED"));
-                }
-
-                // Sync existing docs if any
-                setDocs({
-                    id: profile.idDocument || null,
-                    license: profile.licenseDocument || null,
-                    insurance: profile.insuranceDocument || null,
-                    profileImage: profile.profileImage || null,
+                // Sync already-saved docs from DB (do NOT treat as pending)
+                setSavedDocs({
+                    id: p.idDocument || null,
+                    license: p.licenseDocument || null,
+                    insurance: p.insuranceDocument || null,
                 });
 
-                if (profile.payoutsEnabled) {
-                    setCurrentStep(3);
-                } else if (profile.idDocument && profile.insuranceDocument && profile.licenseDocument) {
+                // Determine step (no annoying alert popups)
+                if (p.verificationStatus === "APPROVED") {
+                    await updateUser({ verificationStatus: "APPROVED" });
+                    navigation.replace("TradespersonDashboard");
+                    return;
+                } else if (p.verificationStatus === "REJECTED") {
+                    setRejectionReason(p.rejectionReason || "Please correct your documents and re-submit.");
                     setCurrentStep(2);
-                } else if (profile.phoneVerified) {
+                } else if (p.verificationStatus === "PENDING_APPROVAL") {
+                    setCurrentStep(2);
+                } else if (p.idDocument && p.insuranceDocument) {
+                    setCurrentStep(2);
+                } else if (p.phoneVerified) {
                     setCurrentStep(1);
                 }
+                // else stay on step 0
             }
         } catch (err) {
             console.log("Fetch profile error:", err);
-            Alert.alert("Connection Error", "Could not fetch profile: " + err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    /* ---------------- OTP ---------------- */
+    /* ─────────────────── STEP 0: OTP ─────────────────── */
 
     const handleSendOtp = async () => {
-        if (!phone) return Alert.alert("Error", "Enter phone number");
+        if (!phone) return Alert.alert("Error", "Please enter your phone number");
+        const fullPhone = phone.startsWith("+") ? phone : `${countryCode}${phone}`;
         setLoading(true);
         try {
-            await authAPI.sendOTP({ phone });
+            await authAPI.sendOTP({ phone: fullPhone });
             setOtpSent(true);
-            Alert.alert("Success", "Verification code sent!");
+            Alert.alert("Code Sent", "A 6-digit verification code has been sent to your phone.");
         } catch (err) {
             Alert.alert("Error", err.message || "Failed to send OTP");
         } finally {
@@ -116,164 +118,192 @@ export default function OnboardingScreen({ navigation }) {
     };
 
     const handleVerifyOtp = async () => {
-        if (otp.length < 6)
-            return Alert.alert("Error", "Enter 6-digit verification code");
-
+        if (otp.length < 6) return Alert.alert("Error", "Please enter the 6-digit code");
         setLoading(true);
         try {
             const data = await authAPI.verifyOTP({ otp });
             if (data.token) {
-                // Refresh local session with the new promoted user ID
                 await login({
                     token: data.token,
                     id: data.id,
                     email: data.email,
                     role: data.role,
                     name: data.name,
+                    phone: data.phone,
                     verificationStatus: data.verificationStatus || "NOT_STARTED",
                 });
             } else {
-                await updateUser({ phoneVerified: true });
+                await updateUser({ phoneVerified: true, phone: data.phone });
             }
             setCurrentStep(1);
         } catch (err) {
-            Alert.alert("Error", "Invalid verification code");
+            Alert.alert("Error", "Invalid verification code. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
-    /* ---------------- Upload ---------------- */
+    /* ─────────────────── STEP 1: PICK FILES (LOCAL ONLY) ─────────────────── */
 
-    const handleDocumentUpload = async (type) => {
+    const handlePickDocument = (type) => {
         Alert.alert(
-            "Select Source",
-            "How would you like to upload your document?",
+            "Select Document",
+            "Choose how to upload your document",
             [
-                { text: "Take Photo", onPress: () => pickImage(type, "camera") },
-                { text: "Choose from Gallery", onPress: () => pickImage(type, "gallery") },
-                { text: "Cancel", style: "cancel" }
+                { text: "📷 Take Photo", onPress: () => pickImage(type, "camera") },
+                { text: "🖼 Choose from Gallery", onPress: () => pickImage(type, "gallery") },
+                { text: "📄 Upload PDF/Doc", onPress: () => pickDocument(type) },
+                { text: "Cancel", style: "cancel" },
             ]
         );
     };
 
     const pickImage = async (type, source) => {
         let result;
-
         if (source === "camera") {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
-            if (status !== "granted") {
-                return Alert.alert("Permission Required", "Camera access needed");
-            }
-            result = await ImagePicker.launchCameraAsync({
-                quality: 0.7,
-                allowsEditing: true,
-            });
+            if (status !== "granted") return Alert.alert("Permission Required", "Camera access is needed");
+            result = await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: true });
         } else {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== "granted") {
-                return Alert.alert("Permission Required", "Gallery access needed");
-            }
-            result = await ImagePicker.launchImageLibraryAsync({
-                quality: 0.7,
-                allowsEditing: true,
-            });
+            if (status !== "granted") return Alert.alert("Permission Required", "Gallery access is needed");
+            result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsEditing: true });
         }
 
         if (!result.canceled) {
-            setLoading(true);
-            try {
-                const imageFile = {
-                    uri: result.assets[0].uri,
-                    name: `${type}.jpg`,
-                    type: "image/jpeg",
-                };
-
-                const uploadResult = await uploadAPI.uploadImage(imageFile);
-                setDocs((prev) => ({ ...prev, [type]: uploadResult.url }));
-            } catch (err) {
-                Alert.alert("Upload Error", "Failed to upload image");
-            } finally {
-                setLoading(false);
+            const asset = result.assets[0];
+            if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+                return Alert.alert("File Too Large", "Maximum image size is 5MB");
             }
+            // ✅ Store locally — no upload yet
+            setPendingFiles(prev => ({
+                ...prev,
+                [type]: { uri: asset.uri, name: `${type}.jpg`, type: "image/jpeg", isImage: true }
+            }));
         }
     };
 
-    /* ---------------- Next Step ---------------- */
+    const pickDocument = async (type) => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: [
+                    "application/pdf",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                ],
+                copyToCacheDirectory: true,
+            });
 
-    const handleNext = async () => {
-        if (currentStep === 1) {
-            if (!docs.id || !docs.insurance || !docs.license)
-                return Alert.alert("Required", "Upload all required documents (ID, License, Insurance)");
-
-            setLoading(true);
-            try {
-                await tradespersonAPI.updateProfile({
-                    idDocument: docs.id,
-                    licenseDocument: docs.license,
-                    insuranceDocument: docs.insurance,
-                    profileImage: docs.profileImage, // Include profile image if uploaded
-                    verificationStatus: "PENDING_APPROVAL",
-                });
-
-                await updateUser({ verificationStatus: "PENDING_APPROVAL" });
-                setCurrentStep(2);
-            } catch (err) {
-                Alert.alert("Error", "Failed to save documents");
-            } finally {
-                setLoading(false);
+            if (!result.canceled) {
+                const asset = result.assets[0];
+                if (asset.size > 10 * 1024 * 1024) {
+                    return Alert.alert("File Too Large", "Maximum document size is 10MB");
+                }
+                // ✅ Store locally — no upload yet
+                setPendingFiles(prev => ({
+                    ...prev,
+                    [type]: { uri: asset.uri, name: asset.name, type: asset.mimeType, isImage: false }
+                }));
             }
-        } else if (currentStep === 2) {
-            setLoading(true);
-            try {
-                await tradespersonAPI.updateProfile({
-                    verificationStatus: "PENDING_APPROVAL",
-                });
-
-                await updateUser({ verificationStatus: "PENDING_APPROVAL" });
-                setRejectionReason("");
-                setCurrentStep(3);
-            } catch (err) {
-                Alert.alert("Error", "Submission failed");
-            } finally {
-                setLoading(false);
-            }
+        } catch (err) {
+            console.log("Document picker error:", err);
+            Alert.alert("Error", "Could not open document picker");
         }
     };
 
-    const handleReSubmit = async () => {
+    /* ─────────────────── STEP 1: SUBMIT (UPLOAD + SAVE) ─────────────────── */
+
+    const submitDocuments = async () => {
+        const hasId = pendingFiles.id || savedDocs.id;
+        const hasInsurance = pendingFiles.insurance || savedDocs.insurance;
+
+        if (!hasId) return Alert.alert("Required", "Please upload your Government ID");
+        if (!hasInsurance) return Alert.alert("Required", "Please upload your Insurance Certificate");
+
         setLoading(true);
         try {
+            // Upload each pending file to the server NOW
+            const uploadFile = async (fileObj) => {
+                if (!fileObj) return null;
+                const result = await uploadAPI.uploadImage(fileObj);
+                return result.url;
+            };
+
+            const idUrl = pendingFiles.id ? await uploadFile(pendingFiles.id) : savedDocs.id;
+            const insuranceUrl = pendingFiles.insurance ? await uploadFile(pendingFiles.insurance) : savedDocs.insurance;
+            const licenseUrl = pendingFiles.license ? await uploadFile(pendingFiles.license) : savedDocs.license;
+
+            // Save to database
             await tradespersonAPI.updateProfile({
-                verificationStatus: "NOT_STARTED",
+                idDocument: idUrl,
+                insuranceDocument: insuranceUrl,
+                licenseDocument: licenseUrl,
+                verificationStatus: "PENDING_APPROVAL",
             });
-            setRejectionReason("");
-            setCurrentStep(1);
+
+            await updateUser({ verificationStatus: "PENDING_APPROVAL" });
+
+            // Clear pending
+            setPendingFiles({ id: null, license: null, insurance: null });
+            setSavedDocs({ id: idUrl, license: licenseUrl, insurance: insuranceUrl });
+
+            setCurrentStep(2);
         } catch (err) {
-            Alert.alert("Error", "Failed to reset status");
+            console.log("Submit error:", err);
+            Alert.alert("Error", "Failed to upload documents. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
-    /* ================================================= */
+    /* ─────────────────── STEP 2: RE-SUBMIT ─────────────────── */
+
+    const handleReSubmit = async () => {
+        setLoading(true);
+        try {
+            await tradespersonAPI.updateProfile({ verificationStatus: "NOT_STARTED" });
+            setRejectionReason("");
+            setPendingFiles({ id: null, license: null, insurance: null });
+            setSavedDocs({ id: null, license: null, insurance: null });
+            setCurrentStep(1);
+        } catch (err) {
+            Alert.alert("Error", "Failed to reset. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /* ─────────────────── HELPERS ─────────────────── */
+
+    const getDocState = (type) => {
+        if (pendingFiles[type]) return "pending";   // locally selected
+        if (savedDocs[type]) return "saved";     // in DB
+        return "empty";
+    };
+
+    const getDocLabel = (type, defaultLabel) => {
+        if (pendingFiles[type]) {
+            const name = pendingFiles[type].name || "";
+            return name.length > 28 ? name.substring(0, 25) + "..." : name;
+        }
+        if (savedDocs[type]) return "✓ Already uploaded";
+        return defaultLabel;
+    };
+
+    /* ─────────────────── RENDER ─────────────────── */
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+
                 {/* HEADER */}
                 <View style={styles.header}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.headerTitle}>Account Setup</Text>
-                            <Text style={styles.headerSubtitle}>
-                                Complete all steps to activate your trades account
-                            </Text>
+                            <Text style={styles.headerSubtitle}>Complete all steps to activate your account</Text>
                         </View>
-                        <TouchableOpacity
-                            onPress={logout}
-                            style={{ padding: 8, marginTop: -5 }}
-                        >
+                        <TouchableOpacity onPress={logout} style={{ padding: 8, marginTop: -4 }}>
                             <Feather name="log-out" size={20} color="#EF4444" />
                         </TouchableOpacity>
                     </View>
@@ -283,196 +313,233 @@ export default function OnboardingScreen({ navigation }) {
                 <View style={styles.stepperContainer}>
                     {STEPS.map((step, idx) => (
                         <View key={step.id} style={styles.stepWrapper}>
-                            <View
-                                style={[
-                                    styles.stepIcon,
-                                    currentStep === idx && styles.stepIconActive,
-                                    currentStep > idx && styles.stepIconDone,
-                                ]}
-                            >
+                            <View style={[
+                                styles.stepIcon,
+                                currentStep === idx && styles.stepIconActive,
+                                currentStep > idx && styles.stepIconDone,
+                            ]}>
                                 <Feather
                                     name={currentStep > idx ? "check" : step.icon}
                                     size={18}
                                     color={currentStep >= idx ? "#FFF" : "#9CA3AF"}
                                 />
                             </View>
-                            <Text style={styles.stepLabel}>{step.title}</Text>
+                            <Text style={[styles.stepLabel, currentStep === idx && { color: "#2563EB" }]}>
+                                {step.title}
+                            </Text>
                         </View>
                     ))}
                 </View>
 
                 <View style={styles.content}>
-                    {/* STEP 0 */}
+
+                    {/* ══════ STEP 0: Phone Verification ══════ */}
                     {currentStep === 0 && (
                         <View style={styles.card}>
-                            <Text style={styles.cardTitle}>Phone Verification</Text>
+                            <View style={styles.iconCircle}>
+                                <Feather name="smartphone" size={32} color="#2563EB" />
+                            </View>
+                            <Text style={styles.cardTitle}>Verify Phone Number</Text>
                             <Text style={styles.cardDesc}>
-                                We’ll send you a secure login code.
+                                We'll send a 6-digit code to confirm your contact details.
                             </Text>
 
-                            <View style={styles.inputWrapper}>
-                                <Feather
-                                    name={otpSent ? "lock" : "phone"}
-                                    size={20}
-                                    color="#9CA3AF"
-                                />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder={
-                                        otpSent
-                                            ? "Enter 6-digit Code"
-                                            : "Enter Phone Number"
-                                    }
-                                    keyboardType={otpSent ? "numeric" : "phone-pad"}
-                                    maxLength={otpSent ? 6 : undefined}
-                                    value={otpSent ? otp : phone}
-                                    onChangeText={otpSent ? setOtp : setPhone}
-                                />
-                            </View>
+                            {!otpSent ? (
+                                <>
+                                    <View style={styles.pickerWrapper}>
+                                        <Picker
+                                            selectedValue={countryCode}
+                                            style={styles.picker}
+                                            onValueChange={(val) => setCountryCode(val)}
+                                        >
+                                            {countries.map(c => (
+                                                <Picker.Item key={c.value} label={c.label} value={c.value} />
+                                            ))}
+                                        </Picker>
+                                    </View>
 
-                            <TouchableOpacity
-                                onPress={otpSent ? handleVerifyOtp : handleSendOtp}
-                                disabled={loading}
-                            >
-                                <LinearGradient
-                                    colors={["#2563EB", "#1D4ED8"]}
-                                    style={styles.primaryButton}
-                                >
-                                    {loading ? (
-                                        <ActivityIndicator color="#FFF" />
-                                    ) : (
-                                        <Text style={styles.buttonText}>
-                                            {otpSent ? "Verify & Continue" : "Send OTP"}
-                                        </Text>
-                                    )}
-                                </LinearGradient>
-                            </TouchableOpacity>
+                                    <View style={styles.inputWrapper}>
+                                        <Feather name="phone" size={20} color="#9CA3AF" />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Phone number"
+                                            keyboardType="phone-pad"
+                                            value={phone}
+                                            onChangeText={setPhone}
+                                        />
+                                    </View>
+
+                                    <TouchableOpacity onPress={handleSendOtp} disabled={loading || !phone}>
+                                        <LinearGradient
+                                            colors={phone ? ["#2563EB", "#1D4ED8"] : ["#9CA3AF", "#9CA3AF"]}
+                                            style={styles.primaryButton}
+                                        >
+                                            {loading
+                                                ? <ActivityIndicator color="#FFF" />
+                                                : <Text style={styles.buttonText}>Send Verification Code</Text>
+                                            }
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </>
+                            ) : (
+                                <>
+                                    <View style={styles.inputWrapper}>
+                                        <Feather name="lock" size={20} color="#9CA3AF" />
+                                        <TextInput
+                                            style={[styles.input, { letterSpacing: 6, textAlign: "center" }]}
+                                            placeholder="000000"
+                                            keyboardType="numeric"
+                                            maxLength={6}
+                                            value={otp}
+                                            onChangeText={setOtp}
+                                        />
+                                    </View>
+
+                                    <TouchableOpacity onPress={handleVerifyOtp} disabled={loading || otp.length < 6}>
+                                        <LinearGradient
+                                            colors={otp.length === 6 ? ["#2563EB", "#1D4ED8"] : ["#9CA3AF", "#9CA3AF"]}
+                                            style={styles.primaryButton}
+                                        >
+                                            {loading
+                                                ? <ActivityIndicator color="#FFF" />
+                                                : <Text style={styles.buttonText}>Verify & Continue</Text>
+                                            }
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={{ alignItems: "center", marginTop: 14 }}
+                                        onPress={() => { setOtpSent(false); setOtp(""); }}
+                                    >
+                                        <Text style={styles.linkText}>Use a different number</Text>
+                                    </TouchableOpacity>
+                                </>
+                            )}
                         </View>
                     )}
 
-                    {/* STEP 1 */}
+                    {/* ══════ STEP 1: Document Upload ══════ */}
                     {currentStep === 1 && (
                         <View style={styles.card}>
-                            <Text style={styles.cardTitle}>
-                                Account Setup
-                            </Text>
-
-
-                            <View style={styles.divider} />
-
-                            <Text style={styles.sectionTitle}>
-                                Verification Documents
+                            <Text style={styles.cardTitle}>Upload Documents</Text>
+                            <Text style={styles.cardDesc}>
+                                Select your files below. They will be uploaded when you tap "Submit Documents".
                             </Text>
 
                             {[
-                                { id: "id", label: "Government ID" },
-                                { id: "license", label: "Trade License" },
-                                { id: "insurance", label: "Insurance Certificate" },
-                            ].map((doc) => (
-                                <TouchableOpacity
-                                    key={doc.id}
-                                    style={[
-                                        styles.uploadBox,
-                                        docs[doc.id] && styles.uploadBoxDone,
-                                    ]}
-                                    onPress={() => handleDocumentUpload(doc.id)}
-                                >
-                                    <View style={styles.uploadInfo}>
-                                        <Feather
-                                            name={docs[doc.id] ? "check-circle" : "camera"}
-                                            size={22}
-                                            color={docs[doc.id] ? "#10B981" : "#2563EB"}
-                                        />
-                                        <Text style={styles.uploadLabel}>
-                                            {doc.label}
-                                        </Text>
-                                    </View>
+                                { id: "id", label: "Government ID *", subtitle: "License / Passport" },
+                                { id: "insurance", label: "Insurance Certificate *", subtitle: "Liability insurance" },
+                                { id: "license", label: "Trade License", subtitle: "Optional" },
+                            ].map((doc) => {
+                                const state = getDocState(doc.id);
+                                const isPending = state === "pending";
+                                const isSaved = state === "saved";
 
-                                    {docs[doc.id] && (
-                                        <Image
-                                            source={{ uri: docs[doc.id] }}
-                                            style={styles.previewThumb}
-                                        />
-                                    )}
-                                </TouchableOpacity>
-                            ))}
+                                return (
+                                    <TouchableOpacity
+                                        key={doc.id}
+                                        style={[
+                                            styles.uploadBox,
+                                            isSaved && styles.uploadBoxSaved,
+                                            isPending && styles.uploadBoxPending,
+                                        ]}
+                                        onPress={() => handlePickDocument(doc.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View style={styles.uploadInfo}>
+                                            <View style={[
+                                                styles.uploadIconCircle,
+                                                isSaved && { backgroundColor: "#D1FAE5" },
+                                                isPending && { backgroundColor: "#FEF3C7" },
+                                            ]}>
+                                                <Feather
+                                                    name={isSaved ? "check-circle" : isPending ? "file" : "upload"}
+                                                    size={20}
+                                                    color={isSaved ? "#10B981" : isPending ? "#D97706" : "#2563EB"}
+                                                />
+                                            </View>
+                                            <View style={{ flex: 1, marginLeft: 12 }}>
+                                                <Text style={styles.uploadLabel}>{doc.label}</Text>
+                                                <Text style={styles.uploadSub} numberOfLines={1}>
+                                                    {getDocLabel(doc.id, doc.subtitle)}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {/* Badge */}
+                                        <View style={[
+                                            styles.badge,
+                                            isSaved && { backgroundColor: "#D1FAE5" },
+                                            isPending && { backgroundColor: "#FEF3C7" },
+                                        ]}>
+                                            <Text style={[
+                                                styles.badgeText,
+                                                isSaved && { color: "#059669" },
+                                                isPending && { color: "#D97706" },
+                                            ]}>
+                                                {isSaved ? "Saved" : isPending ? "Ready" : "Tap to add"}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+
+                            {/* Info banner */}
+                            <View style={styles.infoBanner}>
+                                <Feather name="info" size={14} color="#3B82F6" style={{ marginTop: 1 }} />
+                                <Text style={styles.infoText}>
+                                    Files are uploaded only when you tap "Submit Documents"
+                                </Text>
+                            </View>
 
                             <TouchableOpacity
-                                onPress={handleNext}
-                                disabled={!docs.id || !docs.insurance || !docs.license}
+                                onPress={submitDocuments}
+                                disabled={loading || (
+                                    !(pendingFiles.id || savedDocs.id) ||
+                                    !(pendingFiles.insurance || savedDocs.insurance)
+                                )}
+                                style={{ marginTop: 8 }}
                             >
                                 <LinearGradient
                                     colors={
-                                        docs.id && docs.insurance && docs.license
+                                        (pendingFiles.id || savedDocs.id) && (pendingFiles.insurance || savedDocs.insurance)
                                             ? ["#2563EB", "#1D4ED8"]
                                             : ["#9CA3AF", "#9CA3AF"]
                                     }
                                     style={styles.primaryButton}
                                 >
-                                    <Text style={styles.buttonText}>
-                                        Submit Documents
-                                    </Text>
+                                    {loading
+                                        ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                                            <ActivityIndicator color="#FFF" />
+                                            <Text style={styles.buttonText}>Uploading & Saving...</Text>
+                                        </View>
+                                        : <Text style={styles.buttonText}>Submit Documents</Text>
+                                    }
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
                     )}
 
-                    {/* STEP 2 */}
+                    {/* ══════ STEP 2: Pending / Rejected ══════ */}
                     {currentStep === 2 && (
-                        <View style={styles.card}>
-                            <View style={styles.iconCircle}>
-                                <Feather
-                                    name="credit-card"
-                                    size={32}
-                                    color="#2563EB"
-                                />
-                            </View>
-
-                            <Text style={styles.cardTitle}>
-                                Connect Bank Account
-                            </Text>
-
-                            <Text style={styles.cardDesc}>
-                                Secure payouts powered by Stripe.
-                            </Text>
-
-                            <TouchableOpacity style={styles.stripeButton}>
-                                <Text style={styles.stripeText}>
-                                    Setup with Stripe
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.skipButton}
-                                onPress={handleNext}
-                            >
-                                <Text style={styles.skipText}>
-                                    Skip for Now & Submit
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* STEP 3 */}
-                    {currentStep === 3 && (
                         <View style={[styles.card, { alignItems: "center" }]}>
                             {rejectionReason ? (
                                 <>
                                     <View style={[styles.iconCircle, { backgroundColor: "#FEE2E2" }]}>
-                                        <Feather name="x-circle" size={44} color="#EF4444" />
+                                        <Feather name="x-circle" size={40} color="#EF4444" />
                                     </View>
-                                    <Text style={[styles.cardTitle, { color: "#EF4444" }]}>
+                                    <Text style={[styles.cardTitle, { color: "#EF4444", textAlign: "center" }]}>
                                         Verification Rejected
                                     </Text>
                                     <Text style={[styles.cardDesc, { textAlign: "center" }]}>
-                                        Unfortunately, your verification was not successful.
+                                        Your application was not successful. Please review the reason below and re-submit.
                                     </Text>
 
                                     <View style={styles.rejectionBox}>
                                         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-                                            <Feather name="alert-circle" size={18} color="#991B1B" style={{ marginTop: 2, marginRight: 8 }} />
+                                            <Feather name="alert-circle" size={16} color="#991B1B" style={{ marginTop: 2, marginRight: 8 }} />
                                             <View style={{ flex: 1 }}>
-                                                <Text style={styles.rejectionLabel}>Reason for Rejection:</Text>
+                                                <Text style={styles.rejectionLabel}>Reason:</Text>
                                                 <Text style={styles.rejectionText}>"{rejectionReason}"</Text>
                                             </View>
                                         </View>
@@ -483,132 +550,127 @@ export default function OnboardingScreen({ navigation }) {
                                         disabled={loading}
                                         style={{ width: "100%", marginTop: hp(2) }}
                                     >
-                                        <LinearGradient
-                                            colors={["#EF4444", "#DC2626"]}
-                                            style={styles.primaryButton}
-                                        >
-                                            {loading ? (
-                                                <ActivityIndicator color="#FFF" />
-                                            ) : (
-                                                <Text style={styles.buttonText}>Fix & Re-submit</Text>
-                                            )}
+                                        <LinearGradient colors={["#EF4444", "#DC2626"]} style={styles.primaryButton}>
+                                            {loading
+                                                ? <ActivityIndicator color="#FFF" />
+                                                : <Text style={styles.buttonText}>Fix & Re-submit Documents</Text>
+                                            }
                                         </LinearGradient>
                                     </TouchableOpacity>
 
-                                    <TouchableOpacity
-                                        onPress={fetchProfile}
-                                        style={{ marginTop: 15 }}
-                                    >
-                                        <Text style={styles.skipText}>Check Verification Status</Text>
+                                    <TouchableOpacity onPress={fetchProfile} style={{ marginTop: 16 }}>
+                                        <Text style={styles.linkText}>Refresh Status</Text>
                                     </TouchableOpacity>
                                 </>
                             ) : (
                                 <>
-                                    <View style={styles.iconCircle}>
+                                    <View style={[styles.iconCircle, { backgroundColor: "#FEF3C7" }]}>
                                         <Feather name="clock" size={40} color="#F59E0B" />
                                     </View>
-
-                                    <Text style={styles.cardTitle}>
-                                        Application Submitted!
-                                    </Text>
-
+                                    <Text style={[styles.cardTitle, { textAlign: "center" }]}>Under Review</Text>
                                     <Text style={[styles.cardDesc, { textAlign: "center" }]}>
-                                        Our team will review your documents within 48 hours.
+                                        Your application is being reviewed by our team. This usually takes 24–48 hours.
                                     </Text>
+
+                                    <View style={styles.infoBanner}>
+                                        <Feather name="mail" size={14} color="#3B82F6" style={{ marginTop: 1 }} />
+                                        <Text style={styles.infoText}>
+                                            We'll email you at <Text style={{ fontWeight: "bold" }}>{user?.email}</Text> once reviewed.
+                                        </Text>
+                                    </View>
 
                                     <TouchableOpacity
                                         onPress={fetchProfile}
-                                        style={{ width: "100%" }}
+                                        disabled={loading}
+                                        style={{ width: "100%", marginTop: hp(2) }}
                                     >
-                                        <LinearGradient
-                                            colors={["#2563EB", "#1D4ED8"]}
-                                            style={styles.primaryButton}
-                                        >
-                                            <Text style={styles.buttonText}>
-                                                Refresh Status
-                                            </Text>
+                                        <LinearGradient colors={["#2563EB", "#1D4ED8"]} style={styles.primaryButton}>
+                                            {loading
+                                                ? <ActivityIndicator color="#FFF" />
+                                                : <Text style={styles.buttonText}>Refresh Status</Text>
+                                            }
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </>
                             )}
                         </View>
                     )}
+
                 </View>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
-/* ================== STYLES ================== */
+/* ══════════════════════ STYLES ══════════════════════ */
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#F3F4F6" },
 
     header: {
         paddingHorizontal: wp(6),
-        paddingTop: hp(5),
+        paddingTop: hp(4),
         paddingBottom: hp(2),
     },
-
-    headerTitle: {
-        fontSize: normalize(30),
-        fontWeight: "900",
-        color: "#111827",
-    },
-
-    headerSubtitle: {
-        fontSize: normalize(15),
-        color: "#6B7280",
-        marginTop: 6,
-    },
+    headerTitle: { fontSize: normalize(28), fontWeight: "900", color: "#111827" },
+    headerSubtitle: { fontSize: normalize(14), color: "#6B7280", marginTop: 4 },
 
     stepperContainer: {
         flexDirection: "row",
         justifyContent: "space-around",
         marginVertical: hp(2),
+        paddingHorizontal: wp(4),
     },
-
     stepWrapper: { alignItems: "center" },
-
     stepIcon: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
+        width: 44, height: 44, borderRadius: 22,
         backgroundColor: "#E5E7EB",
-        alignItems: "center",
-        justifyContent: "center",
+        alignItems: "center", justifyContent: "center",
     },
-
     stepIconActive: { backgroundColor: "#2563EB" },
     stepIconDone: { backgroundColor: "#10B981" },
-
     stepLabel: {
         marginTop: 6,
-        fontSize: normalize(12),
-        fontWeight: "600",
-        color: "#6B7280",
+        fontSize: normalize(11),
+        fontWeight: "700",
+        color: "#9CA3AF",
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
     },
 
-    content: { paddingHorizontal: wp(6), paddingBottom: hp(5) },
+    content: { paddingHorizontal: wp(5), paddingBottom: hp(6) },
 
     card: {
         backgroundColor: "#FFF",
         borderRadius: 22,
         padding: wp(6),
         elevation: 6,
+        shadowColor: "#1149C7",
+        shadowOpacity: 0.07,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
     },
 
-    cardTitle: {
-        fontSize: normalize(22),
-        fontWeight: "800",
-        color: "#111827",
+    iconCircle: {
+        width: 80, height: 80, borderRadius: 40,
+        backgroundColor: "#EFF6FF",
+        alignItems: "center", justifyContent: "center",
+        alignSelf: "center",
+        marginBottom: hp(2),
     },
 
-    cardDesc: {
-        fontSize: normalize(15),
-        color: "#6B7280",
-        marginVertical: hp(2),
+    cardTitle: { fontSize: normalize(22), fontWeight: "800", color: "#111827" },
+    cardDesc: { fontSize: normalize(14), color: "#6B7280", marginTop: hp(1), marginBottom: hp(2.5), lineHeight: 22 },
+
+    pickerWrapper: {
+        backgroundColor: "#F9FAFB",
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        marginBottom: hp(1.5),
+        overflow: "hidden",
     },
+    picker: { height: hp(7) },
 
     inputWrapper: {
         flexDirection: "row",
@@ -619,14 +681,14 @@ const styles = StyleSheet.create({
         height: hp(7),
         borderWidth: 1,
         borderColor: "#E5E7EB",
-        marginBottom: hp(2.5),
+        marginBottom: hp(2),
     },
-
     input: {
         flex: 1,
         marginLeft: 12,
         fontSize: normalize(16),
         fontWeight: "600",
+        color: "#111827",
     },
 
     primaryButton: {
@@ -634,156 +696,70 @@ const styles = StyleSheet.create({
         height: hp(7),
         alignItems: "center",
         justifyContent: "center",
+        flexDirection: "row",
+        gap: 8,
     },
+    buttonText: { color: "#FFF", fontSize: normalize(15), fontWeight: "700" },
 
-    buttonText: {
-        color: "#FFF",
-        fontSize: normalize(16),
-        fontWeight: "700",
-    },
+    linkText: { color: "#2563EB", fontWeight: "700", fontSize: normalize(14) },
 
+    // Document upload boxes
     uploadBox: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         borderWidth: 1.5,
         borderColor: "#D1D5DB",
         borderStyle: "dashed",
-        borderRadius: 18,
+        borderRadius: 16,
         padding: wp(4),
-        marginBottom: hp(2),
+        marginBottom: hp(1.5),
         backgroundColor: "#FAFAFA",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
     },
+    uploadBoxSaved: { borderColor: "#10B981", backgroundColor: "#F0FDF4", borderStyle: "solid" },
+    uploadBoxPending: { borderColor: "#F59E0B", backgroundColor: "#FFFBEB", borderStyle: "solid" },
 
-    uploadBoxDone: {
-        borderColor: "#10B981",
-        backgroundColor: "#F0FDF4",
-    },
-    profileUpload: {
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    profilePlaceholder: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: "#F3F4F6",
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-        position: "relative",
-    },
-    profilePreview: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        borderWidth: 2,
-        borderColor: "#2563EB",
-    },
-    profileLabel: {
-        marginTop: 8,
-        fontSize: 14,
-        color: "#2563EB",
-        fontWeight: "600",
-    },
-    addIconBadge: {
-        position: "absolute",
-        bottom: 0,
-        right: 0,
-        backgroundColor: "#2563EB",
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 2,
-        borderColor: "#FFF",
-    },
-    divider: {
-        height: 1,
-        backgroundColor: "#F3F4F6",
-        width: "100%",
-        marginVertical: 15,
-    },
-    sectionTitle: {
-        fontSize: 12,
-        fontFamily: "Outfit-Bold",
-        color: "#9CA3AF",
-        textTransform: "uppercase",
-        letterSpacing: 1,
-        marginBottom: 10,
-    },
-    uploadInfo: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
+    uploadInfo: { flexDirection: "row", alignItems: "center", flex: 1 },
 
-    uploadLabel: {
-        marginLeft: 12,
-        fontWeight: "700",
-        fontSize: normalize(14),
-        color: "#374151",
-    },
-
-    previewThumb: {
-        width: 55,
-        height: 55,
-        borderRadius: 10,
-    },
-
-    iconCircle: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
+    uploadIconCircle: {
+        width: 40, height: 40, borderRadius: 20,
         backgroundColor: "#EFF6FF",
-        alignItems: "center",
-        justifyContent: "center",
-        alignSelf: "center",
-        marginBottom: hp(2),
+        alignItems: "center", justifyContent: "center",
     },
 
-    stripeButton: {
-        backgroundColor: "#000",
-        borderRadius: 14,
-        height: hp(7),
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: hp(2),
-    },
+    uploadLabel: { fontSize: normalize(13), fontWeight: "700", color: "#374151" },
+    uploadSub: { fontSize: normalize(11), color: "#9CA3AF", marginTop: 2 },
 
-    stripeText: {
-        color: "#FFF",
-        fontWeight: "800",
-        fontSize: normalize(16),
+    badge: {
+        backgroundColor: "#F3F4F6",
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        marginLeft: 8,
     },
+    badgeText: { fontSize: normalize(10), fontWeight: "700", color: "#6B7280", textTransform: "uppercase" },
 
-    skipButton: { alignItems: "center", paddingVertical: 10 },
-
-    skipText: {
-        color: "#2563EB",
-        fontWeight: "700",
-        fontSize: normalize(14),
+    infoBanner: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        backgroundColor: "#EFF6FF",
+        borderRadius: 10,
+        padding: 12,
+        marginVertical: hp(1.5),
+        gap: 8,
     },
+    infoText: { flex: 1, fontSize: normalize(12), color: "#1D4ED8", lineHeight: 18 },
+
+    // Rejection
     rejectionBox: {
         backgroundColor: "#FEF2F2",
-        borderRadius: 16,
+        borderRadius: 14,
         padding: 16,
         width: "100%",
         borderWidth: 1,
         borderColor: "#FEE2E2",
-        marginBottom: 5,
+        marginBottom: 8,
     },
-    rejectionLabel: {
-        fontSize: normalize(14),
-        fontWeight: "800",
-        color: "#7F1D1D",
-        marginBottom: 4,
-    },
-    rejectionText: {
-        fontSize: normalize(14),
-        color: "#991B1B",
-        fontStyle: "italic",
-        lineHeight: 20,
-    },
+    rejectionLabel: { fontSize: normalize(12), fontWeight: "800", color: "#7F1D1D", marginBottom: 4, textTransform: "uppercase" },
+    rejectionText: { fontSize: normalize(14), color: "#991B1B", fontStyle: "italic", lineHeight: 20 },
 });

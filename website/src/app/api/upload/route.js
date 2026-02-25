@@ -1,70 +1,3 @@
-// import { NextResponse } from "next/server";
-// import cloudinary from "@/lib/cloudinary";
-
-// export async function POST(req) {
-//   try {
-//     const formData = await req.formData();
-//     const file = formData.get("file");
-
-//     if (!file) {
-//       return NextResponse.json(
-//         { message: "File missing" },
-//         { status: 400 }
-//       );
-//     }
-
-//     // 10MB limit
-//     if (file.size > 10 * 1024 * 1024) {
-//       return NextResponse.json(
-//         { message: "File too large (max 10MB)" },
-//         { status: 400 }
-//       );
-//     }
-
-//     const buffer = Buffer.from(await file.arrayBuffer());
-
-//     const uploadResult = await new Promise((resolve, reject) => {
-//       cloudinary.uploader.upload_stream(
-//         {
-//           folder: "jobs",
-//           resource_type: "auto",
-//         },
-//         (error, result) => {
-//           if (error) reject(error);
-//           resolve(result);
-//         }
-//       ).end(buffer);
-//     });
-
-//     return NextResponse.json({
-//       url: uploadResult.secure_url,
-//       publicId: uploadResult.public_id,
-//       type: uploadResult.resource_type === "video" ? "VIDEO" : "IMAGE",
-//     });
-//   } catch (error) {
-//     console.error("CLOUDINARY UPLOAD ERROR:", error);
-//     return NextResponse.json(
-//       { message: "Upload failed" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
@@ -85,22 +18,30 @@ export async function POST(req) {
     const allowedTypes = [
       "image/jpeg",
       "image/png",
-      "image/webp",
-      "video/mp4",
-      "video/webm",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ];
 
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { message: "Invalid file type" },
+        { message: "Invalid file type. Supported: JPG, PNG, PDF, DOC" },
         { status: 400 }
       );
     }
 
-    // ✅ Max size: 10MB
-    if (file.size > 10 * 1024 * 1024) {
+    // ✅ Max size limits
+    const isImage = file.type.startsWith("image/");
+    const isDoc = file.type.includes("pdf") || file.type.includes("word") || file.type.includes("officedocument");
+
+    let maxSize = 10 * 1024 * 1024; // Default 10MB
+    if (isImage) maxSize = 5 * 1024 * 1024; // 5MB for images
+    if (isDoc) maxSize = 10 * 1024 * 1024; // 10MB for documents
+
+    if (file.size > maxSize) {
+      const sizeInMB = maxSize / (1024 * 1024);
       return NextResponse.json(
-        { message: "File too large (max 10MB)" },
+        { message: `File too large. Max limit for this type is ${sizeInMB}MB` },
         { status: 400 }
       );
     }
@@ -126,7 +67,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       url: `/uploads/${fileName}`,
-      type: file.type.startsWith("video") ? "VIDEO" : "IMAGE",
+      type: file.type.startsWith("image") ? "IMAGE" : "DOCUMENT",
     });
   } catch (error) {
     console.error("UPLOAD ERROR:", error);

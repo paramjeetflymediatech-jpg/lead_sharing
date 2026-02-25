@@ -73,6 +73,11 @@ export default function TradespersonProfileTab({ navigation }) {
                         <View style={styles.profileInfo}>
                             <Text style={styles.userName}>{user?.name || "Tradesperson"}</Text>
                             <Text style={styles.userEmail}>{user?.email || "email@example.com"}</Text>
+                            {(user?.phone || user?.phone_number) && (
+                                <Text style={styles.userPhone}>
+                                    <Feather name="phone" size={12} color="#6B7280" /> {user?.phone || user?.phone_number}
+                                </Text>
+                            )}
                             <View style={styles.badgeContainer}>
                                 <View style={styles.badge}>
                                     <Feather name="shield" size={10} color="#059669" style={{ marginRight: 4 }} />
@@ -204,6 +209,11 @@ const styles = StyleSheet.create({
         marginBottom: hp(0.5),
     },
     userEmail: {
+        fontSize: normalize(14),
+        color: "#6B7280",
+        marginBottom: hp(0.5),
+    },
+    userPhone: {
         fontSize: normalize(14),
         color: "#6B7280",
         marginBottom: hp(1),
