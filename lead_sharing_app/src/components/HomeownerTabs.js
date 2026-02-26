@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Platform, View } from "react-native";
+import { StyleSheet, Platform, View, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
@@ -17,18 +17,21 @@ import HelpCenterScreen from "../screens/homeowner/HelpCenterScreen";
 import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
 import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
 import TradespersonProfileScreen from "../screens/tradesperson/TradespersonProfileScreen";
+import { useAuth } from "../context/AuthContext";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Stack for Home tab
-function HomeStack() {
+function HomeStack({ navigation }) {
     return (
         <Stack.Navigator>
             <Stack.Screen
                 name="HomeMain"
                 component={HomeownerHomeTab}
-                options={{ headerShown: false }}
+                options={{
+                    headerShown: false,
+                }}
             />
             <Stack.Screen
                 name="PostJob"

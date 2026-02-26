@@ -14,6 +14,7 @@ import AdminDashboard from "./src/screens/AdminDashboard";
 import TermsAndConditionsScreen from "./src/screens/TermsAndConditionsScreen";
 import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonProfileScreen";
 import OnboardingScreen from "./src/screens/tradesperson/OnboardingScreen";
+import NotificationHistoryScreen from "./src/screens/NotificationHistoryScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -112,7 +113,7 @@ function RootNavigator() {
         <Stack.Screen
           name="AdminDashboard"
           component={AdminDashboard}
-          options={{ title: "Admin Portal" }}
+          options={{ headerShown: false }}
         />
       ) : (
         <Stack.Screen
@@ -126,6 +127,11 @@ function RootNavigator() {
         name="TradespersonProfile"
         component={TradespersonProfileScreen}
         options={{ title: "Tradesperson Profile" }}
+      />
+      <Stack.Screen
+        name="NotificationHistory"
+        component={NotificationHistoryScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

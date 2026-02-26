@@ -160,6 +160,14 @@ export const User = {
     );
   },
 
+  async getPushTokens(userId) {
+    const [rows] = await pool.query(
+      'SELECT token FROM push_tokens WHERE user_id = ?',
+      [userId]
+    );
+    return rows.map(r => r.token);
+  },
+
   async findByIdAndUpdate(id, updateData, options = {}) {
     // Prepare update query
     const updates = [];

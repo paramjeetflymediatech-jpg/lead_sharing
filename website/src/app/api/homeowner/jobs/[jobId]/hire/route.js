@@ -181,6 +181,18 @@ export async function POST(req, context) {
         [jobId]
       );
 
+      // 🚀 TRIGGER NOTIFICATION TO TRADESPERSON
+      try {
+        const { NotificationService } = await import("@/lib/notifications");
+        await NotificationService.tradespersonHired(
+          tradespersonUserId,
+          updatedJob[0].title,
+          jobId
+        );
+      } catch (notifyErr) {
+        console.error("NOTIFICATION ERROR (HIRE):", notifyErr);
+      }
+
       return NextResponse.json({
         success: true,
         message: "Tradesperson hired successfully",
@@ -188,6 +200,7 @@ export async function POST(req, context) {
           job: updatedJob[0],
         },
       });
+
     } catch (error) {
       // Rollback on error
       await connection.rollback();

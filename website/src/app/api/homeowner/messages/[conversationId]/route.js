@@ -225,11 +225,29 @@ export async function POST(req, context) {
             acceptedByTradesperson
         ]);
 
+        // 🚀 TRIGGER NOTIFICATION TO TRADESPERSON
+        try {
+            const { NotificationService } = await import("@/lib/notifications");
+            const [senderRows] = await db.query('SELECT name FROM users WHERE id = ?', [userId]);
+            const senderName = senderRows[0]?.name || "Homeowner";
+
+            await NotificationService.newMessage(
+                tradespersonId,
+                senderName,
+                message.trim(),
+                jobId,
+                conversationId
+            );
+        } catch (notifyErr) {
+            console.error("NOTIFICATION ERROR (MESSAGE):", notifyErr);
+        }
+
         return NextResponse.json({
             success: true,
             message: "Message sent successfully",
             messageId: result.insertId
         });
+
     } catch (error) {
         console.error("SEND MESSAGE ERROR:", error);
         return NextResponse.json(

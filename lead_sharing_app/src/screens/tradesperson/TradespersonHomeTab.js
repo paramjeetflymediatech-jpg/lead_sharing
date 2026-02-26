@@ -109,9 +109,20 @@ export default function TradespersonHomeTab({ navigation }) {
                         {companyName}
                     </Text>
                 </View>
-                <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.profileButton}>
-                    <Feather name="user" size={20} color="#4B5563" />
-                </TouchableOpacity>
+                <View style={styles.headerRightActions}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("NotificationHistory")}
+                        style={styles.notificationHeaderIcon}
+                    >
+                        <Feather name="bell" size={24} color="#4B5563" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("Profile")}
+                        style={styles.profileButton}
+                    >
+                        <Feather name="user" size={20} color="#4B5563" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Credits Card */}
@@ -308,6 +319,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 16,
         marginBottom: 10,
+    },
+    headerRightActions: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    notificationHeaderIcon: {
+        marginRight: 15,
     },
     greeting: {
         fontSize: 14,

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authAPI } from "../services/api";
+import { NotificationService } from "../services/NotificationService";
 
 console.log("[AuthContext] Initializing...");
 const AuthContext = createContext(null);
@@ -15,8 +16,26 @@ export function AuthProvider({ children }) {
       try {
         const json = await AsyncStorage.getItem("auth_user");
         if (json) {
-          setUser(JSON.parse(json));
+          const userData = JSON.parse(json);
+          const authToken = await AsyncStorage.getItem("token");
+          setUser(userData);
+
+          // Sync token on every app launch if user exists and we have a token
+          if (authToken) {
+            setTimeout(async () => {
+              try {
+                const pushToken = await NotificationService.registerForPushNotificationsAsync();
+                if (pushToken) {
+                  await NotificationService.syncTokenWithBackend();
+                }
+              } catch (e) {
+                console.warn("Background push token sync failed:", e);
+              }
+            }, 5000);
+          }
         }
+      } catch (error) {
+        console.error("[AuthContext] Error loading user:", error);
       } finally {
         setLoading(false);
       }
@@ -31,13 +50,11 @@ export function AuthProvider({ children }) {
       await AsyncStorage.setItem("token", userData.token);
     }
 
-    // Register push token after login (if available)
+    // Register push token after login
     try {
-      // In a real app, you'd get the actual token from expo-notifications or firebase
-      // For now, we'll placeholder this or use a dummy token if we want to test the flow
-      const pushToken = await AsyncStorage.getItem("push_device_token");
-      if (pushToken && authAPI.registerPushToken) {
-        await authAPI.registerPushToken(pushToken, Platform.OS);
+      const pushToken = await NotificationService.registerForPushNotificationsAsync();
+      if (pushToken) {
+        await NotificationService.syncTokenWithBackend();
       }
     } catch (e) {
       console.warn("Error registering push token on login:", e);

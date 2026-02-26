@@ -92,11 +92,22 @@ export default function HomeownerHomeTab({ navigation }) {
                     <Text style={styles.greeting}>Welcome back,</Text>
                     <Text style={styles.userName}>{user?.name?.split(" ")[0] || "Homeowner"}</Text>
                 </View>
-                <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate("Profile")}>
-                    <Text style={styles.profileInitials}>
-                        {user?.name?.charAt(0).toUpperCase() || "H"}
-                    </Text>
-                </TouchableOpacity>
+                <View style={styles.headerRightActions}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("NotificationHistory")}
+                        style={styles.notificationHeaderIcon}
+                    >
+                        <Feather name="bell" size={14} color="#1F2937" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.profileButton}
+                        onPress={() => navigation.navigate("Profile")}
+                    >
+                        <Text style={styles.profileInitials}>
+                            {user?.name?.charAt(0).toUpperCase() || "H"}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Stats Grid */}
@@ -287,6 +298,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(5),
         paddingTop: hp(7),
         paddingBottom: hp(2.5),
+    },
+    headerRightActions: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    notificationHeaderIcon: {
+        marginRight: 15,
     },
     greeting: {
         backgroundColor: "#FFFFFF",

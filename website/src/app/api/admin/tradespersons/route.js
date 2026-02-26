@@ -200,6 +200,19 @@ export async function PUT(req) {
                 // Email failure should NOT block the admin action
                 console.error("[Admin] Failed to send email notification:", emailErr.message);
             }
+
+            // 🚀 TRIGGER PUSH NOTIFICATION
+            try {
+                const { NotificationService } = await import("@/lib/notifications");
+                const [userRow] = await pool.query('SELECT user_id FROM tradesperson_profiles WHERE id = ?', [profileId]);
+                const tpUserId = userRow[0]?.user_id;
+
+                if (tpUserId) {
+                    await NotificationService.verificationUpdate(tpUserId, status, rejectionReason);
+                }
+            } catch (pushErr) {
+                console.error("[Admin] Failed to send push notification:", pushErr.message);
+            }
         }
 
         return NextResponse.json({

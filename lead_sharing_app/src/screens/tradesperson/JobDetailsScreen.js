@@ -313,7 +313,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                         <Text style={styles.unlockedInfoIcon}>🔓</Text>
                         <Text style={styles.unlockedInfoText}>Lead Unlocked</Text>
                     </View>
-{/* 
+                    {/* 
                     <TouchableOpacity
                         style={styles.viewLeadButton}
                         onPress={handleViewLead}

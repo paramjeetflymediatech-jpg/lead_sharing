@@ -156,6 +156,22 @@ export async function POST(req) {
       // Optionally you could transaction rollback here if consistency is critical
     }
 
+    // 🚀 TRIGGER NOTIFICATION TO HOMEOWNER
+    try {
+      const { NotificationService } = await import("@/lib/notifications");
+      const [tpUser] = await db.query('SELECT name FROM users WHERE id = ?', [userId]);
+      const tradespersonName = profile.company_name || tpUser[0]?.name || "A tradesperson";
+
+      await NotificationService.leadUnlocked(
+        job.homeowner_id,
+        job.description,
+        tradespersonName,
+        jobId
+      );
+    } catch (notifyErr) {
+      console.error("NOTIFICATION ERROR (UNLOCK):", notifyErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Lead unlocked successfully",

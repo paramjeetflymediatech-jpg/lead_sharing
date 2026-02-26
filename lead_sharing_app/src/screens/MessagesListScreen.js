@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { homeownerAPI, tradespersonAPI } from "../services/api";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { Platform } from "react-native";
 import { normalize, wp, hp } from "../utils/responsive";
@@ -20,6 +20,7 @@ import MessagesModal from "./MessagesModal";
 export default function MessagesListScreen() {
     const { user } = useAuth();
     const navigation = useNavigation();
+    const route = useRoute();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -51,7 +52,17 @@ export default function MessagesListScreen() {
     useFocusEffect(
         useCallback(() => {
             fetchConversations();
-        }, [])
+
+            // Check for conversationId in route params
+            if (route.params?.conversationId && conversations.length > 0) {
+                const conv = conversations.find(c => c.id === route.params.conversationId);
+                if (conv) {
+                    openConversation(conv);
+                    // Clear the param so it doesn't re-open
+                    navigation.setParams({ conversationId: null });
+                }
+            }
+        }, [route.params?.conversationId, conversations.length])
     );
 
     const onRefresh = () => {

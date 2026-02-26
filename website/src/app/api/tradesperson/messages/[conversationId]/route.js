@@ -288,11 +288,33 @@ export async function POST(req, context) {
             acceptedByTradesperson
         ]);
 
+        // 🚀 TRIGGER NOTIFICATION TO HOMEOWNER
+        try {
+            const { NotificationService } = await import("@/lib/notifications");
+            const [senderRows] = await db.query('SELECT name FROM users WHERE id = ?', [userId]);
+            const senderName = senderRows[0]?.name || "Tradesperson";
+
+            // For homeowner, conversationId is jobId-tradespersonId, but here tradespersonId IS userId
+            // The homeowner route expects conversationId as jobId-tradespersonId
+            const homeownerConvId = `${jobId}-${userId}`;
+
+            await NotificationService.newMessage(
+                homeownerId,
+                senderName,
+                message.trim(),
+                jobId,
+                homeownerConvId
+            );
+        } catch (notifyErr) {
+            console.error("NOTIFICATION ERROR (MESSAGE):", notifyErr);
+        }
+
         return NextResponse.json({
             success: true,
             message: "Message sent successfully",
             messageId: result.insertId
         });
+
     } catch (error) {
         console.error("SEND TRADESPERSON MESSAGE ERROR:", error);
         return NextResponse.json(

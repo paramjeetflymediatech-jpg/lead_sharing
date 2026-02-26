@@ -27,7 +27,7 @@ async function getAuthToken() {
 /**
  * Generic API call wrapper with error handling
  */
-async function apiCall(endpoint, options = {}) {
+export async function apiCall(endpoint, options = {}) {
     const token = await getAuthToken();
 
     const headers = {
@@ -148,6 +148,16 @@ export const authAPI = {
         return apiCall("/api/auth/otp/verify", {
             method: "POST",
             body: JSON.stringify(body),
+        });
+    },
+
+    /**
+     * Register push token
+     */
+    registerPushToken: async (token, platform) => {
+        return apiCall("/api/auth/push-token", {
+            method: "POST",
+            body: JSON.stringify({ token, platform }),
         });
     },
 };

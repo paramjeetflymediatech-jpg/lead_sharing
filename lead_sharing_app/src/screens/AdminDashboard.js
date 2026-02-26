@@ -51,6 +51,12 @@ export default function AdminDashboard({ navigation }) {
     // Subcategories state
     const [subcategories, setSubcategories] = useState([]);
 
+    // Jobs state
+    const [jobs, setJobs] = useState([]);
+
+    // Leads state
+    const [leads, setLeads] = useState([]);
+
     // Verifications state
     const [verifications, setVerifications] = useState([]);
     const [verificationStatus, setVerificationStatus] = useState("PENDING_APPROVAL");
@@ -89,12 +95,6 @@ export default function AdminDashboard({ navigation }) {
                     break;
                 case "Users":
                     await loadUsers();
-                    break;
-                case "Categories":
-                    await loadCategories();
-                    break;
-                case "Subcategories":
-                    await loadSubcategories();
                     break;
                 case "Jobs":
                     await loadJobs();
@@ -504,32 +504,6 @@ export default function AdminDashboard({ navigation }) {
                         onDelete={handleDeleteUser}
                     />
                 );
-            case "Settings":
-                return <SettingsScreen onNavigate={setActiveScreen} />;
-            case "NotificationSettings":
-                return <NotificationSettingsScreen onBack={() => setActiveScreen("Settings")} />;
-            case "GeneralSettings":
-                return <GeneralSettingsScreen onBack={() => setActiveScreen("Settings")} />;
-            case "SecuritySettings":
-                return <SecuritySettingsScreen onBack={() => setActiveScreen("Settings")} />;
-            case "PaymentSettings":
-                return <PaymentSettingsScreen onBack={() => setActiveScreen("Settings")} />;
-            case "Categories":
-                return (
-                    <CategoriesScreen
-                        categories={categories}
-                        onEdit={openEditCategoryModal}
-                        onDelete={handleDeleteCategory}
-                    />
-                );
-            case "Subcategories":
-                return (
-                    <SubcategoriesScreen
-                        subcategories={subcategories}
-                        onEdit={openEditSubcategoryModal}
-                        onDelete={handleDeleteSubcategory}
-                    />
-                );
             case "Jobs":
                 return <JobsScreen jobs={jobs} />;
             case "Leads":
@@ -552,10 +526,6 @@ export default function AdminDashboard({ navigation }) {
                 );
             case "Revenue":
                 return <RevenueScreen revenue={stats.revenue} />;
-            case "SEO Management":
-                return <SEOScreen />;
-            case "Settings":
-                return <SettingsScreen />;
             default:
                 return <DashboardScreen stats={stats} onNavigate={setActiveScreen} />;
         }

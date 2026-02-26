@@ -15,6 +15,8 @@ import LogoutModal from "../LogoutModal";
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useNavigation } from "@react-navigation/native";
+
 export default function AdminLayout({
     children,
     activeScreen,
@@ -23,6 +25,7 @@ export default function AdminLayout({
     onCreatePress,
 }) {
     const { user, logout } = useAuth();
+    const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = React.useState(false);
     const [logoutModalVisible, setLogoutModalVisible] = React.useState(false);
     const insets = useSafeAreaInsets();
@@ -63,15 +66,15 @@ export default function AdminLayout({
 
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle}>{activeScreen}</Text>
-                    <Text style={styles.headerSubtitle}>Admin Panel</Text>
                 </View>
 
                 <View style={styles.headerRight}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                            {user?.name?.charAt(0) || "A"}
-                        </Text>
-                    </View>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('NotificationHistory')}
+                        style={styles.notificationIcon}
+                    >
+                        <Feather name="bell" size={24} color="#1753ecff" />
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -160,21 +163,21 @@ export default function AdminLayout({
 
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() => handleMenuPress("Settings")}
+                    onPress={() => handleMenuPress("Verifications")}
                 >
                     <Feather
-                        name="settings"
+                        name="shield"
                         size={22}
-                        color={activeScreen === "Settings" ? "#2563EB" : "#94A3B8"}
+                        color={activeScreen === "Verifications" ? "#2563EB" : "#94A3B8"}
                     />
                     <Text
                         style={
-                            activeScreen === "Settings"
+                            activeScreen === "Verifications"
                                 ? styles.navLabelActive
                                 : styles.navLabel
                         }
                     >
-                        Settings
+                        Approvals
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -194,7 +197,7 @@ export default function AdminLayout({
                     />
                     <View style={styles.sidebar}>
                         <View style={styles.sidebarHeader}>
-                            <Text style={styles.sidebarTitle}>All Care Pros</Text>
+                            <Text style={styles.sidebarTitle}>Admin Portal</Text>
                             <TouchableOpacity onPress={() => setMenuVisible(false)}>
                                 <Feather name="x" size={24} color="#64748B" />
                             </TouchableOpacity>
@@ -214,18 +217,6 @@ export default function AdminLayout({
                                 onPress={() => handleMenuPress("Users")}
                             />
                             <MenuItem
-                                icon="layers"
-                                label="Categories"
-                                active={activeScreen === "Categories"}
-                                onPress={() => handleMenuPress("Categories")}
-                            />
-                            <MenuItem
-                                icon="list"
-                                label="Subcategories"
-                                active={activeScreen === "Subcategories"}
-                                onPress={() => handleMenuPress("Subcategories")}
-                            />
-                            <MenuItem
                                 icon="briefcase"
                                 label="Jobs"
                                 active={activeScreen === "Jobs"}
@@ -234,6 +225,7 @@ export default function AdminLayout({
                             <MenuItem
                                 icon="shield"
                                 label="Verifications"
+                                labelText="Approvals"
                                 active={activeScreen === "Verifications"}
                                 onPress={() => handleMenuPress("Verifications")}
                             />
@@ -249,12 +241,6 @@ export default function AdminLayout({
                                 active={activeScreen === "Revenue"}
                                 onPress={() => handleMenuPress("Revenue")}
                             />
-                            <MenuItem
-                                icon="settings"
-                                label="Settings"
-                                active={activeScreen === "Settings"}
-                                onPress={() => handleMenuPress("Settings")}
-                            />
                         </ScrollView>
 
                         <TouchableOpacity
@@ -267,7 +253,6 @@ export default function AdminLayout({
                     </View>
                 </View>
             </Modal>
-
 
             <LogoutModal
                 visible={logoutModalVisible}

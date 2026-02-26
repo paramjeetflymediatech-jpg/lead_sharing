@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Feather } from '@expo/vector-icons';
@@ -17,13 +17,15 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Stack for Home tab
-function HomeStack() {
+function HomeStack({ navigation }) {
     return (
         <Stack.Navigator>
             <Stack.Screen
                 name="HomeMain"
                 component={TradespersonHomeTab}
-                options={{ headerShown: false }}
+                options={{
+                    headerShown: false,
+                }}
             />
             <Stack.Screen
                 name="JobDetails"

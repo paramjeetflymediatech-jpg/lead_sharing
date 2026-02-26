@@ -79,7 +79,6 @@ export default function OnboardingScreen({ navigation }) {
                 // Determine step (no annoying alert popups)
                 if (p.verificationStatus === "APPROVED") {
                     await updateUser({ verificationStatus: "APPROVED" });
-                    navigation.replace("TradespersonDashboard");
                     return;
                 } else if (p.verificationStatus === "REJECTED") {
                     setRejectionReason(p.rejectionReason || "Please correct your documents and re-submit.");

@@ -255,11 +255,45 @@ export async function POST(req) {
 
     console.log(`✅ Job created with ID: ${result.insertId}`);
 
+    // 🚀 TRIGGER NOTIFICATIONS TO RELEVANT TRADESPEOPLE
+    try {
+      const { sendNotification } = await import("@/lib/notifications");
+
+      // Find tradespeople who have this category in their profile
+      const [tradespeople] = await pool.query(`
+        SELECT DISTINCT u.id 
+        FROM users u
+        JOIN tradesperson_profiles tp ON u.id = tp.user_id
+        WHERE u.role = 'TRADESPERSON' 
+        AND tp.verification_status = 'APPROVED'
+        AND tp.category_id = ?
+      `, [category]);
+
+      if (tradespeople.length > 0) {
+        // Fetch category name
+        const [catRows] = await pool.query('SELECT name FROM categories WHERE id = ?', [category]);
+        const categoryName = catRows[0]?.name || "New category";
+
+        for (const tp of tradespeople) {
+          await sendNotification(
+            tp.id,
+            'New Job Posted!',
+            `A new ${categoryName} job has been posted in your area.`,
+            { jobId: result.insertId },
+            'NEW_JOB'
+          );
+        }
+      }
+    } catch (notifyErr) {
+      console.error("NOTIFICATION ERROR (NEW JOB):", notifyErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Job posted successfully",
       jobId: result.insertId,
     });
+
   } catch (error) {
     console.error("❌ JOB CREATION ERROR:", error);
     return NextResponse.json(
