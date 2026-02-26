@@ -17,6 +17,7 @@ export async function POST(req) {
             return NextResponse.json({ message: 'Token missing' }, { status: 400 });
         }
 
+        console.log(`[PushToken] Registering token for user ${userId}: ${token.substring(0, 15)}... on ${platform}`);
         await User.savePushToken(userId, token, platform || 'mobile');
 
         return NextResponse.json({ success: true, message: 'Push token registered' });

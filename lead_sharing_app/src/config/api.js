@@ -3,7 +3,7 @@
 // For production: use your live server URL
 
 // Development (local testing)
-export const API_BASE_URL = "http://192.168.1.3:3000";
+// export const API_BASE_URL = "http://192.168.1.3:3000";
 
 // Production
-// export const API_BASE_URL = "https://allcarepros.ca";
+export const API_BASE_URL = "https://allcarepros.ca";

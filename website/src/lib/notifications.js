@@ -50,14 +50,14 @@ export async function sendNotification(userId, title, body, data = {}, type = 'G
             // Expo documentation recommends sending in chunks if there are many messages
             // For now, we'll send them as a single array if it's small
             try {
-                await axios.post('https://exp.host/--/api/v2/push/send', messages, {
+                const response = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
                     headers: {
                         'Accept': 'application/json',
                         'Accept-encoding': 'gzip, deflate',
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log(`[Notification] Expo push sent to ${tokens.length} device(s)`);
+                console.log(`[Notification] Expo push sent to ${tokens.length} device(s). Status: ${response.status}`);
             } catch (expoErr) {
                 console.error('[Notification] Expo API error:', expoErr.response?.data || expoErr.message);
             }
