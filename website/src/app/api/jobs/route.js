@@ -267,7 +267,7 @@ export async function POST(req) {
         WHERE u.role = 'TRADESPERSON' 
         AND tp.verification_status = 'APPROVED'
         AND tp.category_id = ?
-      `, [category]);
+      `, [category]); 
 
       if (tradespeople.length > 0) {
         // Fetch category name
