@@ -392,7 +392,8 @@ const profileToMongoStyle = (row) => {
     stripeConnectId: row.stripe_connect_id,
     payoutsEnabled: row.payouts_enabled,
     average_rating: row.average_rating || 0,
-    total_ratings: row.total_ratings || 0
+    total_ratings: row.total_ratings || 0,
+    categoryId: row.category_id
   };
 };
 
@@ -604,7 +605,8 @@ export const TradespersonProfile = {
       column = 'skills';
       val = JSON.stringify(value || []);
     }
-    else if (['bio', 'phone', 'postcode', 'credits', 'average_rating', 'total_ratings', 'experience_years', 'verification_status', 'id_document', 'license_document', 'insurance_document', 'stripe_connect_id', 'payouts_enabled'].includes(key)) column = key;
+    else if (['bio', 'phone', 'postcode', 'credits', 'average_rating', 'total_ratings', 'experience_years', 'verification_status', 'id_document', 'license_document', 'insurance_document', 'stripe_connect_id', 'payouts_enabled', 'category_id'].includes(key)) column = key;
+    else if (key === 'categoryId') column = 'category_id';
     else if (key === 'experienceYears') column = 'experience_years';
     else if (key === 'verificationStatus') column = 'verification_status';
     else if (key === 'idDocument') column = 'id_document';

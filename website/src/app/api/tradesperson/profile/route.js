@@ -105,9 +105,15 @@ export async function GET(req) {
         const normalized = {
           ...profile,
           companyName: profile.company_name,
-          profileImage: profile.profile_image,
-          phone: profile.phone || profile.user_phone,
+          experienceYears: profile.experience_years,
+          verificationStatus: profile.verification_status,
           rejectionReason: profile.rejection_reason,
+          idDocument: profile.id_document,
+          licenseDocument: profile.license_document,
+          insuranceDocument: profile.insurance_document,
+          stripeConnectId: profile.stripe_connect_id,
+          payoutsEnabled: profile.payouts_enabled,
+          categoryId: profile.category_id,
           serviceAreas: typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []),
           skills: typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []),
         };
@@ -142,6 +148,7 @@ export async function GET(req) {
       stripeConnectId: profile.stripe_connect_id,
       payoutsEnabled: profile.payouts_enabled,
       phoneVerified: profile.phone_verified,
+      categoryId: profile.category_id,
       serviceAreas: typeof profile.service_areas === 'string' ? JSON.parse(profile.service_areas) : (profile.service_areas || []),
       skills: typeof profile.skills === 'string' ? JSON.parse(profile.skills) : (profile.skills || []),
     };
@@ -182,7 +189,8 @@ export async function PUT(req) {
     const body = await req.json();
     const {
       companyName, phone, postcode, bio, skills, serviceAreas, profileImage,
-      experienceYears, idDocument, licenseDocument, insuranceDocument, verificationStatus
+      experienceYears, idDocument, licenseDocument, insuranceDocument, verificationStatus,
+      categoryId
     } = body;
 
     console.log("📝 Updating tradesperson profile for user:", userId);
@@ -213,6 +221,7 @@ export async function PUT(req) {
             license_document = COALESCE(?, license_document),
             insurance_document = COALESCE(?, insurance_document),
             verification_status = COALESCE(?, verification_status),
+            category_id = COALESCE(?, category_id),
             updated_at = NOW()
         WHERE user_id = ?`,
         [
@@ -228,6 +237,7 @@ export async function PUT(req) {
           licenseDocument || null,
           insuranceDocument || null,
           verificationStatus || null,
+          categoryId || null,
           userId
         ]
       );
@@ -241,8 +251,8 @@ export async function PUT(req) {
 
       await pool.query(
         `INSERT INTO tradesperson_profiles 
-        (user_id, company_name, phone, postcode, bio, skills, service_areas, profile_image, experience_years, id_document, license_document, insurance_document, verification_status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        (user_id, company_name, phone, postcode, bio, skills, service_areas, profile_image, experience_years, id_document, license_document, insurance_document, verification_status, category_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
         [
           userId,
           companyName || defaultCompanyName,
@@ -256,7 +266,8 @@ export async function PUT(req) {
           idDocument || null,
           licenseDocument || null,
           insuranceDocument || null,
-          verificationStatus || 'NOT_STARTED'
+          verificationStatus || 'NOT_STARTED',
+          categoryId || null
         ]
       );
 

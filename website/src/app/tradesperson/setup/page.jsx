@@ -1,18 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
 export default function TradespersonSetupPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
         companyName: "",
         phone: "",
         bio: "",
-        skills: ""
+        skills: "",
+        categoryId: ""
     });
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch("/api/categories");
+                if (res.ok) {
+                    const data = await res.json();
+                    setCategories(data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,6 +37,12 @@ export default function TradespersonSetupPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.categoryId) {
+            toast.error("Please select a primary category");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -30,7 +53,8 @@ export default function TradespersonSetupPage() {
                     companyName: formData.companyName,
                     phone: formData.phone,
                     bio: formData.bio,
-                    skills: formData.skills.split(",").map(s => s.trim()).filter(Boolean)
+                    skills: formData.skills.split(",").map(s => s.trim()).filter(Boolean),
+                    categoryId: parseInt(formData.categoryId)
                 })
             });
 
@@ -74,6 +98,26 @@ export default function TradespersonSetupPage() {
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-[#1149C7] focus:border-transparent outline-none"
                             placeholder="e.g. Apex Plumbing Solutions"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-zinc-300 mb-2">
+                            Primary Category
+                        </label>
+                        <select
+                            required
+                            name="categoryId"
+                            value={formData.categoryId}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-[#1149C7] focus:border-transparent outline-none appearance-none"
+                        >
+                            <option value="">Select a category</option>
+                            {categories.map((cat) => (
+                                <option key={cat._id} value={cat._id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div>
