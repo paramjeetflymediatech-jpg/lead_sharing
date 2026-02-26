@@ -36,7 +36,7 @@ async function runMigration() {
       "pending_users", "blogs", "tradesperson_ratings", "messages",
       "payments", "leads", "jobs", "tradesperson_profiles",
       "sub_categories", "categories", "credit_plans", "seo_pages",
-      "push_tokens", "auth_tokens", "migrations", "users",
+      "push_tokens", "notifications", "auth_tokens", "migrations", "users",
     ];
     for (const table of tables) {
       await connection.query(`DROP TABLE IF EXISTS ${table}`);
@@ -99,6 +99,23 @@ async function runMigration() {
       );
     `);
     console.log("✅ push_tokens");
+
+    /* ===== NOTIFICATIONS ===== */
+    await connection.query(`
+      CREATE TABLE notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        body TEXT NOT NULL,
+        data JSON,
+        type VARCHAR(50),
+        is_read TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log("✅ notifications");
 
     /* ===== AUTH TOKENS ===== */
     await connection.query(`
