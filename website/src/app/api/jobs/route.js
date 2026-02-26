@@ -259,6 +259,10 @@ export async function POST(req) {
     try {
       const { sendNotification } = await import("@/lib/notifications");
 
+      // DEBUG: Verify table structure
+      const [columns] = await pool.query("SHOW COLUMNS FROM tradesperson_profiles");
+      console.log("🛠️ tradesperson_profiles columns:", columns.map(c => c.Field));
+
       // Find tradespeople who have this category in their profile
       const [tradespeople] = await pool.query(`
         SELECT DISTINCT u.id 
@@ -267,7 +271,7 @@ export async function POST(req) {
         WHERE u.role = 'TRADESPERSON' 
         AND tp.verification_status = 'APPROVED'
         AND tp.category_id = ?
-      `, [category]); 
+      `, [category]);
 
       if (tradespeople.length > 0) {
         // Fetch category name
