@@ -50,7 +50,7 @@ export async function sendNotification(userId, title, body, data = {}, type = 'G
             // Expo documentation recommends sending in chunks if there are many messages
             // For now, we'll send them as a single array if it's small
             try {
-                const response = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
+                const response = await axios.post('https://allcarepros.ca/api/v2/push/send', messages, {
                     headers: {
                         'Accept': 'application/json',
                         'Accept-encoding': 'gzip, deflate',
