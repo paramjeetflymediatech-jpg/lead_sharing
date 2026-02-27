@@ -204,9 +204,11 @@ async function runMigration() {
         stripe_connect_id VARCHAR(255) DEFAULT NULL,
         payouts_enabled BOOLEAN DEFAULT FALSE,
         rejection_reason TEXT DEFAULT NULL,
+        category_id INT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
       );
     `);
     console.log("✅ tradesperson_profiles");
