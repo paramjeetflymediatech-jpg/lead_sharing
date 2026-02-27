@@ -45,6 +45,8 @@ export async function sendNotification(userId, title, body, data = {}, type = 'G
                 title,
                 body,
                 data: { ...data, type },
+                channelId: 'default',
+                priority: 'high',
             }));
 
             // Expo documentation recommends sending in chunks if there are many messages
@@ -66,7 +68,10 @@ export async function sendNotification(userId, title, body, data = {}, type = 'G
                 console.error('[Notification] Expo API error:', expoErr.response?.data || expoErr.message);
             }
         } else {
-            console.log(`[Notification] No push tokens found for user ${userId}`);
+            // Get user info to help debug who this is
+            const [user] = await pool.query('SELECT name, role FROM users WHERE id = ?', [userId]);
+            const userInfo = user && user[0] ? ` (${user[0].name}, ${user[0].role})` : '';
+            console.log(`[Notification] No push tokens found for user ${userId}${userInfo}`);
         }
 
         return { success: true };

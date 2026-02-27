@@ -12,6 +12,7 @@ Notifications.setNotificationHandler({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
     }),
 });
 
@@ -51,17 +52,23 @@ export const NotificationService = {
             // Get the token specifically for Expo
             const projectId =
                 Constants?.expoConfig?.extra?.eas?.projectId ??
-                Constants?.easConfig?.projectId;
+                Constants?.easConfig?.projectId ??
+                "4631fecd-0a2f-4f8f-a678-88df81b831af"; // Fallback to app.json's ID
+
+            console.log('[NotificationService] Requesting token with Project ID:', projectId);
 
             token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
             console.log('[NotificationService] Expo Push Token:', token);
 
             if (Platform.OS === 'android') {
-                Notifications.setNotificationChannelAsync('default', {
+                await Notifications.setNotificationChannelAsync('default', {
                     name: 'default',
                     importance: Notifications.AndroidImportance.MAX,
                     vibrationPattern: [0, 250, 250, 250],
                     lightColor: '#FF231F7C',
+                    enableVibrate: true,
+                    showBadge: true,
+                    playSound: true,
                 });
             }
 
@@ -78,15 +85,24 @@ export const NotificationService = {
     /**
      * Sync the push token with the backend
      */
-    syncTokenWithBackend: async (userId = null) => {
+    syncTokenWithBackend: async (forceToken = null) => {
         try {
-            const token = await AsyncStorage.getItem('push_device_token');
-            if (!token) return;
+            const token = forceToken || await AsyncStorage.getItem('push_device_token');
+            if (!token) {
+                console.log('[NotificationService] No token found in storage to sync');
+                return;
+            }
 
             // Ensure we have a registerPushToken method in authAPI
             if (authAPI.registerPushToken) {
-                await authAPI.registerPushToken(token, Platform.OS);
-                console.log('[NotificationService] Token synced with backend');
+                try {
+                    await authAPI.registerPushToken(token, Platform.OS);
+                    console.log('[NotificationService] Token synced with backend');
+                    await AsyncStorage.setItem('push_token_synced', 'true');
+                } catch (apiError) {
+                    console.warn('[NotificationService] API Sync failed:', apiError.message);
+                    // Don't throw, just log
+                }
             }
         } catch (error) {
             console.error('[NotificationService] Error syncing token with backend:', error);
@@ -111,5 +127,22 @@ export const NotificationService = {
             Notifications.removeNotificationSubscription(notificationListener);
             Notifications.removeNotificationSubscription(responseListener);
         };
+    },
+
+    /**
+     * Initial channel setup for Android
+     */
+    init: async () => {
+        if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync('default', {
+                name: 'Default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#FF231F7C',
+                enableVibrate: true,
+                showBadge: true,
+                playSound: true,
+            });
+        }
     }
 };

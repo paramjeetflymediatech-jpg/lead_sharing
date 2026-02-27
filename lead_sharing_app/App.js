@@ -167,6 +167,9 @@ const linking = {
 
 export default function App() {
   React.useEffect(() => {
+    // Initial setup
+    NotificationService.init();
+
     // Register notification listeners
     const cleanup = NotificationService.addListener((notification) => {
       console.log("[App] Notification foreground:", notification);

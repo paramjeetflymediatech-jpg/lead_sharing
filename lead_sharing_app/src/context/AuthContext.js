@@ -24,12 +24,14 @@ export function AuthProvider({ children }) {
           if (authToken) {
             setTimeout(async () => {
               try {
+                console.log("[AuthContext] Running background push token sync...");
                 const pushToken = await NotificationService.registerForPushNotificationsAsync();
+                console.log("[AuthContext] Push token obtained:", pushToken ? "YES" : "NO");
                 if (pushToken) {
                   await NotificationService.syncTokenWithBackend();
                 }
               } catch (e) {
-                console.warn("Background push token sync failed:", e);
+                console.warn("[AuthContext] Background push token sync failed:", e);
               }
             }, 5000);
           }
