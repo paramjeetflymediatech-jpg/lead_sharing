@@ -117,16 +117,27 @@ export default function HomeownerJobsTab({ navigation, route }) {
                 data={filteredJobs}
                 keyExtractor={(item, index) => (item?._id ? item._id.toString() : item?.id ? item.id.toString() : index.toString())}
                 renderItem={({ item }) => <JobCard job={item} navigation={navigation} />}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, filteredJobs.length === 0 && { flexGrow: 1 }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} />
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
+                        <View style={styles.emptyIconContainer}>
+                            <Feather name="inbox" size={48} color="#9CA3AF" />
+                        </View>
                         <Text style={styles.emptyText}>No jobs found</Text>
                         <Text style={styles.emptySubtext}>
-                            {filter === "ALL" ? "Post your first job to get started" : `No ${filter.toLowerCase()} jobs yet`}
+                            {filter === "ALL" ? "Post your first job to get started" :
+                                filter === "COMPLETED" ? "no complete jobs yet" :
+                                    filter === "HIRED" ? "no hired jobs yet" : "No job found"}
                         </Text>
+                        <TouchableOpacity
+                            style={styles.postJobButton}
+                            onPress={() => navigation.navigate("Home", { screen: "PostJob" })}
+                        >
+                            <Text style={styles.postJobText}>Post a Job</Text>
+                        </TouchableOpacity>
                     </View>
                 }
                 showsVerticalScrollIndicator={false}
@@ -357,5 +368,45 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "flex-end",  // pushes content to right
         alignItems: "center",
+    },
+    emptyState: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: wp(10),
+        paddingBottom: hp(10),
+    },
+    emptyIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: "#F3F4F6",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    emptyText: {
+        fontSize: normalize(18),
+        fontWeight: "700",
+        color: "#1F2937",
+        marginBottom: 8,
+    },
+    emptySubtext: {
+        fontSize: normalize(14),
+        color: "#6B7280",
+        textAlign: "center",
+        marginBottom: 24,
+    },
+    postJobButton: {
+        backgroundColor: "#2563EB",
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 8,
+        elevation: 2,
+    },
+    postJobText: {
+        color: "#FFFFFF",
+        fontSize: normalize(14),
+        fontWeight: "600",
     },
 });

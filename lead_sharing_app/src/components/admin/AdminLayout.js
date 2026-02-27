@@ -14,6 +14,8 @@ import { useAuth } from "../../context/AuthContext";
 import LogoutModal from "../LogoutModal";
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { apiCall } from "../../services/api";
+import { NotificationService } from "../../services/NotificationService";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -28,7 +30,37 @@ export default function AdminLayout({
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = React.useState(false);
     const [logoutModalVisible, setLogoutModalVisible] = React.useState(false);
+    const [unreadCount, setUnreadCount] = React.useState(0);
     const insets = useSafeAreaInsets();
+
+    React.useEffect(() => {
+        setupNotifications();
+        fetchUnreadCount();
+
+        // Refresh count every 30 seconds
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    async function setupNotifications() {
+        try {
+            await NotificationService.registerForPushNotificationsAsync();
+            await NotificationService.syncTokenWithBackend();
+        } catch (error) {
+            console.error("Error setting up push notifications:", error);
+        }
+    }
+
+    async function fetchUnreadCount() {
+        try {
+            const response = await apiCall('/api/notifications');
+            if (response.success) {
+                setUnreadCount(response.unreadCount || 0);
+            }
+        } catch (error) {
+            console.error("Error fetching unread count:", error);
+        }
+    }
 
     function handleMenuPress(screen) {
         setMenuVisible(false);
@@ -54,9 +86,9 @@ export default function AdminLayout({
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
                 <TouchableOpacity
                     style={styles.menuButton}
                     onPress={() => setMenuVisible(true)}
@@ -70,10 +102,23 @@ export default function AdminLayout({
 
                 <View style={styles.headerRight}>
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('NotificationHistory')}
+                        onPress={() => {
+                            navigation.navigate('NotificationHistory');
+                            // Optimize: clear badge immediately on press
+                            setUnreadCount(0);
+                        }}
                         style={styles.notificationIcon}
                     >
-                        <Feather name="bell" size={24} color="#1753ecff" />
+                        <View>
+                            <Feather name="bell" size={24} color={unreadCount > 0 ? "#2563EB" : "#1E293B"} />
+                            {unreadCount > 0 && (
+                                <View style={styles.badgeContainer}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -217,6 +262,18 @@ export default function AdminLayout({
                                 onPress={() => handleMenuPress("Users")}
                             />
                             <MenuItem
+                                icon="layers"
+                                label="Categories"
+                                active={activeScreen === "Categories"}
+                                onPress={() => handleMenuPress("Categories")}
+                            />
+                            <MenuItem
+                                icon="list"
+                                label="Subcategories"
+                                active={activeScreen === "Subcategories"}
+                                onPress={() => handleMenuPress("Subcategories")}
+                            />
+                            <MenuItem
                                 icon="briefcase"
                                 label="Jobs"
                                 active={activeScreen === "Jobs"}
@@ -259,7 +316,7 @@ export default function AdminLayout({
                 onClose={() => setLogoutModalVisible(false)}
                 onLogout={confirmLogout}
             />
-        </SafeAreaView >
+        </View >
     );
 }
 
@@ -322,16 +379,22 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 12,
     },
-    notificationBadge: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: "#EF4444",
-        justifyContent: "center",
-        alignItems: "center",
+    badgeContainer: {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+        backgroundColor: '#EF4444',
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1.5,
+        borderColor: '#FFFFFF',
+        paddingHorizontal: 2,
     },
     badgeText: {
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: "700",
         color: "#FFFFFF",
     },

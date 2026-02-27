@@ -13,7 +13,7 @@ import {
     Dimensions,
 } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
-import { normalize, hp, wp } from "../utils/responsive";
+import { normalize, hp, wp, isSmallDevice } from "../utils/responsive";
 import { Picker } from "@react-native-picker/picker";
 import { authAPI } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
@@ -475,7 +475,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        padding: wp(6), // Responsive padding
+        padding: wp(6),
+        paddingHorizontal: isSmallDevice() ? wp(4) : wp(6),
         marginTop: -hp(2), // Negative margin
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -4 },
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#E5E7EB",
         paddingHorizontal: 16,
-        height: hp(6), // Responsive height
+        height: hp(7), // Increased height for better visibility
     },
     input: {
         flex: 1,
@@ -560,10 +561,10 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: "#E5E7EB",
-        height: hp(6),
+        height: hp(7), // Increased height
     },
     countryPickerContainer: {
-        width: wp(28),
+        width: wp(35), // Increased width for flag + code
         height: '100%',
         justifyContent: 'center',
         borderRightWidth: 1,

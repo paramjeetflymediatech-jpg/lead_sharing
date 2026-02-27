@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { homeownerAPI } from "../../services/api";
+import { homeownerAPI, notificationAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
 import { normalize, wp, hp } from "../../utils/responsive";
 
@@ -20,12 +20,30 @@ export default function HomeownerHomeTab({ navigation }) {
     const [recentJobs, setRecentJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useFocusEffect(
         useCallback(() => {
             loadData();
+            fetchUnreadCount();
         }, [])
     );
+
+    useEffect(() => {
+        const interval = setInterval(fetchUnreadCount, 30000); // 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchUnreadCount = async () => {
+        try {
+            const data = await notificationAPI.getNotifications();
+            if (data.success) {
+                setUnreadCount(data.unreadCount || 0);
+            }
+        } catch (error) {
+            console.error("Error fetching unread count:", error);
+        }
+    };
 
     async function loadData() {
         try {
@@ -97,7 +115,8 @@ export default function HomeownerHomeTab({ navigation }) {
                         onPress={() => navigation.navigate("NotificationHistory")}
                         style={styles.notificationHeaderIcon}
                     >
-                        <Feather name="bell" size={14} color="#1F2937" />
+                        <Feather name="bell" size={24} color="#1F2937" />
+                        {unreadCount > 0 && <View style={styles.badgeDot} />}
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.profileButton}
@@ -303,13 +322,10 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
-    notificationHeaderIcon: {
-        marginRight: 15,
-    },
     greeting: {
-        backgroundColor: "#FFFFFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E7EB",
+        fontSize: normalize(14),
+        color: "#6B7280",
+        marginBottom: hp(0.5),
     },
     welcomeText: {
         fontSize: normalize(14),
@@ -320,6 +336,43 @@ const styles = StyleSheet.create({
         fontSize: normalize(24),
         fontWeight: "800",
         color: "#111827",
+    },
+    notificationHeaderIcon: {
+        marginRight: 15,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#F9FAFB",
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+    },
+    profileButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#EFF6FF",
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#DBEAFE",
+    },
+    profileInitials: {
+        fontSize: normalize(16),
+        fontWeight: "700",
+        color: "#2563EB",
+    },
+    badgeDot: {
+        position: "absolute",
+        top: 10,
+        right: 10,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: "#EF4444",
+        borderWidth: 2,
+        borderColor: "#F9FAFB",
     },
     statsGrid: {
         flexDirection: "row",
@@ -525,6 +578,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         padding: wp(9),
+        minHeight: hp(30),
         backgroundColor: "#FFFFFF",
         borderRadius: wp(5),
         borderWidth: 1.5,
@@ -574,138 +628,3 @@ const styles = StyleSheet.create({
 
 
 });
-//     section: {
-//         paddingHorizontal: wp(5),
-//         marginBottom: hp(3),
-//     },
-//     sectionHeader: {
-//         flexDirection: "row",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         marginBottom: hp(2),
-//     },
-//     sectionTitle: {
-//         fontSize: normalize(18),
-//         fontWeight: "700",
-//         color: "#111827",
-//     },
-//     viewAllText: {
-//         fontSize: normalize(14),
-//         color: "#2563EB",
-//         fontWeight: "600",
-//     },
-//     jobCard: {
-//         backgroundColor: "#FFFFFF",
-//         borderRadius: wp(4),
-//         padding: wp(4),
-//         marginBottom: hp(2),
-//         shadowColor: "#000",
-//         shadowOffset: { width: 0, height: 2 },
-//         shadowOpacity: 0.05,
-//         shadowRadius: 8,
-//         elevation: 2,
-//         borderWidth: 1,
-//         borderColor: "#F3F4F6",
-//     },
-//     jobHeader: {
-//         flexDirection: "row",
-//         justifyContent: "space-between",
-//         alignItems: "flex-start",
-//         marginBottom: hp(1.5),
-//     },
-//     categoryContainer: {
-//         flexDirection: "row",
-//         alignItems: "center",
-//     },
-//     categoryIcon: {
-//         width: wp(8),
-//         height: wp(8),
-//         borderRadius: wp(2),
-//         backgroundColor: "#EFF6FF",
-//         justifyContent: "center",
-//         alignItems: "center",
-//         marginRight: wp(2.5),
-//     },
-//     categoryName: {
-//         fontSize: normalize(15),
-//         fontWeight: "600",
-//         color: "#1F2937",
-//     },
-//     statusBadge: {
-//         paddingHorizontal: wp(2.5),
-//         paddingVertical: hp(0.5),
-//         borderRadius: wp(1.5),
-//         backgroundColor: "#F3F4F6",
-//     },
-//     statusText: {
-//         fontSize: normalize(11),
-//         fontWeight: "600",
-//         color: "#6B7280",
-//     },
-//     jobDescription: {
-//         fontSize: normalize(14),
-//         color: "#4B5563",
-//         marginBottom: hp(2),
-//         lineHeight: normalize(20),
-//     },
-//     jobFooter: {
-//         flexDirection: "row",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         paddingTop: hp(1.5),
-//         borderTopWidth: 1,
-//         borderTopColor: "#F3F4F6",
-//     },
-//     locationContainer: {
-//         flexDirection: "row",
-//         alignItems: "center",
-//     },
-//     locationText: {
-//         fontSize: normalize(13),
-//         color: "#6B7280",
-//         marginLeft: wp(1.5),
-//     },
-//     postedTime: {
-//         fontSize: normalize(12),
-//         color: "#9CA3AF",
-//     },
-//     emptyState: {
-//         alignItems: "center",
-//         justifyContent: "center",
-//         padding: wp(8),
-//         backgroundColor: "#FFFFFF",
-//         borderRadius: wp(4),
-//         borderWidth: 2,
-//         borderColor: "#F3F4F6",
-//         borderStyle: "dashed",
-//     },
-//     emptyIconContainer: {
-//         width: wp(16),
-//         height: wp(16),
-//         borderRadius: wp(8),
-//         backgroundColor: "#F3F4F6",
-//         justifyContent: "center",
-//         alignItems: "center",
-//         marginBottom: hp(2),
-//     },
-//     emptyTitle: {
-//         fontSize: normalize(16),
-//         fontWeight: "700",
-//         color: "#1F2937",
-//         marginBottom: hp(1),
-//     },
-//     emptyText: {
-//         fontSize: normalize(14),
-//         color: "#6B7280",
-//         textAlign: "center",
-//     },
-
-//     cardFooter: {
-//         flexDirection: "row",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//     },
-//     dateText: {
-//         marginLeft: "auto",
-//     }
-// });

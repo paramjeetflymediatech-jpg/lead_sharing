@@ -29,9 +29,9 @@ const TermsAndConditionsScreen = () => {
                     To use certain features of the App, you may be required to create an account. You are responsible for maintaining the confidentiality of your account credentials.
                 </Text>
 
-                <Text style={styles.sectionTitle}>3. Lead Sharing</Text>
+                <Text style={styles.sectionTitle}>3. All Care Pros</Text>
                 <Text style={styles.text}>
-                    Our platform facilitates the sharing of leads between users. We do not guarantee the quality or conversion of any leads shared through the platform.
+                    All Care Pros is a platform that connects homeowners with tradespeople to provide home services. We do not guarantee the quality or conversion of any leads shared through the platform.
                 </Text>
 
                 <Text style={styles.sectionTitle}>4. Users Responsibilities</Text>
@@ -51,7 +51,7 @@ const TermsAndConditionsScreen = () => {
 
                 <Text style={styles.sectionTitle}>7. Contact Us</Text>
                 <Text style={styles.text}>
-                    If you have any questions about these Terms, please contact us at allcarepros@gmail.com.
+                    If you have any questions about these Terms, please contact us at [EMAIL_ADDRESS].
                 </Text>
 
                 <View style={styles.footer}>

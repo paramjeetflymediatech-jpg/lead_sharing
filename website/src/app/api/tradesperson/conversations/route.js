@@ -14,61 +14,88 @@ export async function GET(req) {
       );
     }
 
-    // Get all conversations for this tradesperson
+    // Get all DISTINCT conversations for this tradesperson.
+    // Use a derived table to always correctly identify the OTHER user (homeowner),
+    // regardless of whether tradesperson was sender or receiver.
     const [conversations] = await db.query(`
-      SELECT 
-        m.job_id,
-        m.receiver_id as homeowner_id,
+      SELECT
+        conv.job_id,
+        conv.homeowner_id,
         u.name as homeowner_name,
         u.email as homeowner_email,
         u.profile_image as homeowner_image,
         j.description as job_title,
         j.status as job_status,
-        MAX(m.conversation_status) as conversation_status,
-        MAX(m.conversation_accepted_by_homeowner) as accepted_by_them,
-        MAX(m.conversation_accepted_by_tradesperson) as accepted_by_me,
         (
-          SELECT content 
-          FROM messages 
-          WHERE job_id = m.job_id 
-            AND ((sender_id = ? AND receiver_id = m.receiver_id)
-                 OR (sender_id = m.receiver_id AND receiver_id = ?))
-          ORDER BY created_at DESC 
-          LIMIT 1
+          SELECT conversation_status FROM messages
+          WHERE job_id = conv.job_id
+            AND ((sender_id = ? AND receiver_id = conv.homeowner_id)
+                 OR (sender_id = conv.homeowner_id AND receiver_id = ?))
+          ORDER BY created_at DESC LIMIT 1
+        ) as conversation_status,
+        (
+          SELECT conversation_accepted_by_homeowner FROM messages
+          WHERE job_id = conv.job_id
+            AND ((sender_id = ? AND receiver_id = conv.homeowner_id)
+                 OR (sender_id = conv.homeowner_id AND receiver_id = ?))
+          ORDER BY created_at DESC LIMIT 1
+        ) as accepted_by_them,
+        (
+          SELECT conversation_accepted_by_tradesperson FROM messages
+          WHERE job_id = conv.job_id
+            AND ((sender_id = ? AND receiver_id = conv.homeowner_id)
+                 OR (sender_id = conv.homeowner_id AND receiver_id = ?))
+          ORDER BY created_at DESC LIMIT 1
+        ) as accepted_by_me,
+        (
+          SELECT content FROM messages
+          WHERE job_id = conv.job_id
+            AND ((sender_id = ? AND receiver_id = conv.homeowner_id)
+                 OR (sender_id = conv.homeowner_id AND receiver_id = ?))
+          ORDER BY created_at DESC LIMIT 1
         ) as last_message,
         (
-          SELECT created_at 
-          FROM messages 
-          WHERE job_id = m.job_id 
-            AND ((sender_id = ? AND receiver_id = m.receiver_id)
-                 OR (sender_id = m.receiver_id AND receiver_id = ?))
-          ORDER BY created_at DESC 
-          LIMIT 1
+          SELECT created_at FROM messages
+          WHERE job_id = conv.job_id
+            AND ((sender_id = ? AND receiver_id = conv.homeowner_id)
+                 OR (sender_id = conv.homeowner_id AND receiver_id = ?))
+          ORDER BY created_at DESC LIMIT 1
         ) as last_message_time,
         (
-          SELECT sender_id
-          FROM messages 
-          WHERE job_id = m.job_id 
-            AND ((sender_id = ? AND receiver_id = m.receiver_id)
-                 OR (sender_id = m.receiver_id AND receiver_id = ?))
-          ORDER BY created_at DESC 
-          LIMIT 1
+          SELECT sender_id FROM messages
+          WHERE job_id = conv.job_id
+            AND ((sender_id = ? AND receiver_id = conv.homeowner_id)
+                 OR (sender_id = conv.homeowner_id AND receiver_id = ?))
+          ORDER BY created_at DESC LIMIT 1
         ) as last_message_sender_id,
         (
-          SELECT COUNT(*) 
-          FROM messages 
-          WHERE job_id = m.job_id 
-            AND sender_id = m.receiver_id 
+          SELECT COUNT(*) FROM messages
+          WHERE job_id = conv.job_id
+            AND sender_id = conv.homeowner_id
             AND receiver_id = ?
             AND is_read = FALSE
         ) as unread_count
-      FROM messages m
-      INNER JOIN users u ON m.receiver_id = u.id
-      INNER JOIN jobs j ON m.job_id = j.id
-      WHERE m.sender_id = ? OR m.receiver_id = ?
-      GROUP BY m.job_id, m.receiver_id
+      FROM (
+        SELECT DISTINCT
+          job_id,
+          CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END as homeowner_id
+        FROM messages
+        WHERE sender_id = ? OR receiver_id = ?
+      ) conv
+      INNER JOIN users u ON conv.homeowner_id = u.id
+      INNER JOIN jobs j ON conv.job_id = j.id
       ORDER BY last_message_time DESC
-    `, [userId, userId, userId, userId, userId, userId, userId, userId, userId]);
+    `, [
+      userId, userId,  // conversation_status subquery
+      userId, userId,  // accepted_by_them subquery
+      userId, userId,  // accepted_by_me subquery
+      userId, userId,  // last_message subquery
+      userId, userId,  // last_message_time subquery
+      userId, userId,  // last_message_sender_id subquery
+      userId,          // unread_count receiver_id
+      userId,          // CASE WHEN sender_id = ?
+      userId, userId   // WHERE sender_id = ? OR receiver_id = ?
+    ]);
 
     // Format the conversations
     const formattedConversations = conversations.map(conv => ({

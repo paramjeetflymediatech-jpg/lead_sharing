@@ -71,25 +71,37 @@ export default function NotificationHistoryScreen({ navigation }) {
     const handleNotificationPress = (item) => {
         markAsRead(item.id);
 
+        // If user is not logged in, do nothing
+        if (!user) return;
+
         // Navigate based on type
         const data = item.data ? (typeof item.data === 'string' ? JSON.parse(item.data) : item.data) : {};
         const dashboardName = user?.role === 'TRADESPERSON' ? 'TradespersonDashboard' : 'HomeownerDashboard';
 
-        if (item.type === 'MESSAGE' && data.conversationId) {
-            navigation.navigate(dashboardName, {
-                screen: 'Messages',
-                params: {
-                    conversationId: data.conversationId
-                }
-            });
-        } else if (data.jobId) {
-            navigation.navigate(dashboardName, {
-                screen: 'Home',
-                params: {
-                    screen: 'JobDetails',
-                    params: { jobId: data.jobId }
-                }
-            });
+        try {
+            if (item.type === 'MESSAGE' && data.conversationId) {
+                navigation.navigate(dashboardName, {
+                    screen: 'Messages',
+                    params: {
+                        conversationId: data.conversationId
+                    }
+                });
+            } else if (item.type === 'VERIFICATION_PENDING') {
+                navigation.navigate('AdminDashboard', { screen: 'Verifications' });
+            } else if (data.jobId) {
+                navigation.navigate(dashboardName, {
+                    screen: 'Home',
+                    params: {
+                        screen: 'JobDetails',
+                        params: { jobId: data.jobId }
+                    }
+                });
+            }
+        } catch (e) {
+            // If navigation fails (e.g. after logout), just go back
+            if (navigation.canGoBack()) {
+                navigation.goBack();
+            }
         }
     };
 
@@ -142,10 +154,9 @@ export default function NotificationHistoryScreen({ navigation }) {
                     onPress={() => {
                         if (navigation.canGoBack()) {
                             navigation.goBack();
-                        } else {
-                            const dashboard = user?.role === 'TRADESPERSON' ? 'TradespersonDashboard' : 'HomeownerDashboard';
-                            navigation.navigate(dashboard);
                         }
+                        // Do NOT navigate to dashboard manually — after logout,
+                        // the auth context will automatically switch to auth screens.
                     }}
                     style={styles.backButton}
                 >
@@ -194,6 +205,7 @@ const styles = StyleSheet.create({
         paddingBottom: hp(2),
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
+        marginTop: hp(3),
         borderBottomColor: '#E5E7EB',
     },
     backButton: {

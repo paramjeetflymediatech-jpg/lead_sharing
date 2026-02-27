@@ -243,6 +243,24 @@ export async function PUT(req) {
       );
 
       console.log("✅ Profile updated successfully");
+
+      // Notify admins if verification is pending
+      if (verificationStatus === "PENDING_APPROVAL") {
+        try {
+          const { NotificationService } = await import("@/lib/notifications");
+          const [user] = await pool.query("SELECT name FROM users WHERE id = ?", [userId]);
+          const tradespersonName = user[0]?.name || companyName || "A tradesperson";
+          await NotificationService.notifyAdmins(
+            "New Verification Application",
+            `${tradespersonName} has submitted documents for verification.`,
+            { tradespersonId: userId, status: "PENDING_APPROVAL" },
+            "VERIFICATION_PENDING"
+          );
+          console.log("📢 Admin notification sent for verification request");
+        } catch (notifyErr) {
+          console.error("Failed to notify admins:", notifyErr.message);
+        }
+      }
     } else {
       // Create new profile
       // Fetch user name for default company name if not provided
@@ -272,6 +290,23 @@ export async function PUT(req) {
       );
 
       console.log("✅ Profile created successfully");
+
+      // Notify admins if verification is pending
+      if (verificationStatus === "PENDING_APPROVAL") {
+        try {
+          const { NotificationService } = await import("@/lib/notifications");
+          const tradespersonName = companyName || "A tradesperson";
+          await NotificationService.notifyAdmins(
+            "New Verification Application",
+            `${tradespersonName} has submitted documents for verification.`,
+            { tradespersonId: userId, status: "PENDING_APPROVAL" },
+            "VERIFICATION_PENDING"
+          );
+          console.log("📢 Admin notification sent for verification request");
+        } catch (notifyErr) {
+          console.error("Failed to notify admins:", notifyErr.message);
+        }
+      }
     }
 
     // Fetch updated profile

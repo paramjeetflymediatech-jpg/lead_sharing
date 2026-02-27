@@ -503,7 +503,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 32,
+    minHeight: 250,
     alignItems: "center",
+    justifyContent: "center",
   },
   emptyStateIcon: {
     fontSize: 64,

@@ -12,6 +12,7 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { tradespersonAPI, userAPI } from "../services/api";
 
 export default function MessagesModal({ visible, onClose, jobId, homeownerId, jobTitle }) {
@@ -21,6 +22,7 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
     const [sending, setSending] = useState(false);
     const [myUserId, setMyUserId] = useState(null);
     const [userRole, setUserRole] = useState(null);
+    const insets = useSafeAreaInsets();
     const flatListRef = useRef(null);
 
     // Polling interval ref to clear on unmount
@@ -201,12 +203,14 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
                         />
                     )}
 
-                    {/* Input Area */}
                     <KeyboardAvoidingView
                         behavior={Platform.OS === "ios" ? "padding" : "height"}
                         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
                     >
-                        <View style={styles.inputContainer}>
+                        <View style={[
+                            styles.inputContainer,
+                            { paddingBottom: Math.max(insets.bottom, 12) }
+                        ]}>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Type a message..."

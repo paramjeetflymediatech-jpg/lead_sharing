@@ -50,7 +50,7 @@ export async function sendNotification(userId, title, body, data = {}, type = 'G
             // Expo documentation recommends sending in chunks if there are many messages
             // For now, we'll send them as a single array if it's small
             try {
-                const response = await axios.post('https://allcarepros.ca/api/v2/push/send', messages, {
+                const response = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
                     headers: {
                         'Accept': 'application/json',
                         'Accept-encoding': 'gzip, deflate',
@@ -123,5 +123,19 @@ export const NotificationService = {
             { status, reason },
             'VERIFICATION_UPDATE'
         );
+    },
+
+    // Notify all admins
+    notifyAdmins: async (title, body, data = {}, type = 'ADMIN_ALERT') => {
+        try {
+            const [admins] = await pool.query("SELECT id FROM users WHERE role = 'ADMIN'");
+            const results = await Promise.all(
+                admins.map(admin => sendNotification(admin.id, title, body, data, type))
+            );
+            return { success: true, count: admins.length };
+        } catch (error) {
+            console.error('[Notification] Error notifying admins:', error);
+            return { success: false, error: error.message };
+        }
     }
 };

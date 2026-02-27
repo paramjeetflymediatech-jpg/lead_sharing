@@ -31,10 +31,16 @@ export async function GET(req) {
             [userId]
         );
 
+        const [unreadRows] = await pool.query(
+            'SELECT COUNT(*) as unread FROM notifications WHERE user_id = ? AND is_read = 0',
+            [userId]
+        );
+
         return NextResponse.json({
             success: true,
             notifications: rows,
-            total: countRows[0].total
+            total: countRows[0].total,
+            unreadCount: unreadRows[0].unread
         });
     } catch (error) {
         console.error("GET NOTIFICATIONS ERROR:", error);

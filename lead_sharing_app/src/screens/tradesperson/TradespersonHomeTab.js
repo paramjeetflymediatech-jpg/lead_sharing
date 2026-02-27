@@ -10,7 +10,7 @@ import {
     Dimensions,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { tradespersonAPI, jobAPI, userAPI } from "../../services/api";
+import { tradespersonAPI, jobAPI, userAPI, notificationAPI } from "../../services/api";
 import { Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -21,9 +21,11 @@ export default function TradespersonHomeTab({ navigation }) {
     const [recentJobs, setRecentJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
     useEffect(() => {
         loadData();
+        checkUnreadNotifications();
     }, []);
 
     async function loadData() {
@@ -75,6 +77,18 @@ export default function TradespersonHomeTab({ navigation }) {
         }
     }
 
+    async function checkUnreadNotifications() {
+        try {
+            const response = await notificationAPI.getNotifications();
+            if (response.success && response.notifications) {
+                const hasUnread = response.notifications.some(n => !n.is_read || n.is_read === 0);
+                setHasUnreadNotifications(hasUnread);
+            }
+        } catch (error) {
+            // Silent fail - don't block UI
+        }
+    }
+
     async function onRefresh() {
         setRefreshing(true);
         await loadData();
@@ -111,10 +125,18 @@ export default function TradespersonHomeTab({ navigation }) {
                 </View>
                 <View style={styles.headerRightActions}>
                     <TouchableOpacity
-                        onPress={() => navigation.navigate("NotificationHistory")}
+                        onPress={() => {
+                            navigation.navigate("NotificationHistory");
+                            setHasUnreadNotifications(false);
+                        }}
                         style={styles.notificationHeaderIcon}
                     >
-                        <Feather name="bell" size={24} color="#4B5563" />
+                        <View style={styles.bellWrapper}>
+                            <Feather name="bell" size={24} color="#4B5563" />
+                            {hasUnreadNotifications && (
+                                <View style={styles.redDot} />
+                            )}
+                        </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => navigation.navigate("Profile")}
@@ -318,6 +340,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 20,
         paddingVertical: 16,
+        marginTop: 40,
         marginBottom: 10,
     },
     headerRightActions: {
@@ -326,6 +349,20 @@ const styles = StyleSheet.create({
     },
     notificationHeaderIcon: {
         marginRight: 15,
+    },
+    bellWrapper: {
+        position: 'relative',
+    },
+    redDot: {
+        position: 'absolute',
+        top: -2,
+        right: -2,
+        width: 9,
+        height: 9,
+        borderRadius: 5,
+        backgroundColor: '#EF4444',
+        borderWidth: 1.5,
+        borderColor: '#FFFFFF',
     },
     greeting: {
         fontSize: 14,

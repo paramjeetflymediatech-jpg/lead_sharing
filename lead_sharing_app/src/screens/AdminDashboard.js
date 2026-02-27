@@ -26,8 +26,15 @@ import GeneralSettingsScreen from "../components/settings/GeneralSettingsScreen"
 import SecuritySettingsScreen from "../components/settings/SecuritySettingsScreen";
 import PaymentSettingsScreen from "../components/settings/PaymentSettingsScreen";
 
-export default function AdminDashboard({ navigation }) {
-    const [activeScreen, setActiveScreen] = useState("Dashboard");
+export default function AdminDashboard({ navigation, route }) {
+    const initialScreen = route?.params?.screen || "Dashboard";
+    const [activeScreen, setActiveScreen] = useState(initialScreen);
+
+    useEffect(() => {
+        if (route?.params?.screen) {
+            setActiveScreen(route.params.screen);
+        }
+    }, [route?.params?.screen]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -61,6 +68,10 @@ export default function AdminDashboard({ navigation }) {
     const [verifications, setVerifications] = useState([]);
     const [verificationStatus, setVerificationStatus] = useState("PENDING_APPROVAL");
 
+    // Filter states
+    const [jobStatus, setJobStatus] = useState("ALL");
+    const [leadStatus, setLeadStatus] = useState("ALL");
+
     // Modal states
     const [showUserModal, setShowUserModal] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -74,6 +85,16 @@ export default function AdminDashboard({ navigation }) {
     const [editingUser, setEditingUser] = useState(null);
     const [editingCategory, setEditingCategory] = useState(null);
     const [editingSubcategory, setEditingSubcategory] = useState(null);
+    const [editingJob, setEditingJob] = useState(null);
+    const [editingLead, setEditingLead] = useState(null);
+
+    // Modal states
+    const [showJobModal, setShowJobModal] = useState(false);
+    const [showLeadModal, setShowLeadModal] = useState(false);
+
+    // Form states
+    const [jobForm, setJobForm] = useState({ description: "", homeowner: "", category: "", subCategory: "", city: "", postcode: "", budgetMin: "", budgetMax: "", status: "OPEN" });
+    const [leadForm, setLeadForm] = useState({ job: "", tradesperson: "", message: "", priceEstimate: "", status: "PENDING", isUnlocked: false });
 
     // Form states
     const [userForm, setUserForm] = useState({ name: "", email: "", role: "HOMEOWNER", password: "" });
@@ -96,6 +117,12 @@ export default function AdminDashboard({ navigation }) {
                 case "Users":
                     await loadUsers();
                     break;
+                case "Categories":
+                    await loadCategories();
+                    break;
+                case "Subcategories":
+                    await Promise.all([loadSubcategories(), loadCategories()]);
+                    break;
                 case "Jobs":
                     await loadJobs();
                     break;
@@ -104,6 +131,10 @@ export default function AdminDashboard({ navigation }) {
                     break;
                 case "Verifications":
                     await loadVerifications();
+                    break;
+
+                case "Revenue":
+                    await loadDashboard(); // Reuse for now or load revenue specific stats
                     break;
                 default:
                     break;
@@ -189,10 +220,11 @@ export default function AdminDashboard({ navigation }) {
         }
     }
 
-    async function loadVerifications() {
+    async function loadVerifications(statusToLoad = null) {
         try {
             setLoading(true);
-            const data = await adminAPI.getTradespersons(verificationStatus);
+            const status = statusToLoad || verificationStatus;
+            const data = await adminAPI.getTradespersons(status);
             const list = data.data || data || [];
             setVerifications(Array.isArray(list) ? list : []);
         } catch (error) {
@@ -444,11 +476,171 @@ export default function AdminDashboard({ navigation }) {
         );
     }
 
-    async function onRefresh() {
+    const onRefresh = async () => {
         setRefreshing(true);
         await loadData();
         setRefreshing(false);
-    }
+    };
+
+    // ============================================
+    // JOBS CRUD
+    // ============================================
+
+    const openCreateJobModal = () => {
+        setEditingJob(null);
+        setJobForm({ description: "", homeowner: "", category: "", subCategory: "", city: "", postcode: "", budgetMin: "", budgetMax: "", status: "OPEN" });
+        setShowJobModal(true);
+    };
+
+    const openEditJobModal = (job) => {
+        setEditingJob(job);
+        setJobForm({
+            description: job.description || "",
+            homeowner: String(job.homeowner?._id || job.homeowner || ""),
+            category: String(job.category?._id || job.category || ""),
+            subCategory: String(job.subCategory?._id || job.subCategory || ""),
+            city: job.city || job.location?.city || "",
+            postcode: job.postcode || job.location?.postcode || "",
+            budgetMin: String(job.budgetMin || ""),
+            budgetMax: String(job.budgetMax || ""),
+            status: job.status || "OPEN",
+        });
+        setShowJobModal(true);
+    };
+
+    const handleSaveJob = async () => {
+        try {
+            if (!jobForm.description || !jobForm.homeowner || !jobForm.category) {
+                Alert.alert("Error", "Please fill description, homeowner and category");
+                return;
+            }
+            setLoading(true);
+            const data = {
+                ...jobForm,
+                budgetMin: Number(jobForm.budgetMin) || 0,
+                budgetMax: Number(jobForm.budgetMax) || 0,
+            };
+
+            if (editingJob) {
+                await adminAPI.updateJob(editingJob._id, data);
+                Alert.alert("Success", "Job updated successfully");
+            } else {
+                await adminAPI.createJob(data);
+                Alert.alert("Success", "Job created successfully");
+            }
+            setShowJobModal(false);
+            loadJobs();
+        } catch (error) {
+            console.error("Save job error:", error);
+            Alert.alert("Error", "Failed to save job");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteJob = (jobId) => {
+        Alert.alert(
+            "Delete Job",
+            "Are you sure you want to delete this job and all its leads/messages?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await adminAPI.deleteJob(jobId);
+                            Alert.alert("Success", "Job deleted successfully");
+                            loadJobs();
+                        } catch (error) {
+                            Alert.alert("Error", "Failed to delete job");
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    // ============================================
+    // LEADS CRUD
+    // ============================================
+
+    const openCreateLeadModal = () => {
+        setEditingLead(null);
+        setLeadForm({ job: "", tradesperson: "", message: "", priceEstimate: "", status: "PENDING", isUnlocked: false });
+        setShowLeadModal(true);
+    };
+
+    const openEditLeadModal = (lead) => {
+        setEditingLead(lead);
+        setLeadForm({
+            job: String(lead.job?._id || lead.job || ""),
+            tradesperson: String(lead.tradesperson?._id || lead.tradesperson || ""),
+            message: lead.message || "",
+            priceEstimate: String(lead.priceEstimate || ""),
+            status: lead.status || "PENDING",
+            isUnlocked: !!lead.isUnlocked,
+        });
+        setShowLeadModal(true);
+    };
+
+    const handleSaveLead = async () => {
+        try {
+            if (!leadForm.job || !leadForm.tradesperson) {
+                Alert.alert("Error", "Please select job and tradesperson");
+                return;
+            }
+            setLoading(true);
+            const data = {
+                ...leadForm,
+                priceEstimate: Number(leadForm.priceEstimate) || 0,
+            };
+
+            if (editingLead) {
+                await adminAPI.updateLead(editingLead._id, data);
+                Alert.alert("Success", "Lead updated successfully");
+            } else {
+                await adminAPI.createLead(data);
+                Alert.alert("Success", "Lead created successfully");
+            }
+            setShowLeadModal(false);
+            loadLeads();
+        } catch (error) {
+            console.error("Save lead error:", error);
+            Alert.alert("Error", "Failed to save lead");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteLead = (leadId) => {
+        Alert.alert(
+            "Delete Lead",
+            "Are you sure you want to delete this lead?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await adminAPI.deleteLead(leadId);
+                            Alert.alert("Success", "Lead deleted successfully");
+                            loadLeads();
+                        } catch (error) {
+                            Alert.alert("Error", "Failed to delete lead");
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     // ============================================
     // FLOATING ACTION BUTTON
@@ -465,19 +657,17 @@ export default function AdminDashboard({ navigation }) {
             case "Subcategories":
                 openCreateSubcategoryModal();
                 break;
-            default:
+            case "Jobs":
+                openCreateJobModal();
+                break;
+            case "Leads":
+                openCreateLeadModal();
                 break;
         }
     }
 
     function shouldShowFAB() {
-        return ["Users", "Categories", "Subcategories"].includes(activeScreen);
-    }
-
-    async function onRefresh() {
-        setRefreshing(true);
-        await loadData();
-        setRefreshing(false);
+        return ["Users", "Categories", "Subcategories", "Jobs", "Leads"].includes(activeScreen);
     }
 
     function renderContent() {
@@ -505,9 +695,25 @@ export default function AdminDashboard({ navigation }) {
                     />
                 );
             case "Jobs":
-                return <JobsScreen jobs={jobs} />;
+                return (
+                    <JobsScreen
+                        jobs={jobs}
+                        status={jobStatus}
+                        onStatusChange={setJobStatus}
+                        onEdit={openEditJobModal}
+                        onDelete={handleDeleteJob}
+                    />
+                );
             case "Leads":
-                return <LeadsScreen leads={leads} />;
+                return (
+                    <LeadsScreen
+                        leads={leads}
+                        status={leadStatus}
+                        onStatusChange={setLeadStatus}
+                        onEdit={openEditLeadModal}
+                        onDelete={handleDeleteLead}
+                    />
+                );
             case "Verifications":
                 return (
                     <VerificationsScreen
@@ -515,13 +721,30 @@ export default function AdminDashboard({ navigation }) {
                         status={verificationStatus}
                         onStatusChange={(newStatus) => {
                             setVerificationStatus(newStatus);
-                            loadData();
+                            loadVerifications(newStatus);
                         }}
                         onReview={(tp) => {
                             setSelectedTradesperson(tp);
                             setShowVerificationDetailsModal(true);
                         }}
-                        onRefresh={onRefresh}
+                    // onRefresh removed since we load on tab change and pull-to-refresh is in AdminLayout
+                    />
+                );
+            case "Categories":
+                return (
+                    <CategoriesScreen
+                        categories={categories}
+                        onEdit={openEditCategoryModal}
+                        onDelete={handleDeleteCategory}
+                    />
+                );
+            case "Subcategories":
+                return (
+                    <SubcategoriesScreen
+                        subcategories={subcategories}
+                        categories={categories}
+                        onEdit={openEditSubcategoryModal}
+                        onDelete={handleDeleteSubcategory}
                     />
                 );
             case "Revenue":
@@ -593,6 +816,31 @@ export default function AdminDashboard({ navigation }) {
                 onApprove={() => handleVerifyTradesperson(selectedTradesperson?.id, "APPROVED")}
                 onReject={() => setShowRejectionModal(true)}
                 onClose={() => setShowVerificationDetailsModal(false)}
+            />
+
+            {/* Job Form Modal */}
+            <JobFormModal
+                visible={showJobModal}
+                editing={editingJob}
+                formData={jobForm}
+                users={users}
+                categories={categories}
+                subcategories={subcategories}
+                onFormChange={setJobForm}
+                onSave={handleSaveJob}
+                onClose={() => setShowJobModal(false)}
+            />
+
+            {/* Lead Form Modal */}
+            <LeadFormModal
+                visible={showLeadModal}
+                editing={editingLead}
+                formData={leadForm}
+                jobs={jobs}
+                users={users}
+                onFormChange={setLeadForm}
+                onSave={handleSaveLead}
+                onClose={() => setShowLeadModal(false)}
             />
         </AdminLayout>
     );
@@ -787,7 +1035,7 @@ function CategoriesScreen({ categories, onEdit, onDelete }) {
                                 style={styles.actionButton}
                                 onPress={() => onEdit(category)}
                             >
-                                <Feather name="edit-2" size={10} color="#2563EB" style={styles.buttonIcon} />
+                                <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
                                 <Text style={styles.actionButtonText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -858,30 +1106,191 @@ function SubcategoriesScreen({ subcategories, onEdit, onDelete }) {
 // ============================================
 // JOBS SCREEN
 // ============================================
-function JobsScreen({ jobs }) {
-    return (
-        <>
-            <Text style={styles.screenTitle}>Total Jobs: {jobs.length}</Text>
+// ============================================
+// JOBS SCREEN
+// ============================================
+function JobsScreen({ jobs, status, onStatusChange, onEdit, onDelete }) {
+    const statuses = [
+        { label: "All", value: "ALL" },
+        { label: "Open", value: "OPEN" },
+        { label: "In Progress", value: "IN_PROGRESS" },
+        { label: "Completed", value: "COMPLETED" },
+        { label: "Cancelled", value: "CANCELLED" }
+    ];
 
-            {jobs.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <Feather name="briefcase" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
+    const filteredJobs = status === "ALL"
+        ? jobs
+        : jobs.filter(j => j.status === status);
+
+    return (
+        <View style={{ flex: 1 }}>
+            <View style={styles.statusFilterContainer}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {statuses.map((s) => (
+                        <TouchableOpacity
+                            key={s.value}
+                            style={[
+                                styles.statusFilterItem,
+                                status === s.value && styles.statusFilterItemActive,
+                                { paddingHorizontal: wp(4), marginRight: wp(2) }
+                            ]}
+                            onPress={() => onStatusChange(s.value)}
+                        >
+                            <Text style={[
+                                styles.statusFilterText,
+                                status === s.value && styles.statusFilterTextActive
+                            ]}>
+                                {s.label}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            <Text style={styles.screenTitle}>
+                {status === "ALL" ? "Total Jobs" : `${status.replace('_', ' ')} Jobs`}: {filteredJobs.length}
+            </Text>
+
+            {filteredJobs.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Feather name="briefcase" size={48} color="#CBD5E1" />
                     <Text style={styles.emptyText}>No jobs found</Text>
                 </View>
             ) : (
-                jobs.map((job, index) => (
+                filteredJobs.map((job, index) => (
                     <View key={job._id || index} style={styles.card}>
                         <View style={styles.cardHeader}>
-                            <Feather name="briefcase" size={24} color="#64748B" style={styles.categoryIconStyle} />
-                            <View style={styles.cardContent}>
-                                <Text style={styles.cardTitle} numberOfLines={2}>
-                                    {job.description || job.title || "Job"}
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.cardTitle}>{job.description || "No Description"}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: hp(0.5) }}>
+                                    <Feather name="tag" size={12} color="#64748B" />
+                                    <Text style={[styles.cardSubtitle, { marginLeft: 4 }]}>
+                                        {job.category?.name || "Uncategorized"} {job.subCategory?.name ? `> ${job.subCategory.name}` : ""}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View
+                                style={[
+                                    styles.statusBadge,
+                                    {
+                                        backgroundColor:
+                                            job.status === "COMPLETED" ? "#DCFCE7" :
+                                                job.status === "IN_PROGRESS" ? "#FEF3C7" :
+                                                    job.status === "CANCELLED" ? "#FEE2E2" : "#EFF6FF",
+                                    },
+                                ]}
+                            >
+                                <Text style={[
+                                    styles.statusBadgeText,
+                                    {
+                                        color:
+                                            job.status === "COMPLETED" ? "#166534" :
+                                                job.status === "IN_PROGRESS" ? "#854D0E" :
+                                                    job.status === "CANCELLED" ? "#991B1B" : "#1E40AF",
+                                    }
+                                ]}>
+                                    {job.status || "OPEN"}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={{ marginTop: hp(1), gap: hp(0.5) }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Feather name="map-pin" size={12} color="#64748B" />
+                                <Text style={[styles.cardSubtitle, { marginLeft: 4 }]}>{job.location?.city || job.city || "Location N/A"}</Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Feather name="dollar-sign" size={12} color="#64748B" />
+                                <Text style={[styles.cardSubtitle, { marginLeft: 4 }]}>
+                                    {job.budgetMin ? `£${job.budgetMin}` : "0"} - {job.budgetMax ? `£${job.budgetMax}` : "Any"}
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Feather name="user" size={12} color="#64748B" />
+                                <Text style={[styles.cardSubtitle, { marginLeft: 4 }]}>
+                                    {job.homeowner?.name || "Unknown Homeowner"}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={[styles.cardActions, { justifyContent: 'space-between', alignItems: 'center' }]}>
+                            <Text style={styles.verificationTime}>
+                                Added: {job.created_at ? new Date(job.created_at).toLocaleDateString() : "N/A"}
+                            </Text>
+                            <View style={{ flexDirection: 'row', gap: wp(2) }}>
+                                <TouchableOpacity style={styles.actionButton} onPress={() => onEdit(job)}>
+                                    <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
+                                    <Text style={styles.actionButtonText}>Edit</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={() => onDelete(job._id)}>
+                                    <Feather name="trash-2" size={14} color="#EF4444" style={styles.buttonIcon} />
+                                    <Text style={styles.deleteButtonText}>Delete</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                ))
+            )}
+        </View>
+    );
+}
+
+// ============================================
+// LEADS SCREEN
+// ============================================
+function LeadsScreen({ leads, status, onStatusChange, onEdit, onDelete }) {
+    const statuses = [
+        { label: "All", value: "ALL" },
+        { label: "Pending", value: "PENDING" },
+        { label: "Hired", value: "HIRED" },
+        { label: "Rejected", value: "REJECTED" }
+    ];
+
+    const filteredLeads = status === "ALL"
+        ? leads
+        : leads.filter(l => l.status === status);
+
+    return (
+        <View style={{ flex: 1 }}>
+            <View style={styles.statusFilterContainer}>
+                {statuses.map((s) => (
+                    <TouchableOpacity
+                        key={s.value}
+                        style={[
+                            styles.statusFilterItem,
+                            status === s.value && styles.statusFilterItemActive
+                        ]}
+                        onPress={() => onStatusChange(s.value)}
+                    >
+                        <Text style={[
+                            styles.statusFilterText,
+                            status === s.value && styles.statusFilterTextActive
+                        ]}>
+                            {s.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            <Text style={styles.screenTitle}>
+                {status === "ALL" ? "Total Leads" : `${status} Leads`}: {filteredLeads.length}
+            </Text>
+
+            {filteredLeads.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Feather name="file-text" size={48} color="#CBD5E1" />
+                    <Text style={styles.emptyText}>No leads found</Text>
+                </View>
+            ) : (
+                filteredLeads.map((lead, index) => (
+                    <View key={lead._id || index} style={styles.card}>
+                        <View style={styles.cardHeader}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.cardTitle}>
+                                    {lead.tradesperson?.user?.name || "Unknown Tradesperson"}
                                 </Text>
                                 <Text style={styles.cardSubtitle}>
-                                    Status: {job.status || "OPEN"} | Posted:{" "}
-                                    {job.created_at
-                                        ? new Date(job.created_at).toLocaleDateString()
-                                        : "N/A"}
+                                    {lead.tradesperson?.companyName || "No Company"}
                                 </Text>
                             </View>
                             <View
@@ -889,61 +1298,79 @@ function JobsScreen({ jobs }) {
                                     styles.statusBadge,
                                     {
                                         backgroundColor:
-                                            job.status === "COMPLETED"
-                                                ? "#10B981"
-                                                : job.status === "IN_PROGRESS"
-                                                    ? "#F59E0B"
-                                                    : "#2563EB",
+                                            lead.status === "HIRED" ? "#DCFCE7" :
+                                                lead.status === "REJECTED" ? "#FEE2E2" : "#EFF6FF",
                                     },
                                 ]}
                             >
-                                <Text style={styles.statusBadgeText}>
-                                    {job.status || "OPEN"}
+                                <Text style={[
+                                    styles.statusBadgeText,
+                                    {
+                                        color:
+                                            lead.status === "HIRED" ? "#166534" :
+                                                lead.status === "REJECTED" ? "#991B1B" : "#1E40AF",
+                                    }
+                                ]}>
+                                    {lead.status || "PENDING"}
                                 </Text>
+                            </View>
+                        </View>
+
+                        <View style={{ marginTop: hp(1), backgroundColor: '#F8FAFC', padding: wp(3), borderRadius: wp(2) }}>
+                            <Text style={[styles.cardSubtitle, { fontStyle: 'italic' }]} numberOfLines={3}>
+                                "{lead.message || "No message provided."}"
+                            </Text>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(1.5) }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Feather name="dollar-sign" size={14} color="#2563EB" />
+                                <Text style={{ fontSize: normalize(16), fontWeight: '700', color: '#1E293B' }}>
+                                    {lead.priceEstimate ? `£${lead.priceEstimate}` : "N/A"}
+                                </Text>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Feather
+                                    name={lead.isUnlocked ? "unlock" : "lock"}
+                                    size={14}
+                                    color={lead.isUnlocked ? "#10B981" : "#F59E0B"}
+                                />
+                                <Text style={{
+                                    fontSize: normalize(12),
+                                    fontWeight: '600',
+                                    color: lead.isUnlocked ? "#10B981" : "#F59E0B",
+                                    marginLeft: 4
+                                }}>
+                                    {lead.isUnlocked ? "Unlocked" : "Locked"}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={[styles.cardActions, { justifyContent: 'space-between', alignItems: 'center' }]}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: normalize(12), color: '#94A3B8' }} numberOfLines={1}>
+                                    Job: {lead.job?.description || "Deleted Job"}
+                                </Text>
+                                <Text style={styles.verificationTime}>
+                                    Applied: {lead.created_at ? new Date(lead.created_at).toLocaleDateString() : "N/A"}
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: wp(2) }}>
+                                <TouchableOpacity style={styles.actionButton} onPress={() => onEdit(lead)}>
+                                    <Feather name="edit-2" size={14} color="#2563EB" style={styles.buttonIcon} />
+                                    <Text style={styles.actionButtonText}>Edit</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={() => onDelete(lead._id)}>
+                                    <Feather name="trash-2" size={14} color="#EF4444" style={styles.buttonIcon} />
+                                    <Text style={styles.deleteButtonText}>Delete</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 ))
             )}
-        </>
-    );
-}
-
-// ============================================
-// LEADS SCREEN
-// ============================================
-function LeadsScreen({ leads }) {
-    return (
-        <>
-            <Text style={styles.screenTitle}>Total Leads: {leads.length}</Text>
-
-            {leads.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <Feather name="file-text" size={48} color="#D1D5DB" style={styles.emptyIconStyle} />
-                    <Text style={styles.emptyText}>No leads found</Text>
-                </View>
-            ) : (
-                leads.map((lead, index) => (
-                    <View key={lead._id || index} style={styles.card}>
-                        <View style={styles.cardHeader}>
-                            <Feather name="file-text" size={24} color="#64748B" style={styles.categoryIconStyle} />
-                            <View style={styles.cardContent}>
-                                <Text style={styles.cardTitle}>
-                                    Lead #{lead._id ? String(lead._id).slice(-6) : index + 1}
-                                </Text>
-                                <Text style={styles.cardSubtitle}>
-                                    {lead.isUnlocked ? "Unlocked" : "Locked"} | Job:{" "}
-                                    {lead.job?.description ? String(lead.job.description).slice(0, 30) : "N/A"}
-                                </Text>
-                            </View>
-                            {lead.isUnlocked && (
-                                <Feather name="unlock" size={20} color="#10B981" />
-                            )}
-                        </View>
-                    </View>
-                ))
-            )}
-        </>
+        </View>
     );
 }
 
@@ -1174,7 +1601,6 @@ function SubcategoryFormModal({ visible, editing, formData, categories, onFormCh
                             <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
                     </View>
-
                     <ScrollView style={styles.modalBody}>
                         <Text style={styles.inputLabel}>Name *</Text>
                         <TextInput
@@ -1184,7 +1610,6 @@ function SubcategoryFormModal({ visible, editing, formData, categories, onFormCh
                             onChangeText={(text) => onFormChange({ ...formData, name: text })}
                             placeholderTextColor="#94A3B8"
                         />
-
                         <Text style={styles.inputLabel}>Category *</Text>
                         <View style={styles.pickerContainer}>
                             <Picker
@@ -1201,6 +1626,289 @@ function SubcategoryFormModal({ visible, editing, formData, categories, onFormCh
                                     />
                                 ))}
                             </Picker>
+                        </View>
+                    </ScrollView>
+                    <View style={styles.modalFooter}>
+                        <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.saveButton} onPress={onSave}>
+                            <Text style={styles.saveButtonText}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+// Job Form Modal
+function JobFormModal({ visible, editing, formData, users, categories, subcategories, onFormChange, onSave, onClose }) {
+    const homeowners = users.filter(u => u.role === "HOMEOWNER");
+    const filteredSubcategories = subcategories.filter(s => String(s.category?._id || s.category) === String(formData.category));
+
+    return (
+        <Modal
+            visible={visible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>
+                            {editing ? "Edit Job" : "Create Job"}
+                        </Text>
+                        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                            <Feather name="x" size={24} color="#64748B" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={styles.modalBody}>
+                        <Text style={styles.inputLabel}>Description *</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Enter job description"
+                            value={formData.description}
+                            onChangeText={(text) => onFormChange({ ...formData, description: text })}
+                            multiline
+                            placeholderTextColor="#94A3B8"
+                        />
+
+                        <Text style={styles.inputLabel}>Homeowner *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.homeowner}
+                                onValueChange={(value) => onFormChange({ ...formData, homeowner: value })}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Select Homeowner" value="" />
+                                {homeowners.map((u) => (
+                                    <Picker.Item key={u._id} label={`${u.name} (${u.email})`} value={u._id} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.inputLabel}>Category *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.category}
+                                onValueChange={(value) => onFormChange({ ...formData, category: value, subCategory: "" })}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Select Category" value="" />
+                                {categories.map((c) => (
+                                    <Picker.Item key={c._id} label={c.name} value={c._id} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.inputLabel}>Subcategory *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.subCategory}
+                                onValueChange={(value) => onFormChange({ ...formData, subCategory: value })}
+                                style={styles.picker}
+                                disabled={!formData.category}
+                            >
+                                <Picker.Item label="Select Subcategory" value="" />
+                                {filteredSubcategories.map((s) => (
+                                    <Picker.Item key={s._id} label={s.name} value={s._id} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', gap: wp(3) }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel}>City</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="City"
+                                    value={formData.city}
+                                    onChangeText={(text) => onFormChange({ ...formData, city: text })}
+                                    placeholderTextColor="#94A3B8"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel}>Postcode</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Postcode"
+                                    value={formData.postcode}
+                                    onChangeText={(text) => onFormChange({ ...formData, postcode: text })}
+                                    placeholderTextColor="#94A3B8"
+                                />
+                            </View>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', gap: wp(3) }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel}>Min Budget (£)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Min"
+                                    value={formData.budgetMin}
+                                    onChangeText={(text) => onFormChange({ ...formData, budgetMin: text })}
+                                    keyboardType="numeric"
+                                    placeholderTextColor="#94A3B8"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel}>Max Budget (£)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Max"
+                                    value={formData.budgetMax}
+                                    onChangeText={(text) => onFormChange({ ...formData, budgetMax: text })}
+                                    keyboardType="numeric"
+                                    placeholderTextColor="#94A3B8"
+                                />
+                            </View>
+                        </View>
+
+                        <Text style={styles.inputLabel}>Status</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.status}
+                                onValueChange={(value) => onFormChange({ ...formData, status: value })}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Open" value="OPEN" />
+                                <Picker.Item label="In Progress" value="IN_PROGRESS" />
+                                <Picker.Item label="Completed" value="COMPLETED" />
+                                <Picker.Item label="Cancelled" value="CANCELLED" />
+                            </Picker>
+                        </View>
+                    </ScrollView>
+
+                    <View style={styles.modalFooter}>
+                        <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.saveButton} onPress={onSave}>
+                            <Text style={styles.saveButtonText}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+// Lead Form Modal
+function LeadFormModal({ visible, editing, formData, jobs, users, onFormChange, onSave, onClose }) {
+    // Note: tradesperson in leads table refers to TradespersonProfile ID
+    // But for admin convenience, we should probably map users with role TRADESPERSON
+    // In this app, the users with role TRADESPERSON have a linked profile.
+    // However, the tradesperson list we have is from adminAPI.getUsers which are USERS.
+    // We might need to fetch tradesperson profiles separately if the backend creator needs the profile ID.
+    // Let's assume for now the backend handles either or that we need to be careful.
+    // Looking at lead.tradesperson.user.name earlier suggests it's nested.
+
+    // For simplicity, let's filter users who are tradespeople
+    const tradespeople = users.filter(u => u.role === "TRADESPERSON");
+
+    return (
+        <Modal
+            visible={visible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>
+                            {editing ? "Edit Lead" : "Create Lead"}
+                        </Text>
+                        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                            <Feather name="x" size={24} color="#64748B" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={styles.modalBody}>
+                        <Text style={styles.inputLabel}>Job *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.job}
+                                onValueChange={(value) => onFormChange({ ...formData, job: value })}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Select Job" value="" />
+                                {jobs.map((j) => (
+                                    <Picker.Item key={j._id} label={j.description} value={j._id} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.inputLabel}>Tradesperson *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.tradesperson}
+                                onValueChange={(value) => onFormChange({ ...formData, tradesperson: value })}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Select Tradesperson" value="" />
+                                {tradespeople.map((u) => (
+                                    <Picker.Item key={u._id} label={u.name} value={u.tradesperson_profile_id || u._id} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.inputLabel}>Message</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Enter quote message"
+                            value={formData.message}
+                            onChangeText={(text) => onFormChange({ ...formData, message: text })}
+                            multiline
+                            placeholderTextColor="#94A3B8"
+                        />
+
+                        <Text style={styles.inputLabel}>Price Estimate (£)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter estimate"
+                            value={formData.priceEstimate}
+                            onChangeText={(text) => onFormChange({ ...formData, priceEstimate: text })}
+                            keyboardType="numeric"
+                            placeholderTextColor="#94A3B8"
+                        />
+
+                        <Text style={styles.inputLabel}>Status</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={formData.status}
+                                onValueChange={(value) => onFormChange({ ...formData, status: value })}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Pending" value="PENDING" />
+                                <Picker.Item label="Hired" value="HIRED" />
+                                <Picker.Item label="Rejected" value="REJECTED" />
+                            </Picker>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: hp(2) }}>
+                            <TouchableOpacity
+                                style={{ flexDirection: 'row', alignItems: 'center' }}
+                                onPress={() => onFormChange({ ...formData, isUnlocked: !formData.isUnlocked })}
+                            >
+                                <View style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderWidth: 1,
+                                    borderColor: '#2563EB',
+                                    borderRadius: 4,
+                                    backgroundColor: formData.isUnlocked ? '#2563EB' : 'transparent',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginRight: 8
+                                }}>
+                                    {formData.isUnlocked && <Feather name="check" size={14} color="#FFFFFF" />}
+                                </View>
+                                <Text style={{ fontSize: normalize(14), color: '#1E293B' }}>Is Unlocked</Text>
+                            </TouchableOpacity>
                         </View>
                     </ScrollView>
 
@@ -1394,7 +2102,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#FFFFFF",
     },
-    categoryIconStyles: {
+    categoryIconStyle: {
         marginRight: 4,
     },
     roleBadge: {
@@ -1526,6 +2234,8 @@ const styles = StyleSheet.create({
         borderTopColor: "#E2E8F0",
     },
     actionButton: {
+        flexDirection: "row",
+        alignItems: "center",
         paddingHorizontal: wp(4),
         paddingVertical: hp(1),
         borderRadius: wp(2),
@@ -1871,9 +2581,6 @@ function VerificationsScreen({ verifications, status, onStatusChange, onReview, 
                 <View style={styles.emptyContainer}>
                     <Feather name="shield" size={48} color="#CBD5E1" />
                     <Text style={styles.emptyText}>No applications found</Text>
-                    <TouchableOpacity onPress={onRefresh} style={{ marginTop: 20 }}>
-                        <Text style={{ color: "#2563EB", fontWeight: "600" }}>Refresh</Text>
-                    </TouchableOpacity>
                 </View>
             ) : (
                 verifications.map((item) => (

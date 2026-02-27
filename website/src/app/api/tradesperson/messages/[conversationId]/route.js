@@ -21,10 +21,10 @@ export async function GET(req, context) {
             );
         }
 
-        // Parse conversation ID
-        const [jobId, homeownerId] = conversationId.split('-');
+        // Parse conversation ID - only jobId needed; homeownerId comes from DB
+        const [jobId] = conversationId.split('-');
 
-        if (!jobId || !homeownerId) {
+        if (!jobId) {
             return NextResponse.json(
                 { success: false, message: "Invalid conversation ID" },
                 { status: 400 }
@@ -45,6 +45,8 @@ export async function GET(req, context) {
         }
 
         const job = jobs[0];
+        // Always use DB homeowner_id — not from URL — to prevent mismatches
+        const homeownerId = job.homeowner_id;
 
         // Get tradesperson profile ID
         const [profiles] = await db.query(
@@ -180,8 +182,9 @@ export async function POST(req, context) {
             );
         }
 
-        // Parse conversation ID
-        const [jobId, homeownerId] = conversationId.split('-');
+        // Parse conversation ID (jobId only — use job.homeowner_id from DB for correctness)
+        const [jobId] = conversationId.split('-');
+        // homeownerId will be set from job.homeowner_id AFTER job is fetched
 
         // Get job details
         const [jobs] = await db.query(
@@ -234,6 +237,9 @@ export async function POST(req, context) {
                 { status: 403 }
             );
         }
+
+        // Use job.homeowner_id from DB — guaranteed correct regardless of URL
+        const homeownerId = job.homeowner_id;
 
         // Get the latest message to check conversation status
         const [latestMessages] = await db.query(`
@@ -289,17 +295,22 @@ export async function POST(req, context) {
         ]);
 
         // 🚀 TRIGGER NOTIFICATION TO HOMEOWNER
+        // Use job.homeowner_id from DB (not from URL split) to guarantee correct user
         try {
             const { NotificationService } = await import("@/lib/notifications");
             const [senderRows] = await db.query('SELECT name FROM users WHERE id = ?', [userId]);
             const senderName = senderRows[0]?.name || "Tradesperson";
 
-            // For homeowner, conversationId is jobId-tradespersonId, but here tradespersonId IS userId
-            // The homeowner route expects conversationId as jobId-tradespersonId
+            // job.homeowner_id is the guaranteed correct homeowner user ID from DB
+            const correctHomeownerId = job.homeowner_id;
+
+            // conversationId for homeowner: jobId-tradespersonUserId (so homeowner can load their side)
             const homeownerConvId = `${jobId}-${userId}`;
 
+            console.log(`[Message] Tradesperson ${userId} → Homeowner ${correctHomeownerId}, job ${jobId}`);
+
             await NotificationService.newMessage(
-                homeownerId,
+                correctHomeownerId,
                 senderName,
                 message.trim(),
                 jobId,

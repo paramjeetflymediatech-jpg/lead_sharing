@@ -613,11 +613,51 @@ export const adminAPI = {
         return apiCall("/api/admin/jobs");
     },
 
+    createJob: async (jobData) => {
+        return apiCall("/api/admin/jobs", {
+            method: "POST",
+            body: JSON.stringify(jobData),
+        });
+    },
+
+    updateJob: async (jobId, jobData) => {
+        return apiCall(`/api/admin/jobs/${jobId}`, {
+            method: "PATCH",
+            body: JSON.stringify(jobData),
+        });
+    },
+
+    deleteJob: async (jobId) => {
+        return apiCall(`/api/admin/jobs/${jobId}`, {
+            method: "DELETE",
+        });
+    },
+
     /**
      * Get all leads
      */
     getLeads: async () => {
         return apiCall("/api/admin/leads");
+    },
+
+    createLead: async (leadData) => {
+        return apiCall("/api/admin/leads", {
+            method: "POST",
+            body: JSON.stringify(leadData),
+        });
+    },
+
+    updateLead: async (leadId, leadData) => {
+        return apiCall(`/api/admin/leads/${leadId}`, {
+            method: "PATCH",
+            body: JSON.stringify(leadData),
+        });
+    },
+
+    deleteLead: async (leadId) => {
+        return apiCall(`/api/admin/leads/${leadId}`, {
+            method: "DELETE",
+        });
     },
 
     /**
@@ -689,6 +729,37 @@ export const adminAPI = {
     },
 };
 
+// ============================================
+// NOTIFICATIONS APIs
+// ============================================
+
+export const notificationAPI = {
+    /**
+     * Get user notifications
+     */
+    getNotifications: async () => {
+        return apiCall("/api/notifications");
+    },
+
+    /**
+     * Mark notification as read
+     */
+    markAsRead: async (notificationId) => {
+        return apiCall(`/api/notifications/${notificationId}`, {
+            method: "PUT",
+        });
+    },
+
+    /**
+     * Mark all notifications as read
+     */
+    markAllRead: async () => {
+        return apiCall("/api/notifications", {
+            method: "PUT",
+        });
+    },
+};
+
 // Export all as default
 export default {
     auth: authAPI,
@@ -700,4 +771,5 @@ export default {
     tradesperson: tradespersonAPI,
     upload: uploadAPI,
     admin: adminAPI,
+    notification: notificationAPI,
 };
