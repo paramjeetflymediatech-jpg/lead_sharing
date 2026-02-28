@@ -33,10 +33,16 @@ async function runMigration() {
     console.log("🧹 Dropping existing tables...");
     await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
     const tables = [
-      "pending_users", "blogs", "tradesperson_ratings", "messages",
+      // Local tables (18)
+      "deletion_requests", "pending_users", "blogs", "tradesperson_ratings", "messages",
       "payments", "leads", "jobs", "tradesperson_profiles",
       "sub_categories", "categories", "credit_plans", "seo_pages",
       "push_tokens", "notifications", "auth_tokens", "migrations", "users",
+      // Cleanup: remove leftover server-only tables
+      "provider_rating_summary", "provider_reviews", "provider_bank_accounts",
+      "provider_documents", "invoices", "chat_messages", "booking_photos",
+      "booking_status_history", "booking_time_logs", "bookings",
+      "job_photos", "service_providers", "services", "service_categories",
     ];
     for (const table of tables) {
       await connection.query(`DROP TABLE IF EXISTS ${table}`);
@@ -86,6 +92,22 @@ async function runMigration() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
     console.log("✅ pending_users");
+
+    /* ===== DELETION REQUESTS ===== */
+    await connection.query(`
+      CREATE TABLE deletion_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        reason TEXT,
+        status ENUM('PENDING','APPROVED','REJECTED') DEFAULT 'PENDING',
+        admin_notes TEXT,
+        processed_at DATETIME DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log("✅ deletion_requests");
 
     /* ===== PUSH TOKENS ===== */
     await connection.query(`
