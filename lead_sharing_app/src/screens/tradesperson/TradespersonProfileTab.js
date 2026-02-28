@@ -107,7 +107,7 @@ export default function TradespersonProfileTab({ navigation }) {
                 <View style={styles.menuGroup}>
                     {renderMenuItem("user", "Edit Profile", () => navigation.navigate("EditProfile"))}
                     {renderMenuItem("bell", "Notifications", () => { })}
-                    {renderMenuItem("lock", "Privacy & Security", () => { }, false)}
+                    {renderMenuItem("lock", "Privacy & Security", () => navigation.navigate("PrivacySecurity"), false)}
                 </View>
             </View>
 

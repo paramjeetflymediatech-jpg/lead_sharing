@@ -1,21 +1,10 @@
-
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { normalize, wp, hp } from "../../utils/responsive";
 
 export default function PrivacySecurityScreen({ navigation }) {
-
-    const handleDeleteAccount = () => {
-        Alert.alert(
-            "Delete Account",
-            "Are you sure you want to delete your account? This action cannot be undone.",
-            [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: () => console.log("Delete account pressed") }
-            ]
-        );
-    };
+    const [is2FAEnabled, setIs2FAEnabled] = useState(false);
 
     return (
         <ScrollView style={styles.container}>
@@ -27,7 +16,10 @@ export default function PrivacySecurityScreen({ navigation }) {
             </View>
 
             <View style={styles.section}>
-                <TouchableOpacity style={styles.option} onPress={() => Alert.alert("Change Password", "Feature coming soon")}>
+                <TouchableOpacity
+                    style={styles.option}
+                    onPress={() => navigation.navigate("ChangePassword")}
+                >
                     <View style={styles.optionIcon}>
                         <Feather name="lock" size={20} color="#4B5563" />
                     </View>
@@ -37,21 +29,39 @@ export default function PrivacySecurityScreen({ navigation }) {
 
                 <View style={styles.divider} />
 
-                <TouchableOpacity style={styles.option} onPress={() => Alert.alert("Two-Factor Auth", "Feature coming soon")}>
+                <View style={styles.option}>
                     <View style={styles.optionIcon}>
                         <Feather name="shield" size={20} color="#4B5563" />
                     </View>
-                    <Text style={styles.optionText}>Two-Factor Authentication</Text>
-                    <Feather name="chevron-right" size={20} color="#9CA3AF" />
-                </TouchableOpacity>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.optionText}>Two-Factor Authentication</Text>
+                        <Text style={styles.optionSubtext}>Extra layer of security</Text>
+                    </View>
+                    <Switch
+                        value={is2FAEnabled}
+                        onValueChange={(val) => {
+                            setIs2FAEnabled(val);
+                            if (val) {
+                                Alert.alert("Two-Factor Auth", "This feature will be fully available in the next update.");
+                                setTimeout(() => setIs2FAEnabled(false), 500);
+                            }
+                        }}
+                        trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
+                        thumbColor={is2FAEnabled ? "#2563EB" : "#F3F4F6"}
+                    />
+                </View>
             </View>
 
             <View style={[styles.section, styles.dangerZone]}>
-                <TouchableOpacity style={styles.option} onPress={handleDeleteAccount}>
+                <TouchableOpacity
+                    style={styles.option}
+                    onPress={() => navigation.navigate("DeleteAccountRequest")}
+                >
                     <View style={[styles.optionIcon, { backgroundColor: '#FEE2E2' }]}>
                         <Feather name="trash-2" size={20} color="#EF4444" />
                     </View>
-                    <Text style={[styles.optionText, { color: '#EF4444' }]}>Delete Account</Text>
+                    <Text style={[styles.optionText, { color: '#EF4444' }]}>Request Account Deletion</Text>
+                    <Feather name="chevron-right" size={20} color="#EF4444" />
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -67,7 +77,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: wp(5),
-        paddingTop: hp(7),
+        paddingTop: hp(6.5), // Adjusted for different devices
         paddingBottom: hp(2),
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
@@ -97,7 +107,7 @@ const styles = StyleSheet.create({
     optionIcon: {
         width: wp(10),
         height: wp(10),
-        borderRadius: wp(2),
+        borderRadius: wp(2.5),
         backgroundColor: '#F3F4F6',
         justifyContent: 'center',
         alignItems: 'center',
@@ -106,16 +116,23 @@ const styles = StyleSheet.create({
     optionText: {
         flex: 1,
         fontSize: normalize(16),
-        fontWeight: '500',
+        fontWeight: '600',
         color: '#1F2937',
+    },
+    optionSubtext: {
+        fontSize: normalize(12),
+        color: '#6B7280',
+        marginTop: 2,
     },
     divider: {
         height: 1,
         backgroundColor: '#F3F4F6',
-        marginLeft: wp(18), // Align with text
+        marginLeft: wp(18),
     },
     dangerZone: {
         marginTop: hp(4),
         borderColor: '#FECACA',
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
     },
 });

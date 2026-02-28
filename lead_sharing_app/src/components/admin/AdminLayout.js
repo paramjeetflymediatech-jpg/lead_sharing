@@ -9,6 +9,7 @@ import {
     Alert,
     SafeAreaView,
     Platform,
+    Image,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import LogoutModal from "../LogoutModal";
@@ -242,7 +243,11 @@ export default function AdminLayout({
                     />
                     <View style={styles.sidebar}>
                         <View style={styles.sidebarHeader}>
-                            <Text style={styles.sidebarTitle}>Admin Portal</Text>
+                            <Image
+                                source={require("../../../assets/allcarepros-logo.png")}
+                                style={styles.logo}
+                                resizeMode="contain"
+                            />
                             <TouchableOpacity onPress={() => setMenuVisible(false)}>
                                 <Feather name="x" size={24} color="#64748B" />
                             </TouchableOpacity>
@@ -297,6 +302,12 @@ export default function AdminLayout({
                                 label="Revenue"
                                 active={activeScreen === "Revenue"}
                                 onPress={() => handleMenuPress("Revenue")}
+                            />
+                            <MenuItem
+                                icon="trash-2"
+                                label="Deletion Requests"
+                                active={activeScreen === "DeletionRequests"}
+                                onPress={() => handleMenuPress("DeletionRequests")}
                             />
                         </ScrollView>
 
@@ -472,10 +483,9 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "#E2E8F0",
     },
-    sidebarTitle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#2563EB",
+    logo: {
+        width: 140,
+        height: 60,
     },
     menuList: {
         flex: 1,

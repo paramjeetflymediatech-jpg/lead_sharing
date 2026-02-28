@@ -16,6 +16,7 @@ import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonPr
 import OnboardingScreen from "./src/screens/tradesperson/OnboardingScreen";
 import NotificationHistoryScreen from "./src/screens/NotificationHistoryScreen";
 import { NotificationService } from "./src/services/NotificationService";
+import ErrorBoundary from "./src/components/ErrorBoundary";
 
 const Stack = createNativeStackNavigator();
 
@@ -181,10 +182,12 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <NavigationContainer theme={MyTheme} linking={linking}>
-        <RootNavigator />
-      </NavigationContainer>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <NavigationContainer theme={MyTheme} linking={linking}>
+          <RootNavigator />
+        </NavigationContainer>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

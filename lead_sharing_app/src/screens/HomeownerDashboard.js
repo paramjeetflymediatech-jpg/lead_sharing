@@ -23,16 +23,28 @@ export default function HomeownerDashboard({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const isMountedRef = React.useRef(true);
 
   useFocusEffect(
     useCallback(() => {
+      isMountedRef.current = true;
       loadDashboard();
+      return () => {
+        isMountedRef.current = false;
+      };
     }, [])
   );
 
+  const safeSetState = (setState, value) => {
+    if (isMountedRef.current) {
+      setState(value);
+    }
+  };
+
   async function loadDashboard() {
     try {
-      setLoading(true);
+      if (!isMountedRef.current) return;
+      safeSetState(setLoading, true);
 
       // Load dashboard data and recent jobs in parallel
       const [dashboardData, jobsData] = await Promise.all([
@@ -40,7 +52,8 @@ export default function HomeownerDashboard({ navigation }) {
         homeownerAPI.getMyJobs().catch(() => ({})),
       ]);
 
-      setDashboard(dashboardData);
+      if (!isMountedRef.current) return;
+      safeSetState(setDashboard, dashboardData);
 
       // Handle different API response formats
       let jobs = [];
@@ -52,20 +65,28 @@ export default function HomeownerDashboard({ navigation }) {
         jobs = jobsData.jobs;
       }
 
-      setRecentJobs(jobs.slice(0, 5));
+      if (!isMountedRef.current) return;
+      safeSetState(setRecentJobs, jobs.slice(0, 5));
     } catch (error) {
       console.error("Error loading dashboard:", error);
       // Set empty data on error
-      setRecentJobs([]);
+      if (isMountedRef.current) {
+        safeSetState(setRecentJobs, []);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setLoading, false);
+      }
     }
   }
 
   async function onRefresh() {
-    setRefreshing(true);
+    if (!isMountedRef.current) return;
+    safeSetState(setRefreshing, true);
     await loadDashboard();
-    setRefreshing(false);
+    if (isMountedRef.current) {
+      safeSetState(setRefreshing, false);
+    }
   }
 
   function handleLogout() {

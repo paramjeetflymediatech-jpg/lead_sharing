@@ -10,24 +10,30 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // { token, id, email, role, name }
   const [loading, setLoading] = useState(true);
+  const isMountedRef = React.useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     async function load() {
       try {
         const json = await AsyncStorage.getItem("auth_user");
         if (json) {
           const userData = JSON.parse(json);
           const authToken = await AsyncStorage.getItem("token");
-          setUser(userData);
+          if (isMountedRef.current) {
+            setUser(userData);
+          }
 
           // Sync token on every app launch if user exists and we have a token
-          if (authToken) {
+          if (authToken && isMountedRef.current) {
             setTimeout(async () => {
+              if (!isMountedRef.current) return;
               try {
                 console.log("[AuthContext] Running background push token sync...");
                 const pushToken = await NotificationService.registerForPushNotificationsAsync();
                 console.log("[AuthContext] Push token obtained:", pushToken ? "YES" : "NO");
-                if (pushToken) {
+                if (pushToken && isMountedRef.current) {
                   await NotificationService.syncTokenWithBackend();
                 }
               } catch (e) {
@@ -39,42 +45,61 @@ export function AuthProvider({ children }) {
       } catch (error) {
         console.error("[AuthContext] Error loading user:", error);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     }
     load();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   async function login(userData) {
-    setUser(userData);
-    await AsyncStorage.setItem("auth_user", JSON.stringify(userData));
-    if (userData.token) {
-      await AsyncStorage.setItem("token", userData.token);
-    }
-
-    // Register push token after login
+    if (!isMountedRef.current) return;
     try {
-      const pushToken = await NotificationService.registerForPushNotificationsAsync();
-      if (pushToken) {
-        await NotificationService.syncTokenWithBackend();
+      setUser(userData);
+      await AsyncStorage.setItem("auth_user", JSON.stringify(userData));
+      if (userData.token) {
+        await AsyncStorage.setItem("token", userData.token);
+      }
+
+      // Register push token after login
+      try {
+        const pushToken = await NotificationService.registerForPushNotificationsAsync();
+        if (pushToken && isMountedRef.current) {
+          await NotificationService.syncTokenWithBackend();
+        }
+      } catch (e) {
+        console.warn("Error registering push token on login:", e);
       }
     } catch (e) {
-      console.warn("Error registering push token on login:", e);
+      console.error("[AuthContext] Error in login:", e);
     }
   }
 
   async function logout() {
+    if (!isMountedRef.current) return;
     try {
       await authAPI.logout();
     } catch (e) {
       console.warn("Logout API call failed:", e);
     }
-    setUser(null);
-    await AsyncStorage.removeItem("auth_user");
-    await AsyncStorage.removeItem("token");
+    if (isMountedRef.current) {
+      setUser(null);
+    }
+    try {
+      await AsyncStorage.removeItem("auth_user");
+      await AsyncStorage.removeItem("token");
+    } catch (e) {
+      console.error("[AuthContext] Error clearing storage on logout:", e);
+    }
   }
 
   async function updateUser(userData) {
+    if (!isMountedRef.current) return;
     console.log("[Auth] Updating user with data:", JSON.stringify(userData));
     setUser(prev => {
       const updatedUser = { ...prev, ...userData };

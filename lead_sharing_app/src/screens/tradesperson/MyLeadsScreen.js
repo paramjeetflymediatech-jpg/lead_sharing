@@ -63,12 +63,12 @@ export default function MyLeadsScreen({ navigation }) {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <Text style={styles.headerTitle}>My Leads</Text>
                 <Text style={styles.headerSubtitle}>
                     {leads.length} {leads.length === 1 ? 'lead' : 'leads'} unlocked
                 </Text>
-            </View>
+            </View> */}
 
             <FlatList
                 data={leads}
@@ -99,32 +99,21 @@ function LeadCard({ lead, navigation }) {
     const getStatusInfo = (status) => {
         switch (status) {
             case "PENDING": return { color: "#F59E0B", icon: "clock", bg: "#FEF3C7", label: "Pending" };
-            case "ACCEPTED": return { color: "#10B981", icon: "check-circle", bg: "#D1FAE5", label: "Accepted" };
-            case "REJECTED": return { color: "#EF4444", icon: "x-circle", bg: "#FEE2E2", label: "Rejected" };
-            default: return { color: "#6B7280", icon: "help-circle", bg: "#F3F4F6", label: status };
+            case "ACCEPTED": return { color: "#10B981", icon: "check-circle", bg: "#ECFDF5", label: "Accepted" };
+            case "REJECTED": return { color: "#EF4444", icon: "x-circle", bg: "#FEF2F2", label: "Rejected" };
+            case "ACTIVE": return { color: "#2563EB", icon: "unlock", bg: "#EFF6FF", label: "Unlocked" };
+            default: return { color: "#6B7280", icon: "help-circle", bg: "#F3F4F6", label: status || "Unlocked" };
         }
     };
 
-    const statusInfo = getStatusInfo(lead.status);
-
-    const handleCall = () => {
-        if (lead.homeowner_phone) {
-            Linking.openURL(`tel:${lead.homeowner_phone}`);
-        }
-    };
-
-    const handleEmail = () => {
-        if (lead.homeowner_email) {
-            Linking.openURL(`mailto:${lead.homeowner_email}`);
-        }
-    };
+    const statusInfo = getStatusInfo(lead.status || "ACTIVE");
 
     const job = lead.job || {};
 
-    // The backend provides contact details in job info
-    const contactName = job.contactName || lead.homeowner_name || "Homeowner";
-    const contactEmail = job.contactEmail || lead.homeowner_email;
-    const contactPhone = job.contactPhone || lead.homeowner_phone;
+    // The backend provides contact details in job info or lead object
+    const contactName = lead.homeowner_name || job.homeowner?.name || "Homeowner";
+    const contactEmail = lead.homeowner_email || job.homeowner?.email;
+    const contactPhone = lead.homeowner_phone || job.homeowner?.phone;
 
     return (
         <View style={styles.leadCard}>
@@ -138,12 +127,12 @@ function LeadCard({ lead, navigation }) {
                         <Feather name="calendar" size={12} color="#9CA3AF" style={{ marginRight: 4 }} />
                         <Text style={styles.dateText}>
                             {lead.unlockedAt ? new Date(lead.unlockedAt).toLocaleDateString() :
-                                lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'New'}
+                                lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'Recently'}
                         </Text>
                     </View>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
-                    <Feather name={statusInfo.icon} size={12} color={statusInfo.color} style={{ marginRight: 4 }} />
+                    <Feather name={statusInfo.icon} size={11} color={statusInfo.color} style={{ marginRight: 4 }} />
                     <Text style={[styles.statusText, { color: statusInfo.color }]}>
                         {statusInfo.label}
                     </Text>
@@ -153,14 +142,18 @@ function LeadCard({ lead, navigation }) {
             {/* Details: Location & Budget */}
             <View style={styles.detailsRow}>
                 <View style={styles.detailItem}>
-                    <Feather name="map-pin" size={14} color="#6B7280" style={{ marginRight: 6 }} />
-                    <Text style={styles.detailText}>{job.location || job.postcode || lead.postcode || "Remote"}</Text>
+                    <View style={styles.iconCircle}>
+                        <Feather name="map-pin" size={12} color="#6B7280" />
+                    </View>
+                    <Text style={styles.detailText}>{job.location || job.postcode || lead.postcode || "Location provided"}</Text>
                 </View>
-                {(job.budgetMax || lead.budget_max) && (
+                {(job.budget_max || lead.budget_max) && (
                     <View style={[styles.detailItem, { marginLeft: 16 }]}>
-                        <Text style={styles.currencySymbol}>$</Text>
+                        <View style={styles.iconCircle}>
+                            <Feather name="dollar-sign" size={12} color="#6B7280" />
+                        </View>
                         <Text style={styles.detailText}>
-                            {job.budgetMin || lead.budget_min || 0} - {job.budgetMax || lead.budget_max}
+                            {job.budget_min || lead.budget_min || 0} - {job.budget_max || lead.budget_max}
                         </Text>
                     </View>
                 )}
@@ -176,42 +169,39 @@ function LeadCard({ lead, navigation }) {
                             {contactName.charAt(0).toUpperCase()}
                         </Text>
                     </View>
-                    <View>
-                        <Text style={styles.homeownerName}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.homeownerName} numberOfLines={1}>
                             {contactName}
                         </Text>
-                        <Text style={styles.homeownerLabel}>Contact details unlocked</Text>
+                        <Text style={styles.homeownerLabel}>Contact Unlocked</Text>
                     </View>
                 </View>
 
                 <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                        style={[styles.actionButton, styles.viewDetailsButton]}
-                        onPress={() => navigation.navigate('TradespersonJobDetails', { jobId: lead.jobId || job.id })}
-                    >
-                        <Feather name="eye" size={16} color="#2563EB" style={{ marginRight: 6 }} />
-                        <Text style={[styles.actionButtonText, { color: '#2563EB' }]}>View Details</Text>
-                    </TouchableOpacity>
-
                     {contactPhone && contactPhone !== 'Not provided' && (
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.callButton]}
+                            style={[styles.smallActionButton, styles.callButton]}
                             onPress={() => Linking.openURL(`tel:${contactPhone}`)}
                         >
-                            <Feather name="phone" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-                            <Text style={styles.actionButtonText}>Call</Text>
+                            <Feather name="phone" size={16} color="#FFFFFF" />
                         </TouchableOpacity>
                     )}
 
                     {contactEmail && contactEmail !== 'Not provided' && (
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.emailButton]}
+                            style={[styles.smallActionButton, styles.emailButton]}
                             onPress={() => Linking.openURL(`mailto:${contactEmail}`)}
                         >
-                            <Feather name="mail" size={16} color="#4B5563" style={{ marginRight: 6 }} />
-                            <Text style={[styles.actionButtonText, { color: '#4B5563' }]}>Email</Text>
+                            <Feather name="mail" size={16} color="#4B5563" />
                         </TouchableOpacity>
                     )}
+
+                    <TouchableOpacity
+                        style={[styles.smallActionButton, styles.viewDetailsButton]}
+                        onPress={() => navigation.navigate('JobDetails', { jobId: lead.jobId || job.id })}
+                    >
+                        <Feather name="eye" size={16} color="#2563EB" />
+                    </TouchableOpacity>
                 </View>
             </View>
         </View>
@@ -333,16 +323,19 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
+    iconCircle: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: "#F3F4F6",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 8,
+    },
     detailText: {
         fontSize: 14,
         color: "#4B5563",
         fontWeight: "500",
-    },
-    currencySymbol: {
-        fontSize: 14,
-        color: "#6B7280",
-        fontWeight: "600",
-        marginRight: 4,
     },
     divider: {
         height: 1,
@@ -354,6 +347,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        gap: 12,
     },
     homeownerInfo: {
         flexDirection: "row",
@@ -361,9 +355,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     avatarPlaceholder: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         backgroundColor: "#EFF6FF",
         justifyContent: "center",
         alignItems: "center",
@@ -373,12 +367,12 @@ const styles = StyleSheet.create({
     },
     avatarText: {
         color: "#2563EB",
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "700",
     },
     homeownerName: {
-        fontSize: 14,
-        fontWeight: "600",
+        fontSize: 15,
+        fontWeight: "700",
         color: "#1F2937",
     },
     homeownerLabel: {
@@ -389,12 +383,12 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 8,
     },
-    actionButton: {
-        flexDirection: "row",
+    smallActionButton: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        justifyContent: "center",
         alignItems: "center",
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
         borderWidth: 1,
     },
     callButton: {
@@ -402,16 +396,11 @@ const styles = StyleSheet.create({
         borderColor: "#2563EB",
     },
     emailButton: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#F9FAFB",
         borderColor: "#E5E7EB",
     },
     viewDetailsButton: {
         backgroundColor: "#FFFFFF",
         borderColor: "#2563EB",
-    },
-    actionButtonText: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#FFFFFF",
     },
 });

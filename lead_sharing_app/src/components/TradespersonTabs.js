@@ -12,6 +12,12 @@ import MyLeadsScreen from "../screens/tradesperson/MyLeadsScreen";
 import EditProfileScreen from "../screens/tradesperson/EditProfileScreen";
 import BuyCreditsScreen from "../screens/tradesperson/BuyCreditsScreen";
 import MessagesListScreen from "../screens/MessagesListScreen";
+import PrivacySecurityScreen from "../screens/homeowner/PrivacySecurityScreen";
+import ChangePasswordScreen from "../screens/ChangePasswordScreen";
+import DeleteAccountRequestScreen from "../screens/DeleteAccountRequestScreen";
+import HelpCenterScreen from "../screens/homeowner/HelpCenterScreen";
+import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
+import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -69,6 +75,11 @@ function ProfileStack() {
                 options={{ headerShown: false }}
             />
             <Stack.Screen
+                name="JobDetails"
+                component={JobDetailsScreen}
+                options={{ title: "Job Details" }}
+            />
+            <Stack.Screen
                 name="EditProfile"
                 component={EditProfileScreen}
                 options={{ title: "Edit Profile" }}
@@ -82,6 +93,36 @@ function ProfileStack() {
                 name="BuyCredits"
                 component={BuyCreditsScreen}
                 options={{ title: "Buy Credits" }}
+            />
+            <Stack.Screen
+                name="PrivacySecurity"
+                component={PrivacySecurityScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="ChangePassword"
+                component={ChangePasswordScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="DeleteAccountRequest"
+                component={DeleteAccountRequestScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="HelpCenter"
+                component={HelpCenterScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="ContactUs"
+                component={ContactUsScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="TermsAndConditions"
+                component={TermsAndConditionsScreen}
+                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );

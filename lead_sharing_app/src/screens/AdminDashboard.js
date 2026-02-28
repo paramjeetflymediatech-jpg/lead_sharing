@@ -12,6 +12,7 @@ import {
     Modal,
     ScrollView,
     Linking,
+    Image,
 } from "react-native";
 import { API_BASE_URL } from "../config/api";
 import { Picker } from "@react-native-picker/picker";
@@ -66,6 +67,7 @@ export default function AdminDashboard({ navigation, route }) {
 
     // Verifications state
     const [verifications, setVerifications] = useState([]);
+    const [deletionRequests, setDeletionRequests] = useState([]);
     const [verificationStatus, setVerificationStatus] = useState("PENDING_APPROVAL");
 
     // Filter states
@@ -124,15 +126,17 @@ export default function AdminDashboard({ navigation, route }) {
                     await Promise.all([loadSubcategories(), loadCategories()]);
                     break;
                 case "Jobs":
-                    await loadJobs();
+                    await Promise.all([loadJobs(), loadCategories(), loadSubcategories(), loadUsers()]);
                     break;
                 case "Leads":
-                    await loadLeads();
+                    await Promise.all([loadLeads(), loadJobs(), loadUsers()]);
                     break;
                 case "Verifications":
                     await loadVerifications();
                     break;
-
+                case "DeletionRequests":
+                    await loadDeletionRequests();
+                    break;
                 case "Revenue":
                     await loadDashboard(); // Reuse for now or load revenue specific stats
                     break;
@@ -167,7 +171,7 @@ export default function AdminDashboard({ navigation, route }) {
 
     async function loadUsers() {
         try {
-            const data = await adminAPI.getUsers();
+            const data = await adminAPI.getUsers("ALL", 1, 1000);
             const usersList = data.data || data.users || data || [];
             setUsers(Array.isArray(usersList) ? usersList : []);
         } catch (error) {
@@ -222,7 +226,6 @@ export default function AdminDashboard({ navigation, route }) {
 
     async function loadVerifications(statusToLoad = null) {
         try {
-            setLoading(true);
             const status = statusToLoad || verificationStatus;
             const data = await adminAPI.getTradespersons(status);
             const list = data.data || data || [];
@@ -230,8 +233,17 @@ export default function AdminDashboard({ navigation, route }) {
         } catch (error) {
             console.error("Verifications error:", error);
             setVerifications([]);
-        } finally {
-            setLoading(false);
+        }
+    }
+
+    async function loadDeletionRequests() {
+        try {
+            const data = await adminAPI.getDeletionRequests();
+            const list = data.data || data.requests || data || [];
+            setDeletionRequests(Array.isArray(list) ? list : []);
+        } catch (error) {
+            console.error("Deletion requests error:", error);
+            setDeletionRequests([]);
         }
     }
 
@@ -245,15 +257,59 @@ export default function AdminDashboard({ navigation, route }) {
             });
 
             Alert.alert("Success", `Account ${status === 'APPROVED' ? 'approved' : 'rejected'} successfully`);
-            setShowRejectionModal(false);
-            setShowVerificationDetailsModal(false);
             setRejectionReason("");
-            await loadVerifications();
+            loadVerifications();
         } catch (error) {
-            Alert.alert("Error", error.message || "Failed to update verification status");
+            console.error("Verification error:", error);
+            Alert.alert("Error", "Failed to process verification");
         } finally {
             setLoading(false);
         }
+    }
+
+    async function handleProcessDeletion(requestId, status, message = "") {
+        try {
+            setLoading(true);
+            await adminAPI.processDeletionRequest(requestId, {
+                status,
+                adminNotes: message
+            });
+
+            Alert.alert("Success", `Request ${status.toLowerCase()} successfully`);
+            await loadDeletionRequests();
+        } catch (error) {
+            console.error("Process deletion error:", error);
+            Alert.alert("Error", error.message || "Failed to process request");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleDeleteDeletionRequest(requestId) {
+        Alert.alert(
+            "Delete Request",
+            "Are you sure you want to remove this request from the list? This won't delete the user.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await adminAPI.deleteDeletionRequest(requestId);
+                            Alert.alert("Success", "Request removed");
+                            await loadDeletionRequests();
+                        } catch (error) {
+                            console.error("Delete request error:", error);
+                            Alert.alert("Error", "Failed to delete request");
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     }
 
     // ============================================
@@ -289,6 +345,7 @@ export default function AdminDashboard({ navigation, route }) {
                 return;
             }
 
+            setLoading(true);
             if (editingUser) {
                 // Update existing user
                 const updateData = {
@@ -311,6 +368,8 @@ export default function AdminDashboard({ navigation, route }) {
             await loadUsers();
         } catch (error) {
             Alert.alert("Error", error.message || "Failed to save user");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -325,11 +384,14 @@ export default function AdminDashboard({ navigation, route }) {
                     style: "destructive",
                     onPress: async () => {
                         try {
+                            setLoading(true);
                             await adminAPI.deleteUser(user._id);
                             Alert.alert("Success", "User deleted successfully");
                             await loadUsers();
                         } catch (error) {
                             Alert.alert("Error", error.message || "Failed to delete user");
+                        } finally {
+                            setLoading(false);
                         }
                     },
                 },
@@ -363,6 +425,7 @@ export default function AdminDashboard({ navigation, route }) {
                 return;
             }
 
+            setLoading(true);
             if (editingCategory) {
                 // Update existing category
                 await adminAPI.updateCategory(editingCategory._id, categoryForm);
@@ -377,6 +440,8 @@ export default function AdminDashboard({ navigation, route }) {
             await loadCategories();
         } catch (error) {
             Alert.alert("Error", error.message || "Failed to save category");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -391,11 +456,14 @@ export default function AdminDashboard({ navigation, route }) {
                     style: "destructive",
                     onPress: async () => {
                         try {
+                            setLoading(true);
                             await adminAPI.deleteCategory(category._id);
                             Alert.alert("Success", "Category deleted successfully");
                             await loadCategories();
                         } catch (error) {
                             Alert.alert("Error", error.message || "Failed to delete category");
+                        } finally {
+                            setLoading(false);
                         }
                     },
                 },
@@ -430,6 +498,7 @@ export default function AdminDashboard({ navigation, route }) {
                 return;
             }
 
+            setLoading(true);
             // Map 'category' to 'categoryId' for backend
             const payload = {
                 name: subcategoryForm.name,
@@ -450,6 +519,8 @@ export default function AdminDashboard({ navigation, route }) {
             await loadSubcategories();
         } catch (error) {
             Alert.alert("Error", error.message || "Failed to save subcategory");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -464,11 +535,14 @@ export default function AdminDashboard({ navigation, route }) {
                     style: "destructive",
                     onPress: async () => {
                         try {
+                            setLoading(true);
                             await adminAPI.deleteSubcategory(subcategory._id);
                             Alert.alert("Success", "Subcategory deleted successfully");
                             await loadSubcategories();
                         } catch (error) {
                             Alert.alert("Error", error.message || "Failed to delete subcategory");
+                        } finally {
+                            setLoading(false);
                         }
                     },
                 },
@@ -688,7 +762,7 @@ export default function AdminDashboard({ navigation, route }) {
                     <UsersScreen
                         users={users}
                         searchQuery={usersSearch}
-                        onSearch={setUsersSearch}
+                        onSearchChange={setUsersSearch}
                         onRefresh={onRefresh}
                         onEdit={openEditUserModal}
                         onDelete={handleDeleteUser}
@@ -728,6 +802,14 @@ export default function AdminDashboard({ navigation, route }) {
                             setShowVerificationDetailsModal(true);
                         }}
                     // onRefresh removed since we load on tab change and pull-to-refresh is in AdminLayout
+                    />
+                );
+            case "DeletionRequests":
+                return (
+                    <DeletionRequestsScreen
+                        requests={deletionRequests}
+                        onProcess={handleProcessDeletion}
+                        onDelete={handleDeleteDeletionRequest}
                     />
                 );
             case "Categories":
@@ -954,9 +1036,20 @@ function UsersScreen({ users, searchQuery, onSearchChange, onEdit, onDelete }) {
                     <View key={user._id || index} style={styles.card}>
                         <View style={styles.cardHeader}>
                             <View style={styles.userAvatar}>
-                                <Text style={styles.userAvatarText}>
-                                    {user.name?.charAt(0) || "U"}
-                                </Text>
+                                {user.profileImage || user.profile_image ? (
+                                    <Image
+                                        source={{
+                                            uri: (user.profileImage || user.profile_image).startsWith('http')
+                                                ? (user.profileImage || user.profile_image)
+                                                : `${API_BASE_URL}${user.profileImage || user.profile_image}`
+                                        }}
+                                        style={styles.userAvatarImage}
+                                    />
+                                ) : (
+                                    <Text style={styles.userAvatarText}>
+                                        {user.name?.charAt(0) || "U"}
+                                    </Text>
+                                )}
                             </View>
                             <View style={styles.cardContent}>
                                 <Text style={styles.cardTitle}>{user.name || "Unknown"}</Text>
@@ -1409,6 +1502,96 @@ function RevenueScreen({ revenue }) {
             </View>
 
         </>
+    );
+}
+
+// ============================================
+// DELETION REQUESTS SCREEN
+// ============================================
+function DeletionRequestsScreen({ requests, onProcess, onDelete }) {
+    return (
+        <View style={{ flex: 1 }}>
+            <Text style={styles.screenTitle}>
+                Account Deletion Requests ({requests.length})
+            </Text>
+
+            {requests.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Feather name="trash-2" size={48} color="#CBD5E1" />
+                    <Text style={styles.emptyText}>No pending requests</Text>
+                </View>
+            ) : (
+                requests.map((request, index) => (
+                    <View key={request._id || index} style={styles.card}>
+                        <View style={styles.cardHeader}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.cardTitle}>{request.user?.name || "Unknown User"}</Text>
+                                <Text style={styles.cardSubtitle}>{request.user?.email}</Text>
+                                <View style={[styles.roleBadge, { marginTop: 4, alignSelf: 'flex-start', backgroundColor: request.user?.role === 'TRADESPERSON' ? '#2563EB' : '#10B981' }]}>
+                                    <Text style={styles.roleBadgeText}>{request.user?.role}</Text>
+                                </View>
+                            </View>
+                            <View
+                                style={[
+                                    styles.statusBadge,
+                                    {
+                                        backgroundColor:
+                                            request.status === "APPROVED" ? "#DCFCE7" :
+                                                request.status === "REJECTED" ? "#FEE2E2" : "#FEF3C7",
+                                    },
+                                ]}
+                            >
+                                <Text style={[
+                                    styles.statusBadgeText,
+                                    {
+                                        color:
+                                            request.status === "APPROVED" ? "#166534" :
+                                                request.status === "REJECTED" ? "#991B1B" : "#854D0E",
+                                    }
+                                ]}>
+                                    {request.status || "PENDING"}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={{ marginTop: hp(1), backgroundColor: '#F8FAFC', padding: wp(3), borderRadius: wp(2) }}>
+                            <Text style={styles.infoLabel}>Reason:</Text>
+                            <Text style={[styles.cardSubtitle, { color: '#1E293B', marginTop: 2 }]}>
+                                {request.reason || "No reason provided."}
+                            </Text>
+                        </View>
+
+                        {request.status === "PENDING" && (
+                            <View style={[styles.cardActions, { marginTop: hp(2) }]}>
+                                <TouchableOpacity
+                                    style={[styles.actionButton, { backgroundColor: '#DCFCE7', borderColor: '#DCFCE7' }]}
+                                    onPress={() => onProcess(request._id, "APPROVED")}
+                                >
+                                    <Feather name="check-circle" size={14} color="#166534" style={styles.buttonIcon} />
+                                    <Text style={[styles.actionButtonText, { color: '#166534' }]}>Approve & Delete</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.actionButton, { backgroundColor: '#FEE2E2', borderColor: '#FEE2E2' }]}
+                                    onPress={() => onProcess(request._id, "REJECTED")}
+                                >
+                                    <Feather name="x-circle" size={14} color="#991B1B" style={styles.buttonIcon} />
+                                    <Text style={[styles.actionButtonText, { color: '#991B1B' }]}>Reject</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        <View style={[styles.cardActions, { justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: hp(1) }]}>
+                            <Text style={styles.verificationTime}>
+                                Sent: {request.createdAt ? new Date(request.createdAt).toLocaleDateString() : "N/A"}
+                            </Text>
+                            <TouchableOpacity onPress={() => onDelete(request._id)}>
+                                <Feather name="trash-2" size={16} color="#94A3B8" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ))
+            )}
+        </View>
     );
 }
 
@@ -2102,6 +2285,11 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#FFFFFF",
     },
+    userAvatarImage: {
+        width: "100%",
+        height: "100%",
+        borderRadius: wp(6),
+    },
     categoryIconStyle: {
         marginRight: 4,
     },
@@ -2332,6 +2520,13 @@ const styles = StyleSheet.create({
     picker: {
         height: hp(6),
         color: "#1E293B",
+    },
+    infoLabel: {
+        fontSize: normalize(12),
+        fontWeight: "700",
+        color: "#64748B",
+        textTransform: "uppercase",
+        letterSpacing: 1,
     },
     cancelButton: {
         paddingHorizontal: wp(6),

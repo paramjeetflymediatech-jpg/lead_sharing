@@ -25,10 +25,11 @@ async function getAuthToken() {
 }
 
 /**
- * Generic API call wrapper with error handling
+ * Generic API call wrapper with error handling and timeout
  */
 export async function apiCall(endpoint, options = {}) {
     const token = await getAuthToken();
+    const timeoutMs = options.timeout || 30000; // 30 second default timeout
 
     const headers = {
         "Content-Type": "application/json",
@@ -39,11 +40,17 @@ export async function apiCall(endpoint, options = {}) {
         headers.Authorization = `Bearer ${token}`;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
             headers,
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         const data = await response.json().catch(() => ({}));
 
@@ -53,7 +60,12 @@ export async function apiCall(endpoint, options = {}) {
 
         return data;
     } catch (error) {
-        console.error(`API Error [${endpoint}]:`, error.message);
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            console.error(`API Timeout [${endpoint}]: Request took longer than ${timeoutMs}ms`);
+        } else {
+            console.error(`API Error [${endpoint}]:`, error.message);
+        }
         throw error;
     }
 }
@@ -199,6 +211,26 @@ export const userAPI = {
         return apiCall("/api/me", {
             method: "PUT",
             body: JSON.stringify(userData),
+        });
+    },
+
+    /**
+     * Request account deletion
+     */
+    requestAccountDeletion: async (reason) => {
+        return apiCall("/api/me/delete-request", {
+            method: "POST",
+            body: JSON.stringify({ reason }),
+        });
+    },
+
+    /**
+     * Contact support
+     */
+    contactSupport: async (data) => {
+        return apiCall("/api/support/contact", {
+            method: "POST",
+            body: JSON.stringify(data),
         });
     },
 };
@@ -573,8 +605,8 @@ export const adminAPI = {
     /**
      * Get all users
      */
-    getUsers: async () => {
-        return apiCall("/api/admin/users");
+    getUsers: async (role = "ALL", page = 1, limit = 10) => {
+        return apiCall(`/api/admin/users?role=${role}&page=${page}&limit=${limit}`);
     },
 
     /**
@@ -725,6 +757,26 @@ export const adminAPI = {
         return apiCall("/api/admin/tradespersons", {
             method: "PUT",
             body: JSON.stringify(data),
+        });
+    },
+
+    /**
+     * Account Deletion Requests
+     */
+    getDeletionRequests: async () => {
+        return apiCall("/api/admin/deletion-requests");
+    },
+
+    processDeletionRequest: async (id, data) => {
+        return apiCall(`/api/admin/deletion-requests/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+        });
+    },
+
+    deleteDeletionRequest: async (id) => {
+        return apiCall(`/api/admin/deletion-requests/${id}`, {
+            method: "DELETE",
         });
     },
 };

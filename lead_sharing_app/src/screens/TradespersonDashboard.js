@@ -26,16 +26,28 @@ export default function TradespersonDashboard({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const isMountedRef = React.useRef(true);
 
   useFocusEffect(
     React.useCallback(() => {
+      isMountedRef.current = true;
       loadDashboard();
+      return () => {
+        isMountedRef.current = false;
+      };
     }, [])
   );
 
+  const safeSetState = (setState, value) => {
+    if (isMountedRef.current) {
+      setState(value);
+    }
+  };
+
   async function loadDashboard() {
     try {
-      setLoading(true);
+      if (!isMountedRef.current) return;
+      safeSetState(setLoading, true);
 
       // Load profile, available jobs, and my leads in parallel
       const [meData, jobsData, leadsData] = await Promise.all([
@@ -44,12 +56,14 @@ export default function TradespersonDashboard({ navigation }) {
         tradespersonAPI.getMyLeads().catch(() => ({})),
       ]);
 
+      if (!isMountedRef.current) return;
+
       // Handle Profile Data from userAPI.getMe()
       if (meData?.success && meData?.tradespersonProfile) {
-        setProfile(meData.tradespersonProfile);
+        safeSetState(setProfile, meData.tradespersonProfile);
       } else {
         console.log("Failed to load profile or not found", meData);
-        setProfile(null);
+        safeSetState(setProfile, null);
       }
 
       // Handle different API response formats for jobs
@@ -72,22 +86,30 @@ export default function TradespersonDashboard({ navigation }) {
         leads = leadsData.leads;
       }
 
-      setAvailableJobs(jobs.slice(0, 5));
-      setMyLeads(leads);
+      if (!isMountedRef.current) return;
+      safeSetState(setAvailableJobs, jobs.slice(0, 5));
+      safeSetState(setMyLeads, leads);
     } catch (error) {
       console.error("Error loading dashboard:", error);
       // Set empty data on error
-      setAvailableJobs([]);
-      setMyLeads([]);
+      if (isMountedRef.current) {
+        safeSetState(setAvailableJobs, []);
+        safeSetState(setMyLeads, []);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setLoading, false);
+      }
     }
   }
 
   async function onRefresh() {
-    setRefreshing(true);
+    if (!isMountedRef.current) return;
+    safeSetState(setRefreshing, true);
     await loadDashboard();
-    setRefreshing(false);
+    if (isMountedRef.current) {
+      safeSetState(setRefreshing, false);
+    }
   }
 
   function handleLogout() {

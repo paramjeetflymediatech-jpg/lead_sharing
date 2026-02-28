@@ -244,6 +244,14 @@ export async function PUT(req) {
 
       console.log("✅ Profile updated successfully");
 
+      // Also update the profile_image in the users table for consistency
+      if (profileImage) {
+        await pool.query(
+          "UPDATE users SET profile_image = ? WHERE id = ?",
+          [profileImage, userId]
+        );
+      }
+
       // Notify admins if verification is pending
       if (verificationStatus === "PENDING_APPROVAL") {
         try {
@@ -290,6 +298,14 @@ export async function PUT(req) {
       );
 
       console.log("✅ Profile created successfully");
+
+      // Also update the profile_image in the users table for consistency
+      if (profileImage) {
+        await pool.query(
+          "UPDATE users SET profile_image = ? WHERE id = ?",
+          [profileImage, userId]
+        );
+      }
 
       // Notify admins if verification is pending
       if (verificationStatus === "PENDING_APPROVAL") {
