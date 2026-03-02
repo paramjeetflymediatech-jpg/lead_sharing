@@ -13,7 +13,7 @@ import {
     Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { tradespersonAPI, userAPI } from "../services/api";
+import { tradespersonAPI, userAPI, homeownerAPI } from "../services/api";
 
 export default function MessagesModal({ visible, onClose, jobId, homeownerId, jobTitle }) {
     const [messages, setMessages] = useState([]);
@@ -29,11 +29,8 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
     const pollingInterval = useRef(null);
 
     useEffect(() => {
-        if (visible && jobId && homeownerId) {
+        if (visible && jobId) {
             loadMyUser();
-            // Start polling (will be called after user is loaded in verify logic, 
-            // but we can start it here safely if we handle missing role check)
-            // Actually, better to wait for role to be set.
         } else {
             // Clear polling when modal closes
             if (pollingInterval.current) {
@@ -76,7 +73,10 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
     };
 
     const loadMessages = async () => {
-        if (!jobId || !homeownerId || !userRole) return;
+        if (!jobId || !homeownerId || !userRole) {
+            setLoading(false);
+            return;
+        }
 
         try {
             const conversationId = `${jobId}-${homeownerId}`;
@@ -86,7 +86,7 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
                 // For homeowner, we might use a different API or the same structure
                 // Homeowner API: getConversation(conversationId)
                 // NOTE: conversationId format must match backend expectation
-                data = await import("../services/api").then(module => module.homeownerAPI.getConversation(conversationId));
+                data = await homeownerAPI.getConversation(conversationId);
             } else {
                 data = await tradespersonAPI.getConversation(conversationId);
             }
@@ -110,7 +110,7 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
             let response;
 
             if (userRole === 'HOMEOWNER') {
-                response = await import("../services/api").then(module => module.homeownerAPI.sendMessage(conversationId, newMessage.trim()));
+                response = await homeownerAPI.sendMessage(conversationId, newMessage.trim());
             } else {
                 response = await tradespersonAPI.sendMessage(conversationId, newMessage.trim());
             }
@@ -164,49 +164,53 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
             transparent={true}
             onRequestClose={onClose}
         >
-            <View style={styles.overlay}>
-                <View style={styles.container}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View>
-                            <Text style={styles.headerTitle}>Messages</Text>
-                            <Text style={styles.headerSubtitle} numberOfLines={1}>
-                                {jobTitle || "Job Discussion"}
-                            </Text>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+            >
+                <View style={styles.overlay}>
+                    <View style={styles.container}>
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <View>
+                                <Text style={styles.headerTitle}>Messages</Text>
+                                <Text style={styles.headerSubtitle} numberOfLines={1}>
+                                    {jobTitle || "Job Discussion"}
+                                </Text>
+                            </View>
+                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                                <Text style={styles.closeText}>✕</Text>
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Text style={styles.closeText}>✕</Text>
-                        </TouchableOpacity>
-                    </View>
 
-                    {/* Messages List or Empty State */}
-                    {loading && messages.length === 0 ? (
-                        <View style={styles.centerContent}>
-                            <ActivityIndicator size="large" color="#2563EB" />
-                        </View>
-                    ) : messages.length === 0 ? (
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyIcon}>💬</Text>
-                            <Text style={styles.emptyTitle}>Start the conversation</Text>
-                            <Text style={styles.emptyText}>
-                                Introduce yourself and discuss the job details with the homeowner.
-                            </Text>
-                        </View>
-                    ) : (
-                        <FlatList
-                            ref={flatListRef}
-                            data={messages}
-                            renderItem={renderMessage}
-                            keyExtractor={item => item.id.toString()}
-                            contentContainerStyle={styles.messagesList}
-                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-                        />
-                    )}
+                        {/* Messages List or Empty State */}
+                        {loading && messages.length === 0 ? (
+                            <View style={styles.centerContent}>
+                                <ActivityIndicator size="large" color="#2563EB" />
+                            </View>
+                        ) : messages.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyIcon}>💬</Text>
+                                <Text style={styles.emptyTitle}>Start the conversation</Text>
+                                <Text style={styles.emptyText}>
+                                    Introduce yourself and discuss the job details with the homeowner.
+                                </Text>
+                            </View>
+                        ) : (
+                            <FlatList
+                                ref={flatListRef}
+                                data={messages}
+                                renderItem={renderMessage}
+                                keyExtractor={item => item.id.toString()}
+                                contentContainerStyle={styles.messagesList}
+                                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+                                keyboardDismissMode="interactive"
+                                keyboardShouldPersistTaps="handled"
+                            />
+                        )}
 
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-                    >
+                        {/* Input - always visible above keyboard */}
                         <View style={[
                             styles.inputContainer,
                             { paddingBottom: Math.max(insets.bottom, 12) }
@@ -234,9 +238,9 @@ export default function MessagesModal({ visible, onClose, jobId, homeownerId, jo
                                 )}
                             </TouchableOpacity>
                         </View>
-                    </KeyboardAvoidingView>
+                    </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }

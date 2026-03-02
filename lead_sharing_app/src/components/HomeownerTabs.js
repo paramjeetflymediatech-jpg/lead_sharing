@@ -48,7 +48,7 @@ function HomeStack({ navigation }) {
             <Stack.Screen
                 name="TradespersonProfile"
                 component={TradespersonProfileScreen}
-                options={{ title: "Tradesperson Profile" }}
+                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );

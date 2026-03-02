@@ -335,7 +335,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                 visible={showMessageModal}
                 onClose={() => setShowMessageModal(false)}
                 jobId={job._id}
-                homeownerId={job.homeowner?.id}
+                homeownerId={job.homeowner?._id || job.homeowner_id}
                 jobTitle={job.description}
             />
 
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     unlockedBadgeText: {
         color: "#10B981",
         fontSize: normalize(13),
-        fontWeight: "700",
+        fontWeight: "800",
     },
     unlockedInfo: {
         flexDirection: "row",

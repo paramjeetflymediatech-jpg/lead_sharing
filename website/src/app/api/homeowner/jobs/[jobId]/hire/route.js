@@ -186,7 +186,7 @@ export async function POST(req, context) {
         const { NotificationService } = await import("@/lib/notifications");
         await NotificationService.tradespersonHired(
           tradespersonUserId,
-          updatedJob[0].title,
+          updatedJob[0].description,
           jobId
         );
       } catch (notifyErr) {

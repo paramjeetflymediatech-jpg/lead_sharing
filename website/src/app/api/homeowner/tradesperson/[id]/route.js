@@ -92,8 +92,9 @@ export async function GET(request, { params }) {
       }
     }
 
-    // Now get tradesperson profile with user details using the correct profile_id
-    // ⭐ CRITICAL FIX: Join on leads and ratings using TRADESPERSON_ID (which is PROFILE ID)
+    // Now get tradesperson profile with user details
+    // NOTE: leads.tradesperson_id = tradesperson_profiles.id (profile ID)
+    //       tradesperson_ratings.tradesperson_id = users.id (user ID)
     const [profileRows] = await pool.query(`
       SELECT 
         tp.*,
@@ -111,13 +112,13 @@ export async function GET(request, { params }) {
         (
           SELECT COUNT(*) 
           FROM tradesperson_ratings tr 
-          WHERE tr.tradesperson_id = tp.id 
+          WHERE tr.tradesperson_id = tp.user_id 
           AND tr.rating IS NOT NULL
         ) as total_ratings_count,
         (
           SELECT ROUND(AVG(tr.rating), 1)
           FROM tradesperson_ratings tr 
-          WHERE tr.tradesperson_id = tp.id 
+          WHERE tr.tradesperson_id = tp.user_id 
           AND tr.rating IS NOT NULL
         ) as average_rating_score
       FROM tradesperson_profiles tp
@@ -135,7 +136,7 @@ export async function GET(request, { params }) {
 
     const profile = profileRows[0];
 
-    // Get recent reviews with job details using PROFILE_ID
+    // Get recent reviews with job details using USER_ID (tradesperson_ratings.tradesperson_id = users.id)
     const [reviewsRows] = await pool.query(`
       SELECT 
         tr.*,
@@ -153,7 +154,7 @@ export async function GET(request, { params }) {
       AND tr.rating IS NOT NULL
       ORDER BY tr.created_at DESC
       LIMIT 10
-    `, [tradespersonProfileId]);
+    `, [tradespersonUserId]);
 
     // Get total jobs count (all leads where tradesperson was hired) using PROFILE_ID
     const [totalJobsRows] = await pool.query(`
@@ -208,7 +209,7 @@ export async function GET(request, { params }) {
       else responseTime = 'Within a week';
     }
 
-    // Calculate rating distribution using PROFILE_ID
+    // Calculate rating distribution using USER_ID
     const [ratingDistribution] = await pool.query(`
       SELECT 
         rating,
@@ -217,7 +218,7 @@ export async function GET(request, { params }) {
       WHERE tradesperson_id = ?
       GROUP BY rating
       ORDER BY rating DESC
-    `, [tradespersonProfileId]);
+    `, [tradespersonUserId]);
 
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     ratingDistribution.forEach(row => {

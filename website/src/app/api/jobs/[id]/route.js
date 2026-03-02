@@ -144,6 +144,11 @@ export async function GET(req, context) {
       response.homeowner_phone = contactInfo.phone; // Direct access for some app versions
       response.homeowner_email = contactInfo.email;
       response.homeowner_name = contactInfo.name;
+      response.homeowner = {
+        ...response.homeowner,
+        id: job.homeowner_id,
+        _id: job.homeowner_id,
+      };
     }
 
     return NextResponse.json(response);

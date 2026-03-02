@@ -1,0 +1,130 @@
+[2026-03-02T09:29:01.136Z] User.findById START id=3
+[2026-03-02T09:29:01.138Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:01.145Z] User.findById START id=3
+[2026-03-02T09:29:01.148Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:10.045Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:10.046Z] User.findById START id=3
+[2026-03-02T09:29:10.047Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:10.065Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:10.066Z] User.findById START id=3
+[2026-03-02T09:29:10.072Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:13.462Z] getCurrentUser ENTER
+[2026-03-02T09:29:13.469Z] getCurrentUser ENTER
+[2026-03-02T09:29:13.484Z] JWT verified for userId: 3
+[2026-03-02T09:29:13.485Z] User.findById START id=3
+[2026-03-02T09:29:13.486Z] JWT verified for userId: 3
+[2026-03-02T09:29:13.486Z] User.findById START id=3
+[2026-03-02T09:29:13.488Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:13.488Z] User findById result: true
+[2026-03-02T09:29:13.491Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:13.491Z] User findById result: true
+[2026-03-02T09:29:13.553Z] User.findById START id=3
+[2026-03-02T09:29:13.558Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:13.565Z] User.findById START id=3
+[2026-03-02T09:29:13.567Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:41.083Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:41.084Z] User.findById START id=3
+[2026-03-02T09:29:41.088Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:41.108Z] User.findById START id=3
+[2026-03-02T09:29:41.116Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:41.162Z] User.findById START id=3
+[2026-03-02T09:29:41.167Z] User.findById START id=3
+[2026-03-02T09:29:41.168Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:41.171Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:41.190Z] User.findById START id=3
+[2026-03-02T09:29:41.193Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:41.213Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:41.214Z] User.findById START id=3
+[2026-03-02T09:29:41.217Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:43.382Z] getCurrentUser ENTER
+[2026-03-02T09:29:43.394Z] JWT verified for userId: 3
+[2026-03-02T09:29:43.395Z] User.findById START id=3
+[2026-03-02T09:29:43.397Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:43.397Z] User findById result: true
+[2026-03-02T09:29:43.442Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:43.442Z] User.findById START id=3
+[2026-03-02T09:29:43.444Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:43.469Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:43.470Z] User.findById START id=3
+[2026-03-02T09:29:43.473Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:45.300Z] User.findById START id=3
+[2026-03-02T09:29:45.305Z] User.findById START id=3
+[2026-03-02T09:29:45.307Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:45.311Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:49.552Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:49.553Z] User.findById START id=3
+[2026-03-02T09:29:49.555Z] User.findById QUERY DONE found=true
+[2026-03-02T09:29:49.574Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:29:49.575Z] User.findById START id=3
+[2026-03-02T09:29:49.589Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:01.545Z] getCurrentUser ENTER
+[2026-03-02T09:30:01.547Z] getCurrentUser ENTER
+[2026-03-02T09:30:01.566Z] JWT verified for userId: 4
+[2026-03-02T09:30:01.567Z] User.findById START id=4
+[2026-03-02T09:30:01.568Z] JWT verified for userId: 4
+[2026-03-02T09:30:01.568Z] User.findById START id=4
+[2026-03-02T09:30:01.570Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:01.570Z] User findById result: true
+[2026-03-02T09:30:01.571Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:01.572Z] User findById result: true
+[2026-03-02T09:30:01.915Z] API Profile GET userId=4 role=TRADESPERSON
+[2026-03-02T09:30:01.915Z] User.findById START id=4
+[2026-03-02T09:30:01.917Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:05.720Z] getCurrentUser ENTER
+[2026-03-02T09:30:05.728Z] JWT verified for userId: 4
+[2026-03-02T09:30:05.728Z] User.findById START id=4
+[2026-03-02T09:30:05.730Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:05.730Z] User findById result: true
+[2026-03-02T09:30:08.412Z] getCurrentUser ENTER
+[2026-03-02T09:30:08.424Z] JWT verified for userId: 4
+[2026-03-02T09:30:08.425Z] User.findById START id=4
+[2026-03-02T09:30:08.426Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:08.426Z] User findById result: true
+[2026-03-02T09:30:18.681Z] getCurrentUser ENTER
+[2026-03-02T09:30:18.682Z] getCurrentUser ENTER
+[2026-03-02T09:30:18.706Z] JWT verified for userId: 4
+[2026-03-02T09:30:18.706Z] User.findById START id=4
+[2026-03-02T09:30:18.707Z] JWT verified for userId: 4
+[2026-03-02T09:30:18.708Z] User.findById START id=4
+[2026-03-02T09:30:18.709Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:18.710Z] User findById result: true
+[2026-03-02T09:30:18.711Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:18.711Z] User findById result: true
+[2026-03-02T09:30:18.964Z] API Profile GET userId=4 role=TRADESPERSON
+[2026-03-02T09:30:18.964Z] User.findById START id=4
+[2026-03-02T09:30:18.965Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:35.998Z] getCurrentUser ENTER
+[2026-03-02T09:30:36.018Z] JWT verified for userId: 3
+[2026-03-02T09:30:36.019Z] User.findById START id=3
+[2026-03-02T09:30:36.020Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:36.021Z] User findById result: true
+[2026-03-02T09:30:36.214Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:30:36.215Z] User.findById START id=3
+[2026-03-02T09:30:36.217Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:36.238Z] API Profile GET userId=3 role=HOMEOWNER
+[2026-03-02T09:30:36.239Z] User.findById START id=3
+[2026-03-02T09:30:36.241Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:37.520Z] User.findById START id=3
+[2026-03-02T09:30:37.525Z] User.findById START id=3
+[2026-03-02T09:30:37.527Z] User.findById QUERY DONE found=true
+[2026-03-02T09:30:37.529Z] User.findById QUERY DONE found=true
+[2026-03-02T09:35:58.421Z] API Profile GET userId=2 role=ADMIN
+[2026-03-02T09:35:58.422Z] User.findById START id=2
+[2026-03-02T09:35:58.521Z] User.findById START id=2
+[2026-03-02T09:35:58.527Z] User.findById START id=2
+[2026-03-02T09:35:58.552Z] User.findById QUERY DONE found=true
+[2026-03-02T09:35:58.613Z] User.findById QUERY DONE found=true
+[2026-03-02T09:35:58.626Z] User.findById QUERY DONE found=true
+[2026-03-02T09:35:58.635Z] API Profile GET userId=2 role=ADMIN
+[2026-03-02T09:35:58.636Z] User.findById START id=2
+[2026-03-02T09:35:58.642Z] User.findById QUERY DONE found=true
+[2026-03-02T09:41:38.381Z] API Profile GET userId=2 role=ADMIN
+[2026-03-02T09:41:38.383Z] User.findById START id=2
+[2026-03-02T09:41:38.389Z] User.findById START id=2
+[2026-03-02T09:41:38.392Z] User.findById QUERY DONE found=true
+[2026-03-02T09:41:38.395Z] User.findById QUERY DONE found=true
+[2026-03-02T09:41:38.443Z] API Profile GET userId=2 role=ADMIN
+[2026-03-02T09:41:38.444Z] User.findById START id=2
+[2026-03-02T09:41:38.451Z] User.findById QUERY DONE found=true
+[2026-03-02T09:41:38.470Z] User.findById START id=2
+[2026-03-02T09:41:38.476Z] User.findById QUERY DONE found=true
