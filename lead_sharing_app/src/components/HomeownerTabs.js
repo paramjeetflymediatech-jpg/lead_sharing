@@ -18,6 +18,7 @@ import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
 import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 import DeleteAccountRequestScreen from "../screens/DeleteAccountRequestScreen";
 import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
+import PrivacyPolicyScreen from "../screens/PrivacyPolicyScreen";
 import TradespersonProfileScreen from "../screens/tradesperson/TradespersonProfileScreen";
 import { useAuth } from "../context/AuthContext";
 
@@ -109,6 +110,11 @@ function ProfileStack() {
             <Stack.Screen
                 name="TermsAndConditions"
                 component={TermsAndConditionsScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
                 options={{ headerShown: false }}
             />
             <Stack.Screen

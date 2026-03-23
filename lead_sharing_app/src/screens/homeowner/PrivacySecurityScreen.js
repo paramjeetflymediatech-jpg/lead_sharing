@@ -29,6 +29,19 @@ export default function PrivacySecurityScreen({ navigation }) {
 
                 <View style={styles.divider} />
 
+                <TouchableOpacity
+                    style={styles.option}
+                    onPress={() => navigation.navigate("PrivacyPolicy")}
+                >
+                    <View style={styles.optionIcon}>
+                        <Feather name="info" size={20} color="#4B5563" />
+                    </View>
+                    <Text style={styles.optionText}>Privacy Policy</Text>
+                    <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+
+                <View style={styles.divider} />
+
                 <View style={styles.option}>
                     <View style={styles.optionIcon}>
                         <Feather name="shield" size={20} color="#4B5563" />

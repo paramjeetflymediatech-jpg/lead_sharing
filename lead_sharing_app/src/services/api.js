@@ -509,13 +509,20 @@ export const tradespersonAPI = {
         return apiCall(`/api/tradespeople?${queryString}`);
     },
 
-    /**
-     * Top up credits
-     */
     topUpCredits: async (plan, platform = null) => {
         return apiCall("/api/topup", {
             method: "POST",
             body: JSON.stringify({ plan, platform }),
+        });
+    },
+
+    /**
+     * Verify payment session
+     */
+    verifyPayment: async (sessionId) => {
+        return apiCall("/api/payment/verify", {
+            method: "POST",
+            body: JSON.stringify({ sessionId }),
         });
     },
 
@@ -624,7 +631,7 @@ export const adminAPI = {
      */
     updateUser: async (userId, userData) => {
         return apiCall(`/api/admin/users/${userId}`, {
-            method: "PUT",
+            method: "PATCH",
             body: JSON.stringify(userData),
         });
     },

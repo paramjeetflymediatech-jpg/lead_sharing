@@ -26,6 +26,11 @@ import NotificationSettingsScreen from "../components/settings/NotificationSetti
 import GeneralSettingsScreen from "../components/settings/GeneralSettingsScreen";
 import SecuritySettingsScreen from "../components/settings/SecuritySettingsScreen";
 import PaymentSettingsScreen from "../components/settings/PaymentSettingsScreen";
+import AdminProfileScreen from "./admin/AdminProfileScreen";
+import AdminEditProfileScreen from "./admin/AdminEditProfileScreen";
+import ChangePasswordScreen from "./ChangePasswordScreen";
+import PrivacyPolicyScreen from "./PrivacyPolicyScreen";
+import TermsAndConditionsScreen from "./TermsAndConditionsScreen";
 
 export default function AdminDashboard({ navigation, route }) {
     const initialScreen = route?.params?.screen || "Dashboard";
@@ -831,15 +836,56 @@ export default function AdminDashboard({ navigation, route }) {
                 );
             case "Revenue":
                 return <RevenueScreen revenue={stats.revenue} />;
+            case "Profile":
+                return <AdminProfileScreen onNavigate={setActiveScreen} />;
+            case "EditProfile":
+                return <AdminEditProfileScreen onNavigate={setActiveScreen} goBack={() => setActiveScreen("Profile")} />;
+            case "Settings":
+                return <SettingsScreen onNavigate={setActiveScreen} />;
+            case "NotificationSettings":
+                return <NotificationSettingsScreen onNavigate={setActiveScreen} />;
+            case "GeneralSettings":
+                return <GeneralSettingsScreen onNavigate={setActiveScreen} />;
+            case "SecuritySettings":
+                return <SecuritySettingsScreen onNavigate={setActiveScreen} />;
+            case "PaymentSettings":
+                return <PaymentSettingsScreen onNavigate={setActiveScreen} />;
+            case "ChangePassword":
+                return <ChangePasswordScreen navigation={navigation} />;
+            case "PrivacyPolicy":
+                return <PrivacyPolicyScreen navigation={navigation} />;
+            case "TermsAndConditions":
+                return <TermsAndConditionsScreen navigation={navigation} />;
             default:
                 return <DashboardScreen stats={stats} onNavigate={setActiveScreen} />;
         }
+    }
+
+    function getOnBack() {
+        const subScreens = {
+            "EditProfile": "Profile",
+            "Settings": "Profile",
+            "NotificationSettings": "Settings",
+            "GeneralSettings": "Settings",
+            "SecuritySettings": "Settings",
+            "PaymentSettings": "Settings",
+            "ChangePassword": "SecuritySettings",
+            "PrivacyPolicy": "Settings",
+            "TermsAndConditions": "Settings",
+        };
+
+        if (subScreens[activeScreen]) {
+            return () => setActiveScreen(subScreens[activeScreen]);
+        }
+        return null;
     }
 
     return (
         <AdminLayout
             activeScreen={activeScreen}
             onScreenChange={setActiveScreen}
+            showBottomNav={false}
+            onBack={getOnBack()}
             onCreatePress={shouldShowFAB() ? handleFABPress : null}
             refreshControl={
                 <RefreshControl

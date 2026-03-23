@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as Linking from 'expo-linking';
 import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,8 +11,9 @@ import SignupScreen from "./src/screens/SignupScreen";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import HomeownerTabs from "./src/components/HomeownerTabs";
 import TradespersonTabs from "./src/components/TradespersonTabs";
-import AdminDashboard from "./src/screens/AdminDashboard";
+import AdminTabs from "./src/components/admin/AdminTabs";
 import TermsAndConditionsScreen from "./src/screens/TermsAndConditionsScreen";
+import PrivacyPolicyScreen from "./src/screens/PrivacyPolicyScreen";
 import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonProfileScreen";
 import OnboardingScreen from "./src/screens/tradesperson/OnboardingScreen";
 import NotificationHistoryScreen from "./src/screens/NotificationHistoryScreen";
@@ -88,6 +90,11 @@ function RootNavigator() {
             component={TermsAndConditionsScreen}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="PrivacyPolicy"
+            component={PrivacyPolicyScreen}
+            options={{ headerShown: false }}
+          />
         </>
       ) : user.role === "HOMEOWNER" ? (
         <Stack.Screen
@@ -114,7 +121,7 @@ function RootNavigator() {
       ) : user.role === "ADMIN" ? (
         <Stack.Screen
           name="AdminDashboard"
-          component={AdminDashboard}
+          component={AdminTabs}
           options={{ headerShown: false }}
         />
       ) : (
@@ -154,7 +161,7 @@ const MyTheme = {
 
 // Deep linking configuration
 const linking = {
-  prefixes: ["allcarepros://"],
+  prefixes: [Linking.createURL("/"), "allcarepros://"],
   config: {
     screens: {
       TradespersonDashboard: {

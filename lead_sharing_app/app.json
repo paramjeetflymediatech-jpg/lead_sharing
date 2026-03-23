@@ -22,17 +22,26 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.allcarepros.app",
-      "usesCleartextTraffic": true
+      "package": "com.allcarepros.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "4631fecd-0a2f-4f8f-a678-88df81b831af"
+        "projectId": "4d8f16be-f89c-467c-8f6c-80940e84c706"
       }
     },
-    "owner": "nh_aman"
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ]
+    ]
   }
 }

@@ -18,6 +18,7 @@ import DeleteAccountRequestScreen from "../screens/DeleteAccountRequestScreen";
 import HelpCenterScreen from "../screens/homeowner/HelpCenterScreen";
 import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
 import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
+import PrivacyPolicyScreen from "../screens/PrivacyPolicyScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -122,6 +123,11 @@ function ProfileStack() {
             <Stack.Screen
                 name="TermsAndConditions"
                 component={TermsAndConditionsScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
                 options={{ headerShown: false }}
             />
         </Stack.Navigator>

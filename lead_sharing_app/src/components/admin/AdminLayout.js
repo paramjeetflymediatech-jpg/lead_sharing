@@ -26,6 +26,8 @@ export default function AdminLayout({
     onScreenChange,
     refreshControl,
     onCreatePress,
+    showBottomNav = true,
+    onBack,
 }) {
     const { user, logout } = useAuth();
     const navigation = useNavigation();
@@ -68,6 +70,13 @@ export default function AdminLayout({
 
         if (screen === "Sign Out") {
             handleLogout();
+            return;
+        }
+
+        const tabScreens = ["Dashboard", "Users", "Jobs", "Verifications", "Profile"];
+        if (tabScreens.includes(screen)) {
+            const targetTab = screen === "Profile" ? "ProfileTab" : screen;
+            navigation.navigate(targetTab);
         } else {
             onScreenChange(screen);
         }
@@ -90,12 +99,21 @@ export default function AdminLayout({
         <View style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
-                <TouchableOpacity
-                    style={styles.menuButton}
-                    onPress={() => setMenuVisible(true)}
-                >
-                    <Feather name="menu" size={24} color="#1E293B" />
-                </TouchableOpacity>
+                {onBack ? (
+                    <TouchableOpacity
+                        style={styles.menuButton}
+                        onPress={onBack}
+                    >
+                        <Feather name="arrow-left" size={24} color="#1E293B" />
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={styles.menuButton}
+                        onPress={() => setMenuVisible(true)}
+                    >
+                        <Feather name="menu" size={24} color="#1E293B" />
+                    </TouchableOpacity>
+                )}
 
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle}>{activeScreen}</Text>
@@ -136,97 +154,130 @@ export default function AdminLayout({
             </View>
 
             {/* Bottom Navigation */}
-            <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => handleMenuPress("Dashboard")}
-                >
-                    <Feather
-                        name="grid"
-                        size={22}
-                        color={activeScreen === "Dashboard" ? "#2563EB" : "#94A3B8"}
-                    />
-                    <Text
-                        style={
-                            activeScreen === "Dashboard"
-                                ? styles.navLabelActive
-                                : styles.navLabel
-                        }
-                    >
-                        Dashboard
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => handleMenuPress("Users")}
-                >
-                    <Feather
-                        name="users"
-                        size={22}
-                        color={activeScreen === "Users" ? "#2563EB" : "#94A3B8"}
-                    />
-                    <Text
-                        style={
-                            activeScreen === "Users"
-                                ? styles.navLabelActive
-                                : styles.navLabel
-                        }
-                    >
-                        Users
-                    </Text>
-                </TouchableOpacity>
-
-                {/* Center Create Button */}
-                {onCreatePress && (
+            {showBottomNav && (
+                <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 20) }]}>
                     <TouchableOpacity
-                        style={styles.centerButton}
-                        onPress={onCreatePress}
+                        style={styles.navItem}
+                        onPress={() => handleMenuPress("Dashboard")}
                     >
-                        <View style={styles.centerButtonInner}>
-                            <Feather name="plus" size={28} color="#FFFFFF" />
-                        </View>
+                        <Feather
+                            name="grid"
+                            size={22}
+                            color={activeScreen === "Dashboard" ? "#2563EB" : "#94A3B8"}
+                        />
+                        <Text
+                            style={
+                                activeScreen === "Dashboard"
+                                    ? styles.navLabelActive
+                                    : styles.navLabel
+                            }
+                        >
+                            Dashboard
+                        </Text>
                     </TouchableOpacity>
-                )}
 
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => handleMenuPress("Jobs")}
-                >
-                    <Feather
-                        name="briefcase"
-                        size={22}
-                        color={activeScreen === "Jobs" ? "#2563EB" : "#94A3B8"}
-                    />
-                    <Text
-                        style={
-                            activeScreen === "Jobs" ? styles.navLabelActive : styles.navLabel
-                        }
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => handleMenuPress("Users")}
                     >
-                        Jobs
-                    </Text>
-                </TouchableOpacity>
+                        <Feather
+                            name="users"
+                            size={22}
+                            color={activeScreen === "Users" ? "#2563EB" : "#94A3B8"}
+                        />
+                        <Text
+                            style={
+                                activeScreen === "Users"
+                                    ? styles.navLabelActive
+                                    : styles.navLabel
+                            }
+                        >
+                            Users
+                        </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => handleMenuPress("Verifications")}
-                >
-                    <Feather
-                        name="shield"
-                        size={22}
-                        color={activeScreen === "Verifications" ? "#2563EB" : "#94A3B8"}
-                    />
-                    <Text
-                        style={
-                            activeScreen === "Verifications"
-                                ? styles.navLabelActive
-                                : styles.navLabel
-                        }
+                    {/* Center Create Button */}
+                    {onCreatePress && (
+                        <TouchableOpacity
+                            style={styles.centerButton}
+                            onPress={onCreatePress}
+                        >
+                            <View style={styles.centerButtonInner}>
+                                <Feather name="plus" size={28} color="#FFFFFF" />
+                            </View>
+                        </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => handleMenuPress("Jobs")}
                     >
-                        Approvals
-                    </Text>
+                        <Feather
+                            name="briefcase"
+                            size={22}
+                            color={activeScreen === "Jobs" ? "#2563EB" : "#94A3B8"}
+                        />
+                        <Text
+                            style={
+                                activeScreen === "Jobs" ? styles.navLabelActive : styles.navLabel
+                            }
+                        >
+                            Jobs
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => handleMenuPress("Verifications")}
+                    >
+                        <Feather
+                            name="shield"
+                            size={22}
+                            color={activeScreen === "Verifications" ? "#2563EB" : "#94A3B8"}
+                        />
+                        <Text
+                            style={
+                                activeScreen === "Verifications"
+                                    ? styles.navLabelActive
+                                    : styles.navLabel
+                            }
+                        >
+                            Approvals
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => handleMenuPress("Profile")}
+                    >
+                        <Feather
+                            name="user"
+                            size={22}
+                            color={activeScreen === "Profile" ? "#2563EB" : "#94A3B8"}
+                        />
+                        <Text
+                            style={
+                                activeScreen === "Profile"
+                                    ? styles.navLabelActive
+                                    : styles.navLabel
+                            }
+                        >
+                            Profile
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {/* Floating Action Button (for Tabs) */}
+            {!showBottomNav && onCreatePress && (
+                <TouchableOpacity
+                    style={[styles.fab, { bottom: Math.max(insets.bottom, 20) + 70 }]}
+                    onPress={onCreatePress}
+                    activeOpacity={0.8}
+                >
+                    <Feather name="plus" size={28} color="#FFFFFF" />
                 </TouchableOpacity>
-            </View>
+            )}
 
             {/* Sidebar Menu Modal */}
             <Modal
@@ -308,6 +359,12 @@ export default function AdminLayout({
                                 label="Deletion Requests"
                                 active={activeScreen === "DeletionRequests"}
                                 onPress={() => handleMenuPress("DeletionRequests")}
+                            />
+                            <MenuItem
+                                icon="user"
+                                label="Profile"
+                                active={activeScreen === "Profile"}
+                                onPress={() => handleMenuPress("Profile")}
                             />
                         </ScrollView>
 
@@ -557,6 +614,22 @@ const styles = StyleSheet.create({
         elevation: 8,
         borderWidth: 4,
         borderColor: "#FFFFFF",
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#2563EB',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        zIndex: 999,
     },
 });
 

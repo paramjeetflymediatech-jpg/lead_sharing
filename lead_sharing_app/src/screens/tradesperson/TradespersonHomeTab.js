@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Dimensions,
+    Alert,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { tradespersonAPI, jobAPI, userAPI, notificationAPI } from "../../services/api";
@@ -15,18 +16,53 @@ import { Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-export default function TradespersonHomeTab({ navigation }) {
+export default function TradespersonHomeTab({ navigation, route }) {
     const { user, updateUser } = useAuth();
     const [profile, setProfile] = useState(null);
     const [recentJobs, setRecentJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+    const [verifyingPayment, setVerifyingPayment] = useState(false);
 
     useEffect(() => {
         loadData();
         checkUnreadNotifications();
     }, []);
+
+    useEffect(() => {
+        if (route.params?.payment === 'success' && route.params?.session_id) {
+            handlePaymentSuccess(route.params.session_id);
+        } else if (route.params?.payment === 'cancel') {
+            Alert.alert("Payment Cancelled", "The payment process was cancelled.");
+            navigation.setParams({ payment: undefined });
+        }
+    }, [route.params]);
+
+    async function handlePaymentSuccess(sessionId) {
+        try {
+            setVerifyingPayment(true);
+            const response = await tradespersonAPI.verifyPayment(sessionId);
+            
+            if (response.success) {
+                Alert.alert(
+                    "Payment Successful", 
+                    `Successfully added ${response.credits} credits to your account. Your new balance is ${response.newBalance} credits.`
+                );
+                // Refresh data to show new credits
+                loadData();
+            } else {
+                Alert.alert("Payment Verification Failed", response.message || "Please contact support if your credits don't appear shortly.");
+            }
+        } catch (error) {
+            console.error("Error verifying payment:", error);
+            Alert.alert("Payment Error", "There was an error verifying your payment. Please refresh your balance in a few moments.");
+        } finally {
+            setVerifyingPayment(false);
+            // Clear params so we don't trigger this again on re-render
+            navigation.setParams({ payment: undefined, session_id: undefined });
+        }
+    }
 
     async function loadData() {
         try {
@@ -95,10 +131,13 @@ export default function TradespersonHomeTab({ navigation }) {
         setRefreshing(false);
     }
 
-    if (loading) {
+    if (loading || verifyingPayment) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#2563EB" />
+                {verifyingPayment && (
+                    <Text style={styles.verifyingText}>Verifying payment...</Text>
+                )}
             </View>
         );
     }
@@ -333,6 +372,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
+    },
+    verifyingText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: "#6B7280",
+        fontWeight: "500",
     },
     header: {
         flexDirection: "row",
