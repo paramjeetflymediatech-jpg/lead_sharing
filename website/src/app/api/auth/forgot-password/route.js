@@ -104,9 +104,9 @@ export async function POST(req) {
     // 🔐 Security: always return success
     if (!user) {
       return NextResponse.json({
-        success: true,
+        success: false,
         message:
-          "If this email is registered, you will receive a reset link shortly.",
+          "You are not registered with us."
       });
     }
 

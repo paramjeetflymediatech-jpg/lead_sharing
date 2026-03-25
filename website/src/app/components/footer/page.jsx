@@ -107,6 +107,11 @@ export default function Footer() {
                   Legal
                 </a>
               </li>
+              <li>
+                <a href="/data-deletion" className="hover:text-[#1149C7]">
+                  Data Deletion Request
+                </a>
+              </li>
             </ul>
           </div>
 

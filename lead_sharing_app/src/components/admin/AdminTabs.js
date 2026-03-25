@@ -72,6 +72,17 @@ export default function AdminTabs() {
                 }}
             />
             <Tab.Screen
+                name="DeletionRequests"
+                component={AdminDashboard}
+                initialParams={{ screen: "DeletionRequests" }}
+                options={{
+                    tabBarLabel: "Deletion",
+                    tabBarIcon: ({ color, size }) => (
+                        <Feather name="trash-2" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tab.Screen
                 name="ProfileTab"
                 component={AdminDashboard}
                 initialParams={{ screen: "Profile" }}

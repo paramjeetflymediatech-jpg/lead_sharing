@@ -11,7 +11,8 @@ export async function GET() {
       [jobsResult],
       [leadsResult],
       [revenueResult],
-      [pendingVerificationsResult]
+      [pendingVerificationsResult],
+      [deletionRequestsResult]
     ] = await Promise.all([
       db.query("SELECT COUNT(*) as count FROM users WHERE role != 'ADMIN'"),
       db.query("SELECT COUNT(*) as count FROM users WHERE role = 'HOMEOWNER'"),
@@ -19,7 +20,8 @@ export async function GET() {
       db.query("SELECT COUNT(*) as count FROM jobs"),
       db.query("SELECT COUNT(*) as count FROM leads"),
       db.query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'completed'"),
-      db.query("SELECT COUNT(*) as count FROM tradesperson_profiles WHERE verification_status = 'PENDING_APPROVAL'")
+      db.query("SELECT COUNT(*) as count FROM tradesperson_profiles WHERE verification_status = 'PENDING_APPROVAL'"),
+      db.query("SELECT COUNT(*) as count FROM deletion_requests WHERE status = 'PENDING'")
     ]);
 
     const totalUsers = usersResult[0].count;
@@ -29,6 +31,7 @@ export async function GET() {
     const totalLeads = leadsResult[0].count;
     const revenue = parseFloat(revenueResult[0].total || 0).toFixed(2);
     const pendingVerifications = pendingVerificationsResult[0].count;
+    const totalDeletionRequests = deletionRequestsResult[0].count;
 
     return NextResponse.json(
       {
@@ -39,6 +42,7 @@ export async function GET() {
         totalLeads,
         revenue,
         pendingVerifications,
+        totalDeletionRequests,
       },
       { status: 200 }
     );

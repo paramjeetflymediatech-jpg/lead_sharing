@@ -119,7 +119,7 @@ export default function AdminDashboard({ navigation, route }) {
 
             switch (activeScreen) {
                 case "Dashboard":
-                    await loadDashboard();
+                    await Promise.all([loadDashboard(), loadDeletionRequests()]);
                     break;
                 case "Users":
                     await loadUsers();
@@ -1022,6 +1022,18 @@ function DashboardScreen({ stats, onNavigate }) {
                         color="#8B5CF6"
                         onPress={() => onNavigate("Revenue")}
                     />
+                </View>
+
+                <View style={styles.statsRow}>
+                    <StatCard
+                        title="Deletion"
+                        value={deletionRequests.length}
+                        subtitle="Pending Requests"
+                        icon="trash-2"
+                        color="#EF4444"
+                        onPress={() => onNavigate("DeletionRequests")}
+                    />
+                    <View style={{ flex: 1 }} />
                 </View>
             </View>
 

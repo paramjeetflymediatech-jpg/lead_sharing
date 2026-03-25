@@ -20,6 +20,7 @@ export default async function AdminLayout({ children }) {
         { name: "Payments", href: "/admin/payments", icon: "CurrencyDollarIcon" },
         { name: "Verifications", href: "/admin/verifications", icon: "ShieldCheckIcon" },
         { name: "Ratings", href: "/admin/ratings", icon: "StarIcon" },
+        { name: "Deletion Requests", href: "/admin/deletion-requests", icon: "TrashIcon" },
         { name: "SEO Management", href: "/admin/seo", icon: "ArrowTrendingUpIcon" },
         { name: "Blogs", href: "/admin/blogs", icon: "DocumentTextIcon" },
         { name: "Settings", href: "/admin/settings", icon: "Cog6ToothIcon" },

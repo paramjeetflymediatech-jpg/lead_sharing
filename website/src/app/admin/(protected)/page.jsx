@@ -17,6 +17,7 @@ export default function AdminDashboard() {
         totalJobs: 0,
         totalLeads: 0,
         pendingVerifications: 0,
+        totalDeletionRequests: 0,
         revenue: 0
     });
     const [loading, setLoading] = useState(true);
@@ -81,12 +82,20 @@ export default function AdminDashboard() {
             detail: "Total platform revenue"
         },
         {
-            title: "Pending Verifications",
+            title: "Verifications",
             value: stats.pendingVerifications || 0,
             icon: ClipboardDocumentCheckIcon,
-            color: "amber",
-            href: "/admin/verifications",
+            color: "purple",
+            href: "/admin/tradespeople",
             detail: "Tradespeople awaiting approval"
+        },
+        {
+            title: "Deletion Requests",
+            value: stats.totalDeletionRequests || 0,
+            icon: ClipboardDocumentCheckIcon,
+            color: "red",
+            href: "/admin/deletion-requests",
+            detail: "Pending account deletions"
         }
     ];
 

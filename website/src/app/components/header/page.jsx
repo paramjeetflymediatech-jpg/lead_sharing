@@ -55,13 +55,24 @@ export default function Header() {
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (event.target.id !== "sub_category" && event.target.tagName !== 'BUTTON' && event.target.tagName !== 'svg' && event.target.tagName !== 'path') {
+        setActiveDropdown(null);
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const fetchUser = async () => {
     try {
@@ -153,7 +164,10 @@ export default function Header() {
           {/* Find a Trade Dropdown */}
           <div
             className="relative h-full flex items-center cursor-pointer"
-            onClick={() => setActiveDropdown(activeDropdown === 'trades' ? null : 'trades')}
+            onClick={() => {
+              setActiveDropdown(activeDropdown === 'trades' ? null : 'trades');
+              setShowUserMenu(false);
+            }}
           >
             <button className={`flex items-center gap-1 py-2 ${activeDropdown === 'trades' ? 'text-[#1149C7]' : 'hover:text-[#1149C7]'}`}>
               Find a Trade
@@ -172,6 +186,7 @@ export default function Header() {
                     {Object.keys(groupedTrades).map((category) => (
                       <div
                         key={category}
+                        id="sub_category"
                         className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeTradeCategory === category
                           ? "text-[#1149C7]"
                           : "text-gray-600 hover:text-[#1149C7]"
@@ -210,7 +225,10 @@ export default function Header() {
           {/* Advice Centre Dropdown */}
           <div
             className="relative h-full flex items-center cursor-pointer"
-            onClick={() => setActiveDropdown(activeDropdown === 'advice' ? null : 'advice')}
+            onClick={() => {
+              setActiveDropdown(activeDropdown === 'advice' ? null : 'advice');
+              setShowUserMenu(false);
+            }}
           >
             <button className={`flex items-center gap-1 py-2 ${activeDropdown === 'advice' ? 'text-[#1149C7]' : 'hover:text-[#1149C7]'}`}>
               Advice centre
@@ -228,6 +246,7 @@ export default function Header() {
                     {Object.keys(groupedAdvice).map((category) => (
                       <div
                         key={category}
+                        id="sub_category"
                         className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeAdviceCategory === category
                           ? "text-[#1149C7]"
                           : "text-gray-600 hover:text-[#1149C7]"
@@ -266,7 +285,10 @@ export default function Header() {
           {/* Location Dropdown */}
           <div
             className="relative h-full flex items-center cursor-pointer"
-            onClick={() => setActiveDropdown(activeDropdown === 'location' ? null : 'location')}
+            onClick={() => {
+              setActiveDropdown(activeDropdown === 'location' ? null : 'location');
+              setShowUserMenu(false);
+            }}
           >
             <button className={`flex items-center gap-1 py-2 ${activeDropdown === 'location' ? 'text-[#1149C7]' : 'hover:text-[#1149C7]'}`}>
               Location
@@ -293,6 +315,7 @@ export default function Header() {
                     {locations.map((region) => (
                       <div
                         key={region}
+                        id="sub_category"
                         className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeRegion === region
                           ? "text-[#1149C7]"
                           : "text-gray-600 hover:text-[#1149C7]"
@@ -338,7 +361,10 @@ export default function Header() {
           {user ? (
             <div className="relative">
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
+                onClick={() => {
+                  setShowUserMenu(!showUserMenu);
+                  setActiveDropdown(null);
+                }}
                 className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-[#1149C7] transition-all"
               >
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#1149C7] overflow-hidden border border-blue-200">
