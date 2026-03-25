@@ -28,14 +28,22 @@ export async function POST(req) {
 
         // Attempt to find user by email to link the request
         const user = await User.findOne({ email });
-        const userId = user ? user.id : null;
+        
+        if (!user) {
+            return NextResponse.json(
+                { message: "You are not registered with us." },
+                { status: 404 }
+            );
+        }
+
+        const userId = user.id;
 
         const newRequest = await DeletionRequest.create({
-            userId,
-            email,
-            reason,
-            name: user ? user.name : "Public Request",
-            phone: user ? user.phone : null,
+            userId: user.id,
+            email: user.email,
+            reason: reason,
+            name: user.name,
+            phone: user.phone || null,
         });
 
         return NextResponse.json(

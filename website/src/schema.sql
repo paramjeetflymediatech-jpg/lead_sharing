@@ -1,4 +1,4 @@
-﻿-- =====================================================
+-- =====================================================
 --  Lead Sharing Platform - Complete Database Schema
 --  Single source of truth. Run create_ratings_table.js
 --  to rebuild from scratch.
@@ -42,14 +42,17 @@ CREATE TABLE IF NOT EXISTS pending_users (
 
 CREATE TABLE IF NOT EXISTS deletion_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  reason TEXT,
+  user_id INT DEFAULT NULL,
+  email VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  phone VARCHAR(50),
+  reason TEXT NOT NULL,
   status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
   admin_notes TEXT,
   processed_at DATETIME DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS push_tokens (
