@@ -15,8 +15,10 @@ export async function POST(req) {
 
         // Check if a pending request already exists for this email
         const existingRequest = await DeletionRequest.findOne({
-            email,
-            status: "PENDING",
+            where: {
+                email,
+                status: "PENDING",
+            },
         });
 
         if (existingRequest) {
@@ -27,8 +29,10 @@ export async function POST(req) {
         }
 
         // Attempt to find user by email to link the request
-        const user = await User.findOne({ email });
-        
+        const user = await User.findOne({
+            where: { email },
+        });
+
         if (!user) {
             return NextResponse.json(
                 { message: "You are not registered with us." },
