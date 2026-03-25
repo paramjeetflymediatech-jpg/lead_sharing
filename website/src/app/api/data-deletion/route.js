@@ -24,11 +24,9 @@ export async function POST(req) {
         }
 
         // Attempt to find user by email to link the request
-        const user = await User.findOne({
-            where: { email },
-        });
+        const user = await User.findOne({ email });
 
-        if (!user) {
+        if (!user || user.role === 'ADMIN') {
             return NextResponse.json(
                 { message: "You are not registered with us." },
                 { status: 404 }
