@@ -121,5 +121,12 @@ export const DeletionRequest = {
     async findByIdAndDelete(id) {
         const [result] = await pool.query('DELETE FROM deletion_requests WHERE id = ?', [id]);
         return result.affectedRows > 0;
+    },
+    async findByEmail(email) {
+        const [rows] = await pool.query(
+            `SELECT * FROM deletion_requests WHERE email = ? AND status='PENDING'`,
+            [email]
+        );
+        return rows[0] || null;
     }
 };

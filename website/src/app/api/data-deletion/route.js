@@ -14,12 +14,7 @@ export async function POST(req) {
         }
 
         // Check if a pending request already exists for this email
-        const existingRequest = await DeletionRequest.findOne({
-            where: {
-                email,
-                status: "PENDING",
-            },
-        });
+        const existingRequest = await DeletionRequest.findByEmail(email);
 
         if (existingRequest) {
             return NextResponse.json(
