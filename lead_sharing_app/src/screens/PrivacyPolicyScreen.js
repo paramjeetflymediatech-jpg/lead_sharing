@@ -20,7 +20,7 @@ const PrivacyPolicyScreen = () => {
             <ScrollView style={styles.contentAndPadding} contentContainerStyle={styles.scrollContent}>
                 <Text style={styles.sectionTitle}>1. Introduction</Text>
                 <Text style={styles.text}>
-                    At All Care Pros, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.
+                    At All Care Pros, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and our website.
                 </Text>
 
                 <Text style={styles.sectionTitle}>2. Information Collection</Text>
@@ -30,40 +30,48 @@ const PrivacyPolicyScreen = () => {
 
                 <Text style={styles.sectionTitle}>3. Device Permissions</Text>
                 <Text style={styles.text}>
-                    We may request access to your device's camera and gallery to allow you to upload profile pictures, project photos, and verification documents. You can manage these permissions in your device settings at any time.
+                    To provide our services, we request specific permissions:
+                    {"\n"}• <Text style={{fontWeight: 'bold'}}>Camera:</Text> To allow you to take and upload profile pictures, project photos, and verification documents. We only access the camera when you explicitly initiate a photo-taking action.
+                    {"\n"}• <Text style={{fontWeight: 'bold'}}>Gallery/Storage:</Text> To select and upload existing photos from your device.
+                    {"\n"}• <Text style={{fontWeight: 'bold'}}>Notifications:</Text> To send you updates about your jobs, leads, and messages.
                 </Text>
 
-                <Text style={styles.sectionTitle}>4. Payment Integration</Text>
+                <Text style={styles.sectionTitle}>4. Data Safety</Text>
+                <Text style={styles.text}>
+                    We do not sell your personal data to third parties. We only collect data necessary for the app to function (Account Info, Photos you upload, and basic device info for security). We do not record audio or track your location in the background.
+                </Text>
+
+                <Text style={styles.sectionTitle}>5. Payment Integration</Text>
                 <Text style={styles.text}>
                     We use Stripe, a third-party payment processor, to handle credit purchases and transactions. We do not store your credit card or sensitive financial information on our servers. All transactions are processed securely through Stripe's encrypted platform.
                 </Text>
 
-                <Text style={styles.sectionTitle}>5. Use of Information</Text>
+                <Text style={styles.sectionTitle}>6. Use of Information</Text>
                 <Text style={styles.text}>
                     We use the information we collect to provide, maintain, and improve our services, to facilitate connections between homeowners and care professionals, and to send you technical notices and support messages.
                 </Text>
 
-                <Text style={styles.sectionTitle}>6. Data Sharing</Text>
+                <Text style={styles.sectionTitle}>7. Data Sharing</Text>
                 <Text style={styles.text}>
                     We share information between homeowners and tradespeople only to the extent necessary to facilitate the service requests. We do not sell your personal data to third parties.
                 </Text>
 
-                <Text style={styles.sectionTitle}>7. Data Security</Text>
+                <Text style={styles.sectionTitle}>8. Data Security</Text>
                 <Text style={styles.text}>
                     We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide, please be aware that no security measures are perfect.
                 </Text>
 
-                <Text style={styles.sectionTitle}>8. Account Deletion</Text>
+                <Text style={styles.sectionTitle}>9. Account Deletion</Text>
                 <Text style={styles.text}>
-                    You have the right to request the deletion of your account and associated data. You can do this through the "Privacy & Security" section in the app settings.
+                    You have the right to request the deletion of your account and associated data. You can do this through the "Privacy & Security" section in the app settings or by contacting our support team.
                 </Text>
 
-                <Text style={styles.sectionTitle}>9. Changes to This Policy</Text>
+                <Text style={styles.sectionTitle}>10. Changes to This Policy</Text>
                 <Text style={styles.text}>
                     We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
                 </Text>
 
-                <Text style={styles.sectionTitle}>10. Contact Us</Text>
+                <Text style={styles.sectionTitle}>11. Contact Us</Text>
                 <Text style={styles.text}>
                     If you have any questions about this Privacy Policy, please contact us at gurmukhdhatt505@gmail.com.
                 </Text>
