@@ -112,6 +112,11 @@ export default function Footer() {
                   Data Deletion Request
                 </a>
               </li>
+              <li>
+                <a href="/privacy-policy" className="hover:text-[#1149C7]">
+                 Privacy Policy
+                </a>
+              </li>
             </ul>
           </div>
 
