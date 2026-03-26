@@ -19,7 +19,8 @@ export default function TradespersonBrowseTab({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        loadJobs();
+        onRefresh();
+        loadJobs(); 
     }, []);
 
     async function loadJobs() {

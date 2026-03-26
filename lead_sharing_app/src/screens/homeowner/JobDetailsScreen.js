@@ -191,13 +191,43 @@ export default function JobDetailsScreen({ route, navigation }) {
         );
     }
 
-    const getStatusColor = (status) => {
+    const getStatusUI = (status) => {
         switch (status) {
-            case "OPEN": return "#10B981";
-            case "HIRED": return "#2563EB";
-            case "COMPLETED": return "#8B5CF6";
-            case "CANCELLED": return "#EF4444";
-            default: return "#6B7280";
+            case "OPEN":
+                return {
+                    label: "Finding Tradespeople",
+                    color: "#059669", // Emerald 600
+                    bgColor: "#ECFDF5", // Emerald 50
+                    icon: "search"
+                };
+            case "HIRED":
+                return {
+                    label: "Tradesperson Hired",
+                    color: "#2563EB", // Blue 600
+                    bgColor: "#EFF6FF", // Blue 50
+                    icon: "user-check"
+                };
+            case "COMPLETED":
+                return {
+                    label: "Job Completed",
+                    color: "#7C3AED", // Purple 600
+                    bgColor: "#F5F3FF", // Purple 50
+                    icon: "check-circle"
+                };
+            case "CANCELLED":
+                return {
+                    label: "Job Cancelled",
+                    color: "#DC2626", // Red 600
+                    bgColor: "#FEF2F2", // Red 50
+                    icon: "x-circle"
+                };
+            default:
+                return {
+                    label: status || "Unknown",
+                    color: "#4B5563", // Gray 600
+                    bgColor: "#F3F4F6", // Gray 50
+                    icon: "help-circle"
+                };
         }
     };
 
@@ -215,8 +245,9 @@ export default function JobDetailsScreen({ route, navigation }) {
         <ScrollView style={styles.container}>
             {/* Job Header */}
             <View style={styles.header}>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
-                    <Text style={styles.statusText}>{job.status}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusUI(job.status).bgColor, borderColor: getStatusUI(job.status).color }]}>
+                    <Feather name={getStatusUI(job.status).icon} size={14} color={getStatusUI(job.status).color} style={{ marginRight: 6 }} />
+                    <Text style={[styles.statusText, { color: getStatusUI(job.status).color }]}>{getStatusUI(job.status).label}</Text>
                 </View>
                 <Text style={styles.title}>{job.description}</Text>
             </View>
@@ -371,7 +402,7 @@ export default function JobDetailsScreen({ route, navigation }) {
                         onPress={handleCompleteJob}
                     >
                         <Feather name="check-circle" size={20} color="#FFFFFF" />
-                        <Text style={styles.completeJobButtonText}>Complete Job</Text>
+                        <Text style={styles.completeJobButtonText}>Click here to complete the job</Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -457,15 +488,18 @@ const styles = StyleSheet.create({
     },
     statusBadge: {
         alignSelf: "flex-start",
-        paddingHorizontal: wp(3),
-        paddingVertical: hp(0.8),
-        borderRadius: wp(2),
+        paddingHorizontal: wp(2.5),
+        paddingVertical: hp(0.6),
+        borderRadius: wp(1.5),
         marginBottom: hp(1.5),
+        flexDirection: "row",
+        alignItems: "center",
+        borderWidth: 1,
     },
     statusText: {
-        color: "#FFFFFF",
-        fontSize: normalize(13),
-        fontWeight: "700",
+        fontSize: normalize(12),
+        fontWeight: "600",
+        textTransform: "capitalize",
     },
     title: {
         fontSize: normalize(12),

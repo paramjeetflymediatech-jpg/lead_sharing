@@ -32,6 +32,7 @@ export default function TradespersonDashboard({ navigation }) {
     React.useCallback(() => {
       isMountedRef.current = true;
       loadDashboard();
+      onRefresh();
       return () => {
         isMountedRef.current = false;
       };
