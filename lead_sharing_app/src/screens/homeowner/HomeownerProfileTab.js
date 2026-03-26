@@ -88,7 +88,7 @@ export default function HomeownerProfileTab({ navigation }) {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Account Settings</Text>
                 {renderMenuItem("user", "Edit Profile", () => navigation.navigate("EditProfile"))}
-                {renderMenuItem("bell", "Notifications", () => navigation.navigate("Notifications"))}
+                {renderMenuItem("bell", "Notifications", () => Alert.alert("Notifications", "Notifications screen coming soon"))}
                 {renderMenuItem("lock", "Privacy & Security", () => navigation.navigate("PrivacySecurity"), false)}
             </View>
 

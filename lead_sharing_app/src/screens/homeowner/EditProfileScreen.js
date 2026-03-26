@@ -89,18 +89,18 @@ export default function EditProfileScreen({ navigation }) {
             return;
         }
 
-        if (!formData.address.trim()) {
-            Alert.alert("Error", "Address is required");
-            return;
-        }
+        // if (!formData.address.trim()) {
+        //     Alert.alert("Error", "Address is required");
+        //     return;
+        // }
 
-        if (!formData.postcode.trim()) {
-            Alert.alert("Error", "Postcode is required");
-            return;
-        }
+        // if (!formData.postcode.trim()) {
+        //     Alert.alert("Error", "Postcode is required");
+        //     return;
+        // }
 
         const postcodeRegex = /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i;
-        if (!postcodeRegex.test(formData.postcode.trim())) {
+        if (formData.postcode.trim() && !postcodeRegex.test(formData.postcode.trim())) {
             Alert.alert("Error", "Please enter a valid Canadian postcode (e.g. A1A 1A1)");
             return;
         }
@@ -261,7 +261,7 @@ export default function EditProfileScreen({ navigation }) {
                                     const numericValue = value.replace(/[^0-9]/g, '');
                                     updateField("phone", numericValue);
                                 }}
-                                maxLength={10}
+                                maxLength={15}
                             />
                         </View>
                     </View>

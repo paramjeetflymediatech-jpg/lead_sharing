@@ -73,7 +73,7 @@ export default function AdminLayout({
             return;
         }
 
-        const tabScreens = ["Dashboard", "Users", "Jobs", "Verifications", "Profile"];
+        const tabScreens = ["Dashboard", "Users", "Jobs", "Verifications", "Profile", "DeletionRequests"];
         if (tabScreens.includes(screen)) {
             const targetTab = screen === "Profile" ? "ProfileTab" : screen;
             navigation.navigate(targetTab);

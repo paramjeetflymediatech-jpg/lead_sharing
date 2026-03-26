@@ -17,7 +17,7 @@ import { homeownerAPI, jobAPI } from "../services/api";
 import LogoutModal from "../components/LogoutModal";
 
 export default function HomeownerDashboard({ navigation }) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [recentJobs, setRecentJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,13 +46,19 @@ export default function HomeownerDashboard({ navigation }) {
       if (!isMountedRef.current) return;
       safeSetState(setLoading, true);
 
-      // Load dashboard data and recent jobs in parallel
-      const [dashboardData, jobsData] = await Promise.all([
+      // Load dashboard data, recent jobs, and refresh user profile in parallel
+      const [dashboardData, jobsData, meData] = await Promise.all([
         homeownerAPI.getDashboard().catch(() => null),
         homeownerAPI.getMyJobs().catch(() => ({})),
+        userAPI.getMe().catch(() => null),
       ]);
 
       if (!isMountedRef.current) return;
+
+      // Sync user context with latest data from server
+      if (meData?.success && meData?.user && updateUser) {
+        updateUser(meData.user);
+      }
       safeSetState(setDashboard, dashboardData);
 
       // Handle different API response formats

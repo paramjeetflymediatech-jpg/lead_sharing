@@ -500,7 +500,7 @@ export default function PostJobScreen({ navigation }) {
                                         const numericValue = value.replace(/[^0-9]/g, '');
                                         updateField("contactPhone", numericValue);
                                     }}
-                                    maxLength={10}
+                                    maxLength={15}
                                 />
                             </View>
                         </View>

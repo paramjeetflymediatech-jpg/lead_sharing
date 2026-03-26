@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 
 export default function TradespersonDashboard({ navigation }) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [availableJobs, setAvailableJobs] = useState([]);
   const [myLeads, setMyLeads] = useState([]);
@@ -57,6 +57,11 @@ export default function TradespersonDashboard({ navigation }) {
       ]);
 
       if (!isMountedRef.current) return;
+
+      // Sync user context with latest data from server
+      if (meData?.success && meData?.user && updateUser) {
+        updateUser(meData.user);
+      }
 
       // Handle Profile Data from userAPI.getMe()
       if (meData?.success && meData?.tradespersonProfile) {

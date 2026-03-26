@@ -37,13 +37,13 @@ export default function NotificationHistoryScreen({ navigation }) {
         }
     }, []);
 
-    useEffect(() => {
-        fetchNotifications();
-    }, [fetchNotifications]);
+    // useEffect(() => {
+    //     // fetchNotifications();
+    // }, []);
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchNotifications();
+        // fetchNotifications();
     };
 
     const markAsRead = async (id = null) => {

@@ -26,21 +26,21 @@ export function AuthProvider({ children }) {
           }
 
           // Sync token on every app launch if user exists and we have a token
-          if (authToken && isMountedRef.current) {
-            setTimeout(async () => {
-              if (!isMountedRef.current) return;
-              try {
-                console.log("[AuthContext] Running background push token sync...");
-                const pushToken = await NotificationService.registerForPushNotificationsAsync();
-                console.log("[AuthContext] Push token obtained:", pushToken ? "YES" : "NO");
-                if (pushToken && isMountedRef.current) {
-                  await NotificationService.syncTokenWithBackend();
-                }
-              } catch (e) {
-                console.warn("[AuthContext] Background push token sync failed:", e);
-              }
-            }, 5000);
-          }
+          // if (authToken && isMountedRef.current) {
+          //   setTimeout(async () => {
+          //     if (!isMountedRef.current) return;
+          //     try {
+          //       console.log("[AuthContext] Running background push token sync...");
+          //       const pushToken = await NotificationService.registerForPushNotificationsAsync();
+          //       console.log("[AuthContext] Push token obtained:", pushToken ? "YES" : "NO");
+          //       if (pushToken && isMountedRef.current) {
+          //         await NotificationService.syncTokenWithBackend();
+          //       }
+          //     } catch (e) {
+          //       console.warn("[AuthContext] Background push token sync failed:", e);
+          //     }
+          //   }, 5000);
+          // }
         }
       } catch (error) {
         console.error("[AuthContext] Error loading user:", error);
@@ -67,14 +67,14 @@ export function AuthProvider({ children }) {
       }
 
       // Register push token after login
-      try {
-        const pushToken = await NotificationService.registerForPushNotificationsAsync();
-        if (pushToken && isMountedRef.current) {
-          await NotificationService.syncTokenWithBackend();
-        }
-      } catch (e) {
-        console.warn("Error registering push token on login:", e);
-      }
+      // try {
+      //   const pushToken = await NotificationService.registerForPushNotificationsAsync();
+      //   if (pushToken && isMountedRef.current) {
+      //     await NotificationService.syncTokenWithBackend();
+      //   }
+      // } catch (e) {
+      //   console.warn("Error registering push token on login:", e);
+      // }
     } catch (e) {
       console.error("[AuthContext] Error in login:", e);
     }

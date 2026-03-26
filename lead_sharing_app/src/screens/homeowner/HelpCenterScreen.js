@@ -1,29 +1,39 @@
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { normalize, wp, hp } from "../../utils/responsive";
-
+const data = [
+    {
+        id: 1,
+        question: "How do I post a job?",
+        answer: "Go to the Home or Jobs tab and click on the 'Post a Job' button. Fill in the details about your project and submit."
+    },
+    {
+        id: 2,
+        question: "Is it free to use?",
+        answer: "Yes, posting jobs and receiving quotes from tradespeople is completely free for homeowners."
+    },
+    {
+        id: 3,
+        question: "How do I contact a tradesperson?",
+        answer: "Once a tradesperson unlocks your lead, you will receive their contact details and can message them directly through the app."
+    },
+];
 export default function HelpCenterScreen({ navigation }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [faqs, setFaqs] = useState(data);
+    const handleSearch = async () => {
+        const filteredFaqs = data.filter((faq) =>
+            faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFaqs(filteredFaqs);
+    }
 
-    const faqs = [
-        {
-            id: 1,
-            question: "How do I post a job?",
-            answer: "Go to the Home or Jobs tab and click on the 'Post a Job' button. Fill in the details about your project and submit."
-        },
-        {
-            id: 2,
-            question: "Is it free to use?",
-            answer: "Yes, posting jobs and receiving quotes from tradespeople is completely free for homeowners."
-        },
-        {
-            id: 3,
-            question: "How do I contact a tradesperson?",
-            answer: "Once a tradesperson unlocks your lead, you will receive their contact details and can message them directly through the app."
-        },
-    ];
+    useEffect(() => {
+        handleSearch();
+    }, [searchQuery]);
 
     return (
         <ScrollView style={styles.container}>

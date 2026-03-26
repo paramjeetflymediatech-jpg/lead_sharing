@@ -108,6 +108,16 @@ export default function AdminDashboard({ navigation, route }) {
     const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
     const [subcategoryForm, setSubcategoryForm] = useState({ name: "", description: "", category: "" });
 
+    function handleNavigate(screen) {
+        const tabScreens = ["Dashboard", "Users", "Jobs", "Verifications", "Profile", "DeletionRequests"];
+        if (tabScreens.includes(screen)) {
+            const targetTab = screen === "Profile" ? "ProfileTab" : screen;
+            navigation.navigate(targetTab);
+        } else {
+            setActiveScreen(screen);
+        }
+    }
+
 
     useEffect(() => {
         loadData();
@@ -761,7 +771,7 @@ export default function AdminDashboard({ navigation, route }) {
 
         switch (activeScreen) {
             case "Dashboard":
-                return <DashboardScreen stats={stats} onNavigate={setActiveScreen} />;
+                return <DashboardScreen stats={stats} onNavigate={handleNavigate} deletionRequests={deletionRequests} />;
             case "Users":
                 return (
                     <UsersScreen
@@ -857,7 +867,7 @@ export default function AdminDashboard({ navigation, route }) {
             case "TermsAndConditions":
                 return <TermsAndConditionsScreen navigation={navigation} />;
             default:
-                return <DashboardScreen stats={stats} onNavigate={setActiveScreen} />;
+                return <DashboardScreen stats={stats} onNavigate={handleNavigate} deletionRequests={deletionRequests} />;
         }
     }
 
@@ -877,6 +887,12 @@ export default function AdminDashboard({ navigation, route }) {
         if (subScreens[activeScreen]) {
             return () => setActiveScreen(subScreens[activeScreen]);
         }
+
+        const dashboardSubScreens = ["Leads", "Revenue", "Categories", "Subcategories"];
+        if (dashboardSubScreens.includes(activeScreen)) {
+            return () => setActiveScreen("Dashboard");
+        }
+
         return null;
     }
 
@@ -977,7 +993,7 @@ export default function AdminDashboard({ navigation, route }) {
 // ============================================
 // DASHBOARD SCREEN
 // ============================================
-function DashboardScreen({ stats, onNavigate }) {
+function DashboardScreen({ stats, onNavigate, deletionRequests }) {
     return (
         <>
             {/* <View style={styles.welcomeSection}>

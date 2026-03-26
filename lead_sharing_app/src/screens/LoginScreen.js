@@ -56,13 +56,7 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
-      await login({
-        token: data.token,
-        id: data.id,
-        email: data.email,
-        role: data.role,
-        name: data.name,
-      });
+      await login(data);
     } catch (error) {
       setError(error.message || "Network error. Please check your connection.");
       setLoading(false);

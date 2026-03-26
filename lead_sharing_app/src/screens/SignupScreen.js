@@ -134,15 +134,8 @@ export default function SignupScreen({ navigation }) {
         try {
             const data = await authAPI.verifyOTP({ otp }, registeredUserId);
             if (data.token) {
-                // Auto-login with the new promoted user ID
-                await login({
-                    token: data.token,
-                    id: data.id,
-                    email: data.email,
-                    role: data.role,
-                    name: data.name,
-                    verificationStatus: data.verificationStatus || "NOT_STARTED",
-                });
+                // Auto-login with the new user data returned
+                await login(data);
             }
             setSuccessModalVisible(true);
         } catch (error) {
@@ -360,9 +353,9 @@ export default function SignupScreen({ navigation }) {
                                 <TouchableOpacity onPress={() => setStep(0)} style={{ marginBottom: 10 }}>
                                     <Text style={{ color: "#2563EB", fontWeight: "600" }}>← Back to details</Text>
                                 </TouchableOpacity>
-                                <Text style={styles.title}>Verify Phone</Text>
+                                <Text style={styles.title}>Verify Email</Text>
                                 <Text style={styles.subtitle}>
-                                    Enter the 6-digit code sent to {phone}
+                                    Enter the 6-digit code sent to {email}
                                 </Text>
                             </View>
 

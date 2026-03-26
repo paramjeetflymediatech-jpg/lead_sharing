@@ -25,7 +25,7 @@ export async function POST(req) {
     return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
   }
 
-  const token = signAuthToken({ userId: user._id.toString(), role: user.role });
+  const token = signAuthToken({ userId: user._id.toString(), role: user.role, phone: user.phone });
   await setAuthCookie(token);
 
   // Save token to database
@@ -51,6 +51,7 @@ export async function POST(req) {
       role: user.role,
       name: user.name,
       phoneVerified: !!user.phone_verified,
+      phone: user.phone,
       verificationStatus,
     },
     { status: 200 }
