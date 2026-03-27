@@ -130,7 +130,7 @@ export default function AdminEditProfileScreen({ onNavigate, goBack }) {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={{ flex: 1 }}
         >
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <View style={styles.container}>
 
                 <View style={styles.formContainer}>
                     <View style={styles.imageContainer}>
@@ -201,7 +201,7 @@ export default function AdminEditProfileScreen({ onNavigate, goBack }) {
                 </View>
 
                 <View style={{ height: 40 }} />
-            </ScrollView>
+            </View>
         </KeyboardAvoidingView>
     );
 }
@@ -209,32 +209,9 @@ export default function AdminEditProfileScreen({ onNavigate, goBack }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        // backgroundColor: "#F8FAFC",
     },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: wp(5),
-        paddingTop: hp(2),
-        paddingBottom: hp(2),
-        backgroundColor: "#FFFFFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#E2E8F0",
-    },
-    backButton: {
-        marginRight: wp(3),
-        padding: wp(2),
-    },
-    headerTitle: {
-        fontSize: normalize(20),
-        fontWeight: "700",
-        color: "#1E293B",
-    },
-    headerSubtitle: {
-        fontSize: normalize(13),
-        color: "#64748B",
-        marginTop: 2,
-    },
+
     formContainer: {
         padding: wp(5),
     },

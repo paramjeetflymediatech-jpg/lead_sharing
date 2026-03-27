@@ -510,9 +510,9 @@ export default function AdminDashboard({ navigation, route }) {
             "GeneralSettings": "Settings",
             "SecuritySettings": "Settings",
             "PaymentSettings": "Settings",
-            "ChangePassword": "SecuritySettings",
-            "PrivacyPolicy": "Settings",
-            "TermsAndConditions": "Settings",
+            "ChangePassword": "Profile",
+            "PrivacyPolicy": "Profile",
+            "TermsAndConditions": "Profile",
         };
         if (subScreens[activeScreen]) return () => setActiveScreen(subScreens[activeScreen]);
         const dashboardSubScreens = ["Leads", "Revenue", "Categories", "Subcategories"];
@@ -694,9 +694,7 @@ export default function AdminDashboard({ navigation, route }) {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} />
             }
         >
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                {renderContent()}
-            </ScrollView>
+            {renderContent()}
 
             <UserFormModal
                 visible={showUserModal}

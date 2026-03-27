@@ -8,16 +8,7 @@ const PrivacyPolicyScreen = () => {
     const navigation = useNavigation();
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" />
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <ArrowLeft color="#333" size={24} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Privacy Policy</Text>
-            </View>
-
-            <ScrollView style={styles.contentAndPadding} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.container}>
                 <Text style={styles.sectionTitle}>1. Introduction</Text>
                 <Text style={styles.text}>
                     At All Care Pros, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and our website.
@@ -79,8 +70,8 @@ const PrivacyPolicyScreen = () => {
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Last Updated: March 2026</Text>
                 </View>
-            </ScrollView>
-        </SafeAreaView>
+            <View style={{ height: 40 }} />
+        </View>
     );
 };
 

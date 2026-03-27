@@ -6,6 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Platform,
+    Alert,
     Image,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
@@ -50,7 +51,7 @@ export default function AdminProfileScreen({ onNavigate }) {
     );
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
             {/* Profile Card Section */}
             <View style={[styles.header, { paddingTop: hp(1) }]}>
                 
@@ -88,10 +89,10 @@ export default function AdminProfileScreen({ onNavigate }) {
             {/* Platform Management */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Platform Management</Text>
-                {renderMenuItem("settings", "Platform Settings", "Manage global configurations", () => onNavigate("Settings"))}
-                {renderMenuItem("bell", "Notification Settings", "Manage push notifications", () => onNavigate("NotificationSettings"))}
+                {renderMenuItem("settings", "Platform Settings", "Manage global configurations", () => Alert.alert("Coming Soon", "This feature is currently under development."))}
+                {/* {renderMenuItem("bell", "Notification Settings", "Manage push notifications", () => onNavigate("NotificationSettings"))}
                 {renderMenuItem("shield", "Security Settings", "Privacy and access control", () => onNavigate("SecuritySettings"))}
-                {renderMenuItem("credit-card", "Payment Settings", "Stripe and billing config", () => onNavigate("PaymentSettings"))}
+                {renderMenuItem("credit-card", "Payment Settings", "Stripe and billing config", () => onNavigate("PaymentSettings"))} */}
             </View>
 
             {/* Account Settings */}
@@ -122,14 +123,13 @@ export default function AdminProfileScreen({ onNavigate }) {
                 onClose={() => setLogoutModalVisible(false)}
                 onLogout={confirmLogout}
             />
-        </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
     },
     header: {
         paddingTop: hp(2),

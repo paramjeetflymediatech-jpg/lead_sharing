@@ -120,25 +120,25 @@ export default function AdminLayout({
                 </View>
 
                 <View style={styles.headerRight}>
-                    <TouchableOpacity
-                        onPress={() => {
-                            navigation.navigate('NotificationHistory');
-                            // Optimize: clear badge immediately on press
-                            setUnreadCount(0);
-                        }}
-                        style={styles.notificationIcon}
-                    >
-                        <View>
-                            <Feather name="bell" size={24} color={unreadCount > 0 ? "#2563EB" : "#1E293B"} />
-                            {unreadCount > 0 && (
-                                <View style={styles.badgeContainer}>
-                                    <Text style={styles.badgeText}>
-                                        {unreadCount > 9 ? '9+' : unreadCount}
-                                    </Text>
-                                </View>
-                            )}
-                        </View>
-                    </TouchableOpacity>
+                    {/* <TouchableOpacity
+    onPress={() => {
+        navigation.navigate('NotificationHistory');
+        // Optimize: clear badge immediately on press
+        setUnreadCount(0);
+    }}
+    style={styles.notificationIcon}
+>
+    <View>
+        <Feather name="bell" size={24} color={unreadCount > 0 ? "#2563EB" : "#1E293B"} />
+        {unreadCount > 0 && (
+            <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+            </View>
+        )}
+    </View>
+</TouchableOpacity> */}
                 </View>
             </View>
 

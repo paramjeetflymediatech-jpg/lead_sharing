@@ -9,16 +9,7 @@ const TermsAndConditionsScreen = () => {
     const navigation = useNavigation();
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" />
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <ArrowLeft color="#333" size={24} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Terms & Conditions</Text>
-            </View>
-
-            <ScrollView style={styles.contentAndPadding} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.container}>
                 <Text style={styles.sectionTitle}>1. Introduction</Text>
                 <Text style={styles.text}>
                     Welcome to All Care Pros. By accessing or using our mobile application, you agree to be bound by these Terms and Conditions.
@@ -57,8 +48,8 @@ const TermsAndConditionsScreen = () => {
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Last Updated: February 2026</Text>
                 </View>
-            </ScrollView>
-        </SafeAreaView>
+            <View style={{ height: 40 }} />
+        </View>
     );
 };
 
