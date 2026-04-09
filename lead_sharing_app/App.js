@@ -18,6 +18,7 @@ import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonPr
 import OnboardingScreen from "./src/screens/tradesperson/OnboardingScreen";
 import NotificationHistoryScreen from "./src/screens/NotificationHistoryScreen";
 import ErrorBoundary from "./src/components/ErrorBoundary";
+import { normalize } from "./src/utils/responsive";
 
 const Stack = createNativeStackNavigator();
 
@@ -59,7 +60,19 @@ function RootNavigator() {
   }
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerTitleStyle: {
+          fontSize: normalize(18),
+          fontWeight: '700',
+        },
+        headerTitleAlign: 'center',
+        headerBackTitleStyle: {
+          fontSize: normalize(16),
+          paddingLeft: normalize(10),
+        },
+      }}
+    >
       {!user ? (
         <>
           {isFirstLaunch && (

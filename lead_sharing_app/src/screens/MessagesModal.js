@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { tradespersonAPI, userAPI, homeownerAPI } from "../services/api";
+import { normalize } from "../utils/responsive";
 
 export default function MessagesModal({ visible, onClose, jobId, homeownerId, jobTitle }) {
     const [messages, setMessages] = useState([]);
@@ -274,12 +275,12 @@ const styles = StyleSheet.create({
         borderBottomColor: "#E5E7EB",
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: normalize(18),
         fontWeight: "700",
         color: "#1F2937",
     },
     headerSubtitle: {
-        fontSize: 13,
+        fontSize: normalize(7),
         color: "#6B7280",
         maxWidth: 250,
     },
@@ -292,7 +293,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     closeText: {
-        fontSize: 18,
+        fontSize: normalize(14),
         color: "#6B7280",
         fontWeight: "600",
     },
@@ -318,8 +319,8 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 4,
     },
     messageText: {
-        fontSize: 15,
-        lineHeight: 22,
+        fontSize: normalize(14),
+        // lineHeight: 22,
     },
     myMessageText: {
         color: "#FFFFFF",
@@ -378,19 +379,19 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F9FAFB",
         borderRadius: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        maxHeight: 100,
-        fontSize: 15,
+        paddingHorizontal: normalize(16),
+        paddingVertical: normalize(10),
+        maxHeight: normalize(100),
+        fontSize: normalize(15),
         color: "#1F2937",
         borderWidth: 1,
         borderColor: "#E5E7EB",
     },
     sendButton: {
         backgroundColor: "#2563EB",
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: normalize(44),
+        height: normalize(44),
+        borderRadius: normalize(22),
         justifyContent: "center",
         alignItems: "center",
     },
@@ -400,6 +401,6 @@ const styles = StyleSheet.create({
     sendButtonText: {
         color: "#FFFFFF",
         fontWeight: "700",
-        fontSize: 13,
+        fontSize: normalize(13),
     },
 });

@@ -48,7 +48,7 @@
 //     // 🚀 Send Email
 //     try {
 //       await transporter.sendMail({
-//         from: `"Lead Sharing Support" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER}>`,
+//         from: `"AllCarePros Support" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER}>`,
 //         to: user.email,
 //         subject: "Reset your password",
 //         html: `
@@ -155,7 +155,7 @@ export async function POST(req) {
     // ✉️ Send mail
     try {
       await transporter.sendMail({
-        from: `"Lead Sharing Support" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER
+        from: `"AllCarePros Support" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER
           }>`,
         to: user.email,
         subject: "Reset your password",

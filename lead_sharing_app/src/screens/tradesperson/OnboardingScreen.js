@@ -319,7 +319,7 @@ export default function OnboardingScreen({ navigation }) {
                             ]}>
                                 <Feather
                                     name={currentStep > idx ? "check" : step.icon}
-                                    size={18}
+                                    size={normalize(18)}
                                     color={currentStep >= idx ? "#FFF" : "#9CA3AF"}
                                 />
                             </View>
@@ -336,7 +336,7 @@ export default function OnboardingScreen({ navigation }) {
                     {currentStep === 0 && (
                         <View style={styles.card}>
                             <View style={styles.iconCircle}>
-                                <Feather name="smartphone" size={32} color="#2563EB" />
+                                <Feather name="smartphone" size={normalize(32)} color="#2563EB" />
                             </View>
                             <Text style={styles.cardTitle}>Verify Phone Number</Text>
                             <Text style={styles.cardDesc}>
@@ -358,7 +358,7 @@ export default function OnboardingScreen({ navigation }) {
                                     </View>
 
                                     <View style={styles.inputWrapper}>
-                                        <Feather name="phone" size={20} color="#9CA3AF" />
+                                        <Feather name="phone" size={normalize(20)} color="#9CA3AF" />
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Phone number"
@@ -383,7 +383,7 @@ export default function OnboardingScreen({ navigation }) {
                             ) : (
                                 <>
                                     <View style={styles.inputWrapper}>
-                                        <Feather name="lock" size={20} color="#9CA3AF" />
+                                        <Feather name="lock" size={normalize(20)} color="#9CA3AF" />
                                         <TextInput
                                             style={[styles.input, { letterSpacing: 6, textAlign: "center" }]}
                                             placeholder="000000"
@@ -453,7 +453,7 @@ export default function OnboardingScreen({ navigation }) {
                                             ]}>
                                                 <Feather
                                                     name={isSaved ? "check-circle" : isPending ? "file" : "upload"}
-                                                    size={20}
+                                                    size={normalize(20)}
                                                     color={isSaved ? "#10B981" : isPending ? "#D97706" : "#2563EB"}
                                                 />
                                             </View>
@@ -485,7 +485,7 @@ export default function OnboardingScreen({ navigation }) {
 
                             {/* Info banner */}
                             <View style={styles.infoBanner}>
-                                <Feather name="info" size={14} color="#3B82F6" style={{ marginTop: 1 }} />
+                                <Feather name="info" size={normalize(14)} color="#3B82F6" style={{ marginTop: 1 }} />
                                 <Text style={styles.infoText}>
                                     Files are uploaded only when you tap "Submit Documents"
                                 </Text>
@@ -525,7 +525,7 @@ export default function OnboardingScreen({ navigation }) {
                             {rejectionReason ? (
                                 <>
                                     <View style={[styles.iconCircle, { backgroundColor: "#FEE2E2" }]}>
-                                        <Feather name="x-circle" size={40} color="#EF4444" />
+                                        <Feather name="x-circle" size={normalize(40)} color="#EF4444" />
                                     </View>
                                     <Text style={[styles.cardTitle, { color: "#EF4444", textAlign: "center" }]}>
                                         Verification Rejected
@@ -536,7 +536,7 @@ export default function OnboardingScreen({ navigation }) {
 
                                     <View style={styles.rejectionBox}>
                                         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-                                            <Feather name="alert-circle" size={16} color="#991B1B" style={{ marginTop: 2, marginRight: 8 }} />
+                                            <Feather name="alert-circle" size={normalize(16)} color="#991B1B" style={{ marginTop: 2, marginRight: 8 }} />
                                             <View style={{ flex: 1 }}>
                                                 <Text style={styles.rejectionLabel}>Reason:</Text>
                                                 <Text style={styles.rejectionText}>"{rejectionReason}"</Text>
@@ -564,7 +564,7 @@ export default function OnboardingScreen({ navigation }) {
                             ) : (
                                 <>
                                     <View style={[styles.iconCircle, { backgroundColor: "#FEF3C7" }]}>
-                                        <Feather name="clock" size={40} color="#F59E0B" />
+                                        <Feather name="clock" size={normalize(40)} color="#F59E0B" />
                                     </View>
                                     <Text style={[styles.cardTitle, { textAlign: "center" }]}>Under Review</Text>
                                     <Text style={[styles.cardDesc, { textAlign: "center" }]}>
@@ -572,7 +572,7 @@ export default function OnboardingScreen({ navigation }) {
                                     </Text>
 
                                     <View style={styles.infoBanner}>
-                                        <Feather name="mail" size={14} color="#3B82F6" style={{ marginTop: 1 }} />
+                                        <Feather name="mail" size={normalize(14)} color="#3B82F6" style={{ marginTop: 1 }} />
                                         <Text style={styles.infoText}>
                                             We'll email you at <Text style={{ fontWeight: "bold" }}>{user?.email}</Text> once reviewed.
                                         </Text>

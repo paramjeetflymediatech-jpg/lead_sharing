@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { normalize, wp, hp } from "../../utils/responsive";
 
 export default function GeneralSettingsScreen({ onBack }) {
-    const [appName, setAppName] = useState("Lead Sharing App");
+    const [appName, setAppName] = useState("AllCarePros App");
     const [supportEmail, setSupportEmail] = useState("support@example.com");
     const [websiteUrl, setWebsiteUrl] = useState("https://example.com");
 

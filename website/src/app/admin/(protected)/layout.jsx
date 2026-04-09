@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/serverAuth";
 import { redirect } from "next/navigation";
 import DashboardLayout from "../../components/DashboardLayout";
-import { HomeIcon, UsersIcon, Squares2X2Icon, ListBulletIcon, BriefcaseIcon, MagnifyingGlassPlusIcon, CurrencyDollarIcon, Cog6ToothIcon, ChartBarIcon, ArrowTrendingUpIcon, DocumentTextIcon, ShieldCheckIcon, StarIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, UsersIcon, Squares2X2Icon, ListBulletIcon, BriefcaseIcon, MagnifyingGlassPlusIcon, CurrencyDollarIcon, Cog6ToothIcon, ChartBarIcon, ArrowTrendingUpIcon, DocumentTextIcon, ShieldCheckIcon, StarIcon, ChatBubbleLeftRightIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default async function AdminLayout({ children }) {
     const user = await getCurrentUser();
@@ -21,6 +21,7 @@ export default async function AdminLayout({ children }) {
         { name: "Verifications", href: "/admin/verifications", icon: "ShieldCheckIcon" },
         { name: "Ratings", href: "/admin/ratings", icon: "StarIcon" },
         { name: "Deletion Requests", href: "/admin/deletion-requests", icon: "TrashIcon" },
+        { name: "Contact Inquiries", href: "/admin/contact-requests", icon: "ChatBubbleLeftRightIcon" },
         { name: "SEO Management", href: "/admin/seo", icon: "ArrowTrendingUpIcon" },
         { name: "Blogs", href: "/admin/blogs", icon: "DocumentTextIcon" },
         { name: "Settings", href: "/admin/settings", icon: "Cog6ToothIcon" },

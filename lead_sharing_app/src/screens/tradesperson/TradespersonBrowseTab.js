@@ -64,7 +64,7 @@ export default function TradespersonBrowseTab({ navigation }) {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                    <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                 </TouchableOpacity>
                 <View>
                     <Text style={styles.headerTitle}>Browse Jobs</Text>
@@ -144,7 +144,7 @@ function JobCard({ job, navigation }) {
                 {job.is_unlocked ? (
                     <>
                         <View style={styles.unlockedBadge}>
-                            <Feather name="unlock" size={14} color="#10B981" style={{ marginRight: 4 }} />
+                            <Feather name="unlock" size={normalize(14)} color="#10B981" style={{ marginRight: 4 }} />
                             <Text style={styles.unlockedBadgeText}>UNLOCKED</Text>
                         </View>
                         <View style={styles.viewLeadButtonInner}>

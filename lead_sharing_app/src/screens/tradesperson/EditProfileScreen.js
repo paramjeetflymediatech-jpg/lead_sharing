@@ -43,12 +43,27 @@ export default function EditProfileScreen({ navigation }) {
             const response = await tradespersonAPI.getProfile();
             const profile = response.data; // Access data property
             if (profile) {
+                // Safely handle service_areas which might be a JSON string or an array
+                let serviceAreasStr = "";
+                const rawAreas = profile.service_areas;
+                
+                if (Array.isArray(rawAreas)) {
+                    serviceAreasStr = rawAreas.join(",");
+                } else if (typeof rawAreas === "string") {
+                    try {
+                        const parsed = JSON.parse(rawAreas);
+                        serviceAreasStr = Array.isArray(parsed) ? parsed.join(",") : rawAreas;
+                    } catch (e) {
+                        serviceAreasStr = rawAreas;
+                    }
+                }
+
                 setFormData({
                     company_name: profile.company_name || "",
                     contact_name: profile.contact_name || user?.name || "",
                     phone: profile.phone || "",
                     postcode: profile.postcode || "",
-                    service_areas: profile.service_areas?.join(", ") || "",
+                    service_areas: serviceAreasStr,
                     bio: profile.bio || "",
                 });
                 setProfileImage(profile.profile_image || profile.profileImage || null);
@@ -153,8 +168,8 @@ export default function EditProfileScreen({ navigation }) {
                 postcode: formData.postcode,
                 bio: formData.bio,
                 skills: [], // Add skills if captured
-                serviceAreas: formData.service_areas
-                    ? formData.service_areas.split(",").map(s => s.trim()).filter(Boolean)
+                serviceAreas: typeof formData.service_areas === 'string' 
+                    ? formData.service_areas.split(",").map(s => s.trim()).filter(Boolean) 
                     : [],
                 profileImage: uploadedImageUrl,
             };
@@ -218,11 +233,11 @@ export default function EditProfileScreen({ navigation }) {
                                 <Image source={{ uri: profileImage }} style={styles.profileImage} />
                             ) : (
                                 <View style={styles.placeholderImage}>
-                                    <Feather name="briefcase" size={40} color="#9CA3AF" />
+                                    <Feather name="briefcase" size={normalize(40)} color="#9CA3AF" />
                                 </View>
                             )}
                             <View style={styles.editIconBadge}>
-                                <Feather name="camera" size={16} color="#FFFFFF" />
+                                <Feather name="camera" size={normalize(16)} color="#FFFFFF" />
                             </View>
                         </TouchableOpacity>
                         <Text style={styles.changePhotoText}>Tap to change photo</Text>
@@ -232,7 +247,7 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Company Name <Text style={styles.required}>*</Text></Text>
                         <View style={styles.inputWrapper}>
-                            <Feather name="briefcase" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <Feather name="briefcase" size={normalize(20)} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. Acme Plumbing"
@@ -247,7 +262,7 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Contact Name <Text style={styles.required}>*</Text></Text>
                         <View style={styles.inputWrapper}>
-                            <Feather name="user" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <Feather name="user" size={normalize(22)} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Your full name"
@@ -262,13 +277,13 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Email Address</Text>
                         <View style={[styles.inputWrapper, styles.inputDisabled]}>
-                            <Feather name="mail" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <Feather name="mail" size={normalize(20)} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={[styles.input, { color: "#6B7280" }]}
                                 value={user?.email || ""}
                                 editable={false}
                             />
-                            <Feather name="lock" size={16} color="#9CA3AF" />
+                            <Feather name="lock" size={normalize(16)} color="#9CA3AF" />
                         </View>
                         <Text style={styles.helperText}>Email cannot be changed.</Text>
                     </View>
@@ -277,7 +292,7 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Phone Number</Text>
                         <View style={styles.inputWrapper}>
-                            <Feather name="phone" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <Feather name="phone" size={normalize(20)} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. 07700 900000"
@@ -297,7 +312,7 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Postcode</Text>
                         <View style={styles.inputWrapper}>
-                            <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <Feather name="map-pin" size={normalize(20)} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. SW1 1AA"
@@ -320,7 +335,7 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Service Areas</Text>
                         <View style={styles.inputWrapper}>
-                            <Feather name="map-pin" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <Feather name="map-pin" size={normalize(20)} color="#9CA3AF" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. SW1, W1, WC1"
@@ -337,7 +352,7 @@ export default function EditProfileScreen({ navigation }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Business Bio</Text>
                         <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
-                            <Feather name="align-left" size={20} color="#9CA3AF" style={[styles.inputIcon, { marginTop: 12 }]} />
+                            <Feather name="align-left" size={normalize(22)} color="#9CA3AF" style={[styles.inputIcon, { marginTop: 12 }]} />
                             <TextInput
                                 style={[styles.input, styles.textArea]}
                                 placeholder="Describe your services and experience..."
@@ -360,7 +375,7 @@ export default function EditProfileScreen({ navigation }) {
                             <ActivityIndicator color="#FFFFFF" />
                         ) : (
                             <>
-                                <Feather name="check" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                                <Feather name="check" size={normalize(22)} color="#FFFFFF" style={{ marginRight: 8 }} />
                                 <Text style={styles.saveButtonText}>Save Changes</Text>
                             </>
                         )}

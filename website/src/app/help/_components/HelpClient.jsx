@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronUp, Search, MessageCircle } from "lucide-react";
 
 const faqData = {
@@ -72,7 +73,7 @@ export default function HelpClient() {
             <div className="bg-[#1149C7] text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <h1 className="text-3xl md:text-5xl font-bold mb-6">How can we help?</h1>
-                    <div className="relative max-w-xl mx-auto">
+                    {/* <div className="relative max-w-xl mx-auto">
                         <input
                             type="text"
                             placeholder="Search for answers..."
@@ -81,7 +82,7 @@ export default function HelpClient() {
                         <button className="absolute right-2 top-2 bg-[#1149C7] p-2 rounded-full hover:bg-blue-700 transition-colors">
                             <Search className="w-5 h-5" />
                         </button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -154,9 +155,12 @@ export default function HelpClient() {
                             <p className="text-gray-600 mb-6">
                                 Can't find the answer you're looking for? Our support team is here to help.
                             </p>
-                            <button className="bg-[#1149C7] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#0D3A99] transition-colors">
+                            <Link 
+                                href="/contact-support"
+                                className="inline-block bg-[#1149C7] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#0D3A99] transition-colors"
+                            >
                                 Contact Support
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>

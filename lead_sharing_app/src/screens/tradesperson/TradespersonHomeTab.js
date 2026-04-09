@@ -162,9 +162,9 @@ export default function TradespersonHomeTab({ navigation, route }) {
                     style={styles.deletionBanner}
                     onPress={() => navigation.navigate("DeleteAccountRequest")}
                 >
-                    <Feather name="alert-triangle" size={20} color="#FFFFFF" />
+                    <Feather name="alert-triangle" size={normalize(20)} color="#FFFFFF" />
                     <Text style={styles.deletionBannerText}>Your account is scheduled for deletion</Text>
-                    <Feather name="chevron-right" size={20} color="#FFFFFF" />
+                    <Feather name="chevron-right" size={normalize(20)} color="#FFFFFF" />
                 </TouchableOpacity>
             ) : null}
 
@@ -176,14 +176,9 @@ export default function TradespersonHomeTab({ navigation, route }) {
                         {companyName}
                     </Text>
                 </View>
-                <View>
-                    <Text style={styles.greeting}>Welcome back,</Text>
-                    <Text style={styles.companyName} numberOfLines={1}>
-                        {companyName}
-                    </Text>
-                </View>
+           
                 <View style={styles.headerRightActions}>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         onPress={() => {
                             navigation.navigate("NotificationHistory");
                             setHasUnreadNotifications(false);
@@ -191,17 +186,17 @@ export default function TradespersonHomeTab({ navigation, route }) {
                         style={styles.notificationHeaderIcon}
                     >
                         <View style={styles.bellWrapper}>
-                            <Feather name="bell" size={24} color="#4B5563" />
+                            <Feather name="bell" size={normalize(24)} color="#4B5563" />
                             {hasUnreadNotifications && (
                                 <View style={styles.redDot} />
                             )}
                         </View>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity
                         onPress={() => navigation.navigate("Profile")}
                         style={styles.profileButton}
                     >
-                        <Feather name="user" size={20} color="#4B5563" />
+                        <Feather name="user" size={normalize(20)} color="#4B5563" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -215,7 +210,7 @@ export default function TradespersonHomeTab({ navigation, route }) {
                 <View style={styles.creditsContent}>
                     <View style={styles.creditsInfo}>
                         <View style={styles.creditsIconBadge}>
-                            <Feather name="credit-card" size={20} color="#FFFFFF" />
+                            <Feather name="credit-card" size={normalize(20)} color="#FFFFFF" />
                         </View>
                         <View>
                             <Text style={styles.creditsLabel}>Balance</Text>
@@ -224,7 +219,7 @@ export default function TradespersonHomeTab({ navigation, route }) {
                     </View>
                     <View style={styles.topUpButton}>
                         <Text style={styles.topUpText}>Top Up</Text>
-                        <Feather name="plus" size={14} color="#2563EB" />
+                        <Feather name="plus" size={normalize(14)} color="#2563EB" />
                     </View>
                 </View>
             </TouchableOpacity>
@@ -273,7 +268,7 @@ export default function TradespersonHomeTab({ navigation, route }) {
 
                 {recentJobs.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Feather name="inbox" size={48} color="#D1D5DB" />
+                        <Feather name="inbox" size={normalize(48)} color="#D1D5DB" />
                         <Text style={styles.emptyTitle}>No jobs yet</Text>
                         <Text style={styles.emptyText}>New opportunities will appear here.</Text>
                     </View>
@@ -298,7 +293,7 @@ function StatCard({ icon, value, label, color }) {
     return (
         <View style={styles.statCard}>
             <View style={[styles.statIconContainer, { backgroundColor: `${color}15` }]}>
-                <Feather name={icon} size={20} color={color} />
+                <Feather name={icon} size={normalize(16)} color={color} />
             </View>
             <View style={styles.statContent}>
                 <Text style={styles.statValue}>{value}</Text>
@@ -338,7 +333,7 @@ function JobCard({ job, credits, navigation }) {
 
             <View style={styles.jobDetails}>
                 <View style={styles.detailItem}>
-                    <Feather name="map-pin" size={12} color="#6B7280" />
+                    <Feather name="map-pin" size={normalize(12)} color="#6B7280" />
                     <Text style={styles.detailText} numberOfLines={1}>
                         {job.city && job.postcode
                             ? `${job.city}, ${job.postcode}`
@@ -347,7 +342,7 @@ function JobCard({ job, credits, navigation }) {
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.detailItem}>
-                    <Feather name="clock" size={12} color="#6B7280" />
+                    <Feather name="clock" size={normalize(12)} color="#6B7280" />
                     <Text style={styles.detailText}>
                         {job.start_time
                             ? job.start_time
@@ -361,7 +356,7 @@ function JobCard({ job, credits, navigation }) {
             </View>
 
             <View style={styles.budgetRow}>
-                <Feather name="dollar-sign" size={12} color="#6B7280" />
+                <Feather name="dollar-sign" size={normalize(12)} color="#6B7280" />
                 <Text style={styles.budgetText}>
                     {job.budget_min ? `${job.budget_min} - ${job.budget_max}` : "Budget N/A"}
                 </Text>
@@ -373,7 +368,7 @@ function JobCard({ job, credits, navigation }) {
                 ) : (
                     <Text style={styles.costText}>1 Credit</Text>
                 )}
-                <Feather name="chevron-right" size={16} color="#D1D5DB" />
+                <Feather name="chevron-right" size={normalize(16)} color="#D1D5DB" />
             </View>
         </TouchableOpacity>
     );
@@ -383,6 +378,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#FFFFFF",
+        padding:isTablet?15:0
     },
     contentContainer: {
         paddingTop: 10,
@@ -405,7 +401,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 20,
         paddingVertical: 16,
-        marginTop: 40,
+        // marginTop: 40,
         marginBottom: 10,
     },
     headerRightActions: {
@@ -435,7 +431,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     companyName: {
-        fontSize: normalize(isTablet ? 30 : 22),
+        fontSize: normalize(isTablet ? 18 : 16),
         fontWeight: "800",
         color: "#111827",
         maxWidth: width * 0.7,
@@ -470,6 +466,7 @@ const styles = StyleSheet.create({
     creditsInfo: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent:"space-between"
     },
     creditsIconBadge: {
         width: isTablet ? 56 : 44,
@@ -482,12 +479,12 @@ const styles = StyleSheet.create({
     },
     creditsLabel: {
         color: "rgba(255,255,255,0.8)",
-        fontSize: normalize(isTablet ? 15 : 13),
+        fontSize: normalize(13),
         fontWeight: "500",
     },
     creditsValue: {
         color: "#FFFFFF",
-        fontSize: normalize(isTablet ? 24 : 20),
+        fontSize: normalize(16),
         fontWeight: "700",
     },
     topUpButton: {
@@ -505,7 +502,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     statsContainer: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         marginBottom: 24,
     },
     sectionTitle: {
@@ -517,7 +514,7 @@ const styles = StyleSheet.create({
     statsGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 12,
+        // gap: 10,
         justifyContent: 'space-between',
     },
     statCard: {
@@ -647,7 +644,7 @@ const styles = StyleSheet.create({
     detailText: {
         fontSize: normalize(isTablet ? 15 : 13),
         color: "#6B7280",
-        maxWidth: 150,
+        maxWidth: 850,
     },
     budgetRow: {
         flexDirection: "row",
@@ -689,7 +686,7 @@ const styles = StyleSheet.create({
     },
     deletionBanner: {
         marginHorizontal: 20,
-        marginTop: 10,
+        marginTop: isTablet?45:40,
         backgroundColor: '#EF4444',
         borderRadius: 12,
         padding: 16,

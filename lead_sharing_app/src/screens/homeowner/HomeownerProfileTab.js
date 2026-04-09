@@ -40,11 +40,11 @@ export default function HomeownerProfileTab({ navigation }) {
         >
             <View style={styles.menuItemLeft}>
                 <View style={styles.iconContainer}>
-                    <Feather name={icon} size={20} color="#4B5563" />
+                    <Feather name={icon} size={normalize(20)} color="#4B5563" />
                 </View>
                 <Text style={styles.menuItemText}>{title}</Text>
             </View>
-            <Feather name="chevron-right" size={20} color="#9CA3AF" />
+            <Feather name="chevron-right" size={normalize(20)} color="#9CA3AF" />
         </TouchableOpacity>
     );
 
@@ -54,7 +54,7 @@ export default function HomeownerProfileTab({ navigation }) {
             <View style={styles.header}>
                 <View style={styles.headerTop}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                        <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                     </TouchableOpacity>
                     <Text style={styles.pageTitle}>Profile</Text>
                 </View>

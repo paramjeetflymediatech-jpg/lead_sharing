@@ -9,7 +9,7 @@ export async function getSeoMetadata(path) {
         // Default metadata if no custom SEO is found
         if (!seoData) {
             return {
-                title: 'Lead Sharing Canada',
+                title: 'AllCarePros Canada',
                 description: 'Find and hire trusted tradespeople in Canada',
             };
         }
@@ -42,7 +42,7 @@ export async function getSeoMetadata(path) {
     } catch (error) {
         console.error('Error fetching SEO metadata:', error);
         return {
-            title: 'Lead Sharing Canada',
+            title: 'AllCarePros Canada',
             description: 'Find and hire trusted tradespeople in Canada',
         };
     }

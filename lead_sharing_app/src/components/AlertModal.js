@@ -9,6 +9,7 @@ import {
     Animated
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { normalize } from '../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -113,7 +114,7 @@ export default function AlertModal({
                 >
                     <View style={styles.header}>
                         <View style={[styles.iconContainer, { backgroundColor: colors.bg }]}>
-                            <Feather name={colors.iconName} size={32} color={colors.icon} />
+                            <Feather name={colors.iconName} size={normalize(32)} color={colors.icon} />
                         </View>
                         <Text style={styles.title}>{title || (type.charAt(0)?.toUpperCase() + type.slice(1))}</Text>
                         <Text style={styles.message}>{message}</Text>

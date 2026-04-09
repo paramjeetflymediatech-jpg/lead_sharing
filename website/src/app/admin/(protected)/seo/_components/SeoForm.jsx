@@ -339,7 +339,7 @@ export default function SeoForm({ initialData, isEditing = false }) {
                                             L
                                         </div>
                                         <div>
-                                            <div className="text-[#202124] text-sm">Lead Sharing</div>
+                                            <div className="text-[#202124] text-sm">AllCarePros</div>
                                             <div className="text-[#5f6368] text-xs">https://leadsharing.com{formData.pageName || '/page'}</div>
                                         </div>
                                     </div>

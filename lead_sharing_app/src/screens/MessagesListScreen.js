@@ -169,7 +169,7 @@ export default function MessagesListScreen() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                    <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                 </TouchableOpacity>
                 <View>
                     <Text style={styles.headerTitle}>Messages</Text>
@@ -178,7 +178,7 @@ export default function MessagesListScreen() {
 
             {conversations.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Feather name="message-square" size={48} color="#9CA3AF" />
+                    <Feather name="message-square" size={normalize(48)} color="#9CA3AF" />
                     <Text style={styles.emptyTitle}>No messages yet</Text>
                     <Text style={styles.emptyText}>
                         {user.role === "TRADESPERSON"

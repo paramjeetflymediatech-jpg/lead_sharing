@@ -38,10 +38,10 @@ export default function TradespersonProfileTab({ navigation }) {
             activeOpacity={0.7}
         >
             <View style={styles.menuIconContainer}>
-                <Feather name={icon} size={20} color="#4B5563" />
+                <Feather name={icon} size={normalize(20)} color="#4B5563" />
             </View>
             <Text style={styles.menuText}>{title}</Text>
-            <Feather name="chevron-right" size={20} color="#9CA3AF" />
+            <Feather name="chevron-right" size={normalize(20)} color="#9CA3AF" />
         </TouchableOpacity>
     );
 
@@ -51,7 +51,7 @@ export default function TradespersonProfileTab({ navigation }) {
             <View style={styles.header}>
                 <View style={styles.headerTop}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                        <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                     </TouchableOpacity>
                     <Text style={styles.pageTitle}>Profile</Text>
                 </View>
@@ -75,18 +75,18 @@ export default function TradespersonProfileTab({ navigation }) {
                             <Text style={styles.userEmail}>{user?.email || "email@example.com"}</Text>
                             {(user?.phone || user?.phone_number) && (
                                 <Text style={styles.userPhone}>
-                                    <Feather name="phone" size={12} color="#6B7280" /> {user?.phone || user?.phone_number}
+                                    <Feather name="phone" size={normalize(12)} color="#6B7280" /> {user?.phone || user?.phone_number}
                                 </Text>
                             )}
                             <View style={styles.badgeContainer}>
                                 <View style={styles.badge}>
-                                    <Feather name="shield" size={10} color="#059669" style={{ marginRight: 4 }} />
+                                    <Feather name="shield" size={normalize(10)} color="#059669" style={{ marginRight: 4 }} />
                                     <Text style={styles.badgeText}>Verified Pro</Text>
                                 </View>
                             </View>
                         </View>
                         <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate("EditProfile")}>
-                            <Feather name="edit-2" size={18} color="#6B7280" />
+                            <Feather name="edit-2" size={normalize(18)} color="#6B7280" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -123,7 +123,7 @@ export default function TradespersonProfileTab({ navigation }) {
 
             {/* Logout */}
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Feather name="log-out" size={20} color="#EF4444" style={{ marginRight: 8 }} />
+                <Feather name="log-out" size={normalize(20)} color="#EF4444" style={{ marginRight: 8 }} />
                 <Text style={styles.logoutText}>Log Out</Text>
             </TouchableOpacity>
 

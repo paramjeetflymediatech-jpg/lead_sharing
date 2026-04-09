@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { tradespersonAPI } from "../../services/api";
 import { Feather } from "@expo/vector-icons";
+import { normalize } from "../../utils/responsive";
 
 export default function MyLeadsScreen({ navigation }) {
     const [leads, setLeads] = useState([]);
@@ -81,7 +82,7 @@ export default function MyLeadsScreen({ navigation }) {
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
                         <View style={styles.emptyIconContainer}>
-                            <Feather name="inbox" size={40} color="#9CA3AF" />
+                            <Feather name="inbox" size={normalize(40)} color="#9CA3AF" />
                         </View>
                         <Text style={styles.emptyTitle}>No leads yet</Text>
                         <Text style={styles.emptyText}>
@@ -124,7 +125,7 @@ function LeadCard({ lead, navigation }) {
                         {job.title || job.description || lead.job_description || "Job Request"}
                     </Text>
                     <View style={styles.dateContainer}>
-                        <Feather name="calendar" size={12} color="#9CA3AF" style={{ marginRight: 4 }} />
+                        <Feather name="calendar" size={normalize(12)} color="#9CA3AF" style={{ marginRight: 4 }} />
                         <Text style={styles.dateText}>
                             {lead.unlockedAt ? new Date(lead.unlockedAt).toLocaleDateString() :
                                 lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'Recently'}
@@ -132,7 +133,7 @@ function LeadCard({ lead, navigation }) {
                     </View>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
-                    <Feather name={statusInfo.icon} size={11} color={statusInfo.color} style={{ marginRight: 4 }} />
+                    <Feather name={statusInfo.icon} size={normalize(11)} color={statusInfo.color} style={{ marginRight: 4 }} />
                     <Text style={[styles.statusText, { color: statusInfo.color }]}>
                         {statusInfo.label}
                     </Text>
@@ -143,14 +144,14 @@ function LeadCard({ lead, navigation }) {
             <View style={styles.detailsRow}>
                 <View style={styles.detailItem}>
                     <View style={styles.iconCircle}>
-                        <Feather name="map-pin" size={12} color="#6B7280" />
+                        <Feather name="map-pin" size={normalize(12)} color="#6B7280" />
                     </View>
                     <Text style={styles.detailText}>{job.location || job.postcode || lead.postcode || "Location provided"}</Text>
                 </View>
                 {(job.budget_max || lead.budget_max) && (
                     <View style={[styles.detailItem, { marginLeft: 16 }]}>
                         <View style={styles.iconCircle}>
-                            <Feather name="dollar-sign" size={12} color="#6B7280" />
+                            <Feather name="dollar-sign" size={normalize(12)} color="#6B7280" />
                         </View>
                         <Text style={styles.detailText}>
                             {job.budget_min || lead.budget_min || 0} - {job.budget_max || lead.budget_max}
@@ -183,7 +184,7 @@ function LeadCard({ lead, navigation }) {
                             style={[styles.smallActionButton, styles.callButton]}
                             onPress={() => Linking.openURL(`tel:${contactPhone}`)}
                         >
-                            <Feather name="phone" size={16} color="#FFFFFF" />
+                            <Feather name="phone" size={normalize(16)} color="#FFFFFF" />
                         </TouchableOpacity>
                     )}
 
@@ -192,7 +193,7 @@ function LeadCard({ lead, navigation }) {
                             style={[styles.smallActionButton, styles.emailButton]}
                             onPress={() => Linking.openURL(`mailto:${contactEmail}`)}
                         >
-                            <Feather name="mail" size={16} color="#4B5563" />
+                            <Feather name="mail" size={normalize(16)} color="#4B5563" />
                         </TouchableOpacity>
                     )}
 
@@ -200,7 +201,7 @@ function LeadCard({ lead, navigation }) {
                         style={[styles.smallActionButton, styles.viewDetailsButton]}
                         onPress={() => navigation.navigate('JobDetails', { jobId: lead.jobId || job.id })}
                     >
-                        <Feather name="eye" size={16} color="#2563EB" />
+                        <Feather name="eye" size={normalize(16)} color="#2563EB" />
                     </TouchableOpacity>
                 </View>
             </View>

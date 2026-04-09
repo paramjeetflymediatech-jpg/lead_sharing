@@ -19,14 +19,27 @@ import HelpCenterScreen from "../screens/homeowner/HelpCenterScreen";
 import ContactUsScreen from "../screens/homeowner/ContactUsScreen";
 import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
 import PrivacyPolicyScreen from "../screens/PrivacyPolicyScreen";
-
+import { normalize } from "../utils/responsive";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Stack for Home tab
 function HomeStack({ navigation }) {
     return (
-        <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleStyle: {
+                    fontSize: normalize(18),
+                    fontWeight: "700",
+                },
+                headerTitleAlign: "center",
+                headerBackTitleStyle: {
+                    fontSize: normalize(16),
+                    paddingLeft: normalize(10),
+                    
+                },
+            }}
+        >
                     <Stack.Screen
                         name="HomeMain"
                 component={TradespersonHomeTab}
@@ -56,7 +69,19 @@ function HomeStack({ navigation }) {
 // Stack for Browse tab
 function BrowseStack() {
     return (
-        <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleStyle: {
+                    fontSize: normalize(18),
+                    fontWeight: "700",
+                },
+                headerTitleAlign: "center",
+                headerBackTitleStyle: {
+                    fontSize: normalize(16),
+                    paddingLeft: normalize(10),
+                },
+            }}
+        >
             <Stack.Screen
                 name="BrowseMain"
                 component={TradespersonBrowseTab}
@@ -74,7 +99,19 @@ function BrowseStack() {
 // Stack for Profile tab
 function ProfileStack() {
     return (
-        <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleStyle: {
+                    fontSize: normalize(18),
+                    fontWeight: "700",
+                },
+                headerTitleAlign: "center",
+                headerBackTitleStyle: {
+                    fontSize: normalize(16),
+                    paddingLeft: normalize(10),
+                },
+            }}
+        >
             <Stack.Screen
                 name="ProfileMain"
                 component={TradespersonProfileTab}
@@ -198,13 +235,13 @@ export default function TradespersonTabs() {
 
 const styles = StyleSheet.create({
     tabBar: {
-        paddingTop: 10,
+        paddingTop: normalize(10),
         backgroundColor: "#FFFFFF",
         borderTopWidth: 0,
         elevation: 8,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 4,
     },
 });

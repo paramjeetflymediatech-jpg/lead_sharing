@@ -82,7 +82,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
         );
     }
 
-    const renderStars = (rating, size = 14) => {
+    const renderStars = (rating, size = normalize(14)) => {
         const stars = [];
         const fullStars = Math.floor(rating);
         const hasHalfStar = rating % 1 >= 0.5;
@@ -105,7 +105,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
             {/* Header with back button */}
             <View style={styles.headerBar}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                    <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                 </TouchableOpacity>
                 <Text style={styles.headerBarTitle}>Tradesperson Profile</Text>
                 <View style={{ width: 40 }} />
@@ -118,7 +118,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                         {profile.profileImage && profile.profileImage !== '/default-avatar.png' ? (
                             <Image source={{ uri: profile.profileImage }} style={styles.avatarImage} />
                         ) : (
-                            <Feather name="user" size={36} color="#2563EB" />
+                            <Feather name="user" size={normalize(36)} color="#2563EB" />
                         )}
                     </View>
                     <View style={styles.profileInfo}>
@@ -141,16 +141,16 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                 {/* Quick stats badges */}
                 <View style={styles.badgesRow}>
                     <View style={styles.badge}>
-                        <Feather name="briefcase" size={12} color="#059669" />
+                        <Feather name="briefcase" size={normalize(12)} color="#059669" />
                         <Text style={styles.badgeText}>{stats?.totalJobs || 0} jobs completed</Text>
                     </View>
                     <View style={styles.badge}>
-                        <Feather name="calendar" size={12} color="#059669" />
+                        <Feather name="calendar" size={normalize(12)} color="#059669" />
                         <Text style={styles.badgeText}>Member since {profile.memberSince || 'N/A'}</Text>
                     </View>
                     {profile.verified && (
                         <View style={[styles.badge, styles.verifiedBadge]}>
-                            <Feather name="check-circle" size={12} color="#2563EB" />
+                            <Feather name="check-circle" size={normalize(12)} color="#2563EB" />
                             <Text style={[styles.badgeText, { color: '#2563EB' }]}>Verified</Text>
                         </View>
                     )}
@@ -159,7 +159,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                 {/* Response time */}
                 {profile.responseTime && (
                     <View style={styles.responseTimeRow}>
-                        <Feather name="clock" size={14} color="#6B7280" />
+                        <Feather name="clock" size={normalize(14)} color="#6B7280" />
                         <Text style={styles.responseTimeText}>Typically responds {profile.responseTime?.toLowerCase()}</Text>
                     </View>
                 )}
@@ -172,7 +172,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                     {profile.email && (
                         <View style={styles.contactRow}>
                             <View style={styles.contactIconWrap}>
-                                <Feather name="mail" size={16} color="#2563EB" />
+                                <Feather name="mail" size={normalize(16)} color="#2563EB" />
                             </View>
                             <View>
                                 <Text style={styles.contactLabel}>Email</Text>
@@ -183,7 +183,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                     {profile.phone && profile.phone !== 'Not provided' && (
                         <View style={styles.contactRow}>
                             <View style={styles.contactIconWrap}>
-                                <Feather name="phone" size={16} color="#2563EB" />
+                                <Feather name="phone" size={normalize(16)} color="#2563EB" />
                             </View>
                             <View>
                                 <Text style={styles.contactLabel}>Phone</Text>
@@ -194,7 +194,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                     {profile.postcode && profile.postcode !== 'Not specified' && (
                         <View style={[styles.contactRow, { borderBottomWidth: 0 }]}>
                             <View style={styles.contactIconWrap}>
-                                <Feather name="map-pin" size={16} color="#2563EB" />
+                                <Feather name="map-pin" size={normalize(16)} color="#2563EB" />
                             </View>
                             <View>
                                 <Text style={styles.contactLabel}>Location</Text>
@@ -220,13 +220,13 @@ export default function TradespersonProfileScreen({ route, navigation }) {
             )}
 
             {/* Service Areas */}
-            {profile.serviceAreas && profile.serviceAreas.length > 0 && (
+            {Array.isArray(profile.serviceAreas) && profile.serviceAreas.length > 0 && (
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Service Areas</Text>
                     <View style={styles.chipsContainer}>
                         {profile.serviceAreas.map((area, index) => (
                             <View key={index} style={[styles.chip, styles.chipGreen]}>
-                                <Feather name="map-pin" size={12} color="#059669" style={{ marginRight: 4 }} />
+                                <Feather name="map-pin" size={normalize(12)} color="#059669" style={{ marginRight: 4 }} />
                                 <Text style={[styles.chipText, { color: '#059669' }]}>{area}</Text>
                             </View>
                         ))}
@@ -251,14 +251,14 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                     <View style={styles.ratingOverview}>
                         <View style={styles.ratingBig}>
                             <Text style={styles.ratingBigNumber}>{parseFloat(stats?.averageRating || 0).toFixed(1)}</Text>
-                            <View style={styles.starsRow}>{renderStars(parseFloat(stats?.averageRating || 0), 18)}</View>
+                            <View style={styles.starsRow}>{renderStars(parseFloat(stats?.averageRating || 0), normalize(18))}</View>
                             <Text style={styles.ratingBigLabel}>{stats?.totalRatings || 0} reviews</Text>
                         </View>
                         <View style={styles.ratingBars}>
                             {[5, 4, 3, 2, 1].map((star) => (
                                 <View key={star} style={styles.ratingBarRow}>
                                     <Text style={styles.ratingBarLabel}>{star}</Text>
-                                    <Feather name="star" size={12} color="#F59E0B" />
+                                    <Feather name="star" size={normalize(12)} color="#F59E0B" />
                                     <View style={styles.ratingBarTrack}>
                                         <View
                                             style={[
@@ -284,7 +284,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
                 <Text style={styles.sectionTitle}>Reviews</Text>
                 {reviews.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Feather name="message-circle" size={40} color="#D1D5DB" />
+                        <Feather name="message-circle" size={normalize(40)} color="#D1D5DB" />
                         <Text style={styles.emptyText}>No reviews yet</Text>
                     </View>
                 ) : (
@@ -307,7 +307,7 @@ export default function TradespersonProfileScreen({ route, navigation }) {
 
                             {review.jobTitle && (
                                 <View style={styles.reviewJobTag}>
-                                    <Feather name="briefcase" size={12} color="#6B7280" />
+                                    <Feather name="briefcase" size={normalize(12)} color="#6B7280" />
                                     <Text style={styles.reviewJobText}>{review.jobTitle}</Text>
                                 </View>
                             )}

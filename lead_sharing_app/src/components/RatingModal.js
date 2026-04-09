@@ -62,7 +62,7 @@ export default function RatingModal({ visible, onClose, onSubmit, tradespersonNa
                     <View style={styles.header}>
                         <Text style={styles.title}>Rate Tradesperson</Text>
                         <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                            <Feather name="x" size={24} color="#6B7280" />
+                            <Feather name="x" size={normalize(24)} color="#6B7280" />
                         </TouchableOpacity>
                     </View>
 

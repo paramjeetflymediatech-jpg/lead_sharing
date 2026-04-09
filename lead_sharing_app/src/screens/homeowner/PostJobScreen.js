@@ -332,7 +332,7 @@ export default function PostJobScreen({ navigation }) {
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                        <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                     </TouchableOpacity>
                     <View>
                         <Text style={styles.headerTitle}>Post a New Job</Text>

@@ -21,6 +21,7 @@ import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
 import PrivacyPolicyScreen from "../screens/PrivacyPolicyScreen";
 import TradespersonProfileScreen from "../screens/tradesperson/TradespersonProfileScreen";
 import { useAuth } from "../context/AuthContext";
+import { normalize } from "../utils/responsive";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -28,7 +29,19 @@ const Stack = createNativeStackNavigator();
 // Stack for Home tab
 function HomeStack({ navigation }) {
     return (
-        <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleStyle: {
+                    fontSize: normalize(18),
+                    fontWeight: "700",
+                },
+                headerTitleAlign: "center",
+                headerBackTitleStyle: {
+                    fontSize: normalize(16),
+                    paddingLeft: normalize(10),
+                },
+            }}
+        >
             <Stack.Screen
                 name="HomeMain"
                 component={HomeownerHomeTab}
@@ -63,7 +76,19 @@ function HomeStack({ navigation }) {
             // Stack for Jobs tab
         function JobsStack() {
             return (
-                <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleStyle: {
+                    fontSize: normalize(18),
+                    fontWeight: "700",
+                },
+                headerTitleAlign: "center",
+                headerBackTitleStyle: {
+                    fontSize: normalize(16),
+                    paddingLeft: normalize(10),
+                },
+            }}
+        >
             <Stack.Screen
                 name="JobsMain"
                 component={HomeownerJobsTab}
@@ -81,7 +106,19 @@ function HomeStack({ navigation }) {
 // Stack for Profile tab
 function ProfileStack() {
     return (
-        <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleStyle: {
+                    fontSize: normalize(18),
+                    fontWeight: "700",
+                },
+                headerTitleAlign: "center",
+                headerBackTitleStyle: {
+                    fontSize: normalize(16),
+                    paddingLeft: normalize(10),
+                },
+            }}
+        >
             <Stack.Screen
                 name="ProfileMain"
                 component={HomeownerProfileTab}

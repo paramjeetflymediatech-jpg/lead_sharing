@@ -17,6 +17,7 @@ import { Feather } from '@expo/vector-icons';
 import AlertModal from './AlertModal';
 import { normalize, hp, wp } from '../utils/responsive';
 const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export default function UnlockLeadModal({
     visible,
@@ -92,7 +93,7 @@ export default function UnlockLeadModal({
                 >
                     <ScrollView contentContainerStyle={styles.scrollContent}>
                         <View style={styles.iconContainer}>
-                            <Feather name="unlock" size={32} color="#2563EB" />
+                            <Feather name="unlock" size={normalize(32)} color="#2563EB" />
                         </View>
 
                         <Text style={styles.title}>Unlock Lead & Submit Quote</Text>
@@ -144,7 +145,7 @@ export default function UnlockLeadModal({
                                     <ActivityIndicator color="#FFFFFF" size="small" />
                                 ) : (
                                     <>
-                                        <Feather name="check" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                                        <Feather name="check" size={normalize(18)} color="#FFFFFF" style={{ marginRight: 8 }} />
                                         <Text style={styles.confirmText}>Unlock ({cost})</Text>
                                     </>
                                 )}
@@ -171,20 +172,23 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        height: 'auto'
+
     },
     container: {
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         width: '100%',
-        maxWidth: 340,
+        maxWidth: isTablet ? 800 : 340,
+        padding: isTablet ? 30 : 0,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.25,
         shadowRadius: 20,
         elevation: 10,
         overflow: 'hidden',
-        maxHeight: '80%',
+        height: 'auto',
+        maxHeight: '100%',
     },
     scrollContent: {
         padding: 24,
@@ -235,10 +239,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 10,
         fontSize: normalize(14),
+        height: 'auto',
         color: '#1F2937',
     },
     textArea: {
-        height: 80,
+        height: isTablet ? 250 : normalize(120),
         textAlignVertical: 'top',
     },
     footer: {

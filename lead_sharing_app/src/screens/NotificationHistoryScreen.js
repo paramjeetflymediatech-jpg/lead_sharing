@@ -112,7 +112,7 @@ export default function NotificationHistoryScreen({ navigation }) {
         >
             <View style={styles.iconContainer}>
                 <View style={[styles.iconCircle, { backgroundColor: getIconBackground(item.type) }]}>
-                    <Feather name={getIconName(item.type)} size={20} color="#FFFFFF" />
+                    <Feather name={getIconName(item.type)} size={normalize(20)} color="#FFFFFF" />
                 </View>
                 {!item.is_read && <View style={styles.unreadDot} />}
             </View>
@@ -160,7 +160,7 @@ export default function NotificationHistoryScreen({ navigation }) {
                     }}
                     style={styles.backButton}
                 >
-                    <Feather name="arrow-left" size={24} color="#1F2937" />
+                    <Feather name="arrow-left" size={normalize(24)} color="#1F2937" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Notifications</Text>
                 <TouchableOpacity onPress={() => markAsRead()} style={styles.markAllButton}>
@@ -174,7 +174,7 @@ export default function NotificationHistoryScreen({ navigation }) {
                 </View>
             ) : notifications.length === 0 ? (
                 <View style={styles.centerContainer}>
-                    <Feather name="bell-off" size={48} color="#D1D5DB" />
+                    <Feather name="bell-off" size={normalize(48)} color="#D1D5DB" />
                     <Text style={styles.emptyText}>No notifications yet</Text>
                 </View>
             ) : (

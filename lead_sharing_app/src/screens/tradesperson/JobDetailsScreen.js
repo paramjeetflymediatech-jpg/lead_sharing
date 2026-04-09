@@ -147,7 +147,7 @@ export default function JobDetailsScreen({ route, navigation }) {
 
             {/* Job Header - short title */}
             <View style={styles.header}>
-                <View style={{ flexDirection: 'row', gap: wp(2), marginBottom: hp(1.5) }}>
+                <View style={{ flexDirection: 'row', gap: wp(2) }}>
                     <View style={styles.newBadge}>
                         <Text style={styles.newText}>NEW</Text>
                     </View>
@@ -157,9 +157,6 @@ export default function JobDetailsScreen({ route, navigation }) {
                         </View>
                     )}
                 </View>
-                <Text style={styles.title} numberOfLines={2}>
-                    {description.length > 80 ? description.slice(0, 80).trim() + "…" : description || "Job details"}
-                </Text>
             </View>
 
             {/* Job images - full width */}
@@ -336,7 +333,8 @@ export default function JobDetailsScreen({ route, navigation }) {
                 onClose={() => setShowMessageModal(false)}
                 jobId={job._id}
                 homeownerId={job.homeowner?._id || job.homeowner_id}
-                jobTitle={job.description}
+                // jobTitle={job?.homeowner?.name}
+                jobTitle=' '
             />
 
             <View style={{ height: 40 }} />
@@ -412,7 +410,6 @@ const styles = StyleSheet.create({
     },
     header: {
         padding: wp(5),
-        paddingTop: hp(2),
     },
     newBadge: {
         alignSelf: "flex-start",
@@ -420,7 +417,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(3),
         paddingVertical: hp(0.8),
         borderRadius: wp(2),
-        marginBottom: hp(1.5),
+        // marginBottom: hp(1.5),
     },
     newText: {
         color: "#FFFFFF",
@@ -573,14 +570,13 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     unlockedBadge: {
-        backgroundColor: "#D1FAE5",
-        paddingHorizontal: wp(3),
-        paddingVertical: hp(0.8),
+        backgroundColor: "#d1d7ff",
+        padding: wp(1),
         borderRadius: wp(2),
     },
     unlockedBadgeText: {
         color: "#10B981",
-        fontSize: normalize(15),
+        fontSize: normalize(14),
         fontWeight: "800",
     },
     unlockedInfo: {
