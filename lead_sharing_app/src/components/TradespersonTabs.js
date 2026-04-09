@@ -27,24 +27,29 @@ const Stack = createNativeStackNavigator();
 function HomeStack({ navigation }) {
     return (
         <Stack.Navigator>
-            <Stack.Screen
-                name="HomeMain"
+                    <Stack.Screen
+                        name="HomeMain"
                 component={TradespersonHomeTab}
                 options={{
                     headerShown: false,
                 }}
             />
             <Stack.Screen
-                name="JobDetails"
-                component={JobDetailsScreen}
-                options={{ title: "Job Details" }}
-            />
-            <Stack.Screen
-                name="BuyCredits"
-                component={BuyCreditsScreen}
-                options={{ title: "Buy Credits" }}
-            />
-        </Stack.Navigator>
+                            name="JobDetails"
+                            component={JobDetailsScreen}
+                            options={{ title: "Job Details" }}
+                        />
+                        <Stack.Screen
+                            name="BuyCredits"
+                            component={BuyCreditsScreen}
+                            options={{ title: "Buy Credits" }}
+                        />
+                        <Stack.Screen
+                            name="DeleteAccountRequest"
+                            component={DeleteAccountRequestScreen}
+                            options={{ headerShown: false }}
+                        />
+                    </Stack.Navigator>
     );
 }
 
@@ -106,10 +111,10 @@ function ProfileStack() {
                 options={{ headerShown: false }}
             />
             <Stack.Screen
-                name="DeleteAccountRequest"
-                component={DeleteAccountRequestScreen}
-                options={{ headerShown: false }}
-            />
+                            name="DeleteAccountRequest"
+                            component={DeleteAccountRequestScreen}
+                            options={{ headerShown: false }}
+                        />
             <Stack.Screen
                 name="HelpCenter"
                 component={HelpCenterScreen}

@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS users (
   phone_verified BOOLEAN DEFAULT FALSE,
   otp_code VARCHAR(10) DEFAULT NULL,
   otp_expires_at DATETIME DEFAULT NULL,
+  is_deletion_pending BOOLEAN DEFAULT FALSE,
+  deletion_requested_at DATETIME DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -53,6 +55,13 @@ CREATE TABLE IF NOT EXISTS deletion_requests (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table to store hashed identifiers of deleted users for fraud prevention
+CREATE TABLE IF NOT EXISTS retained_identifiers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  identifier_hash VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS push_tokens (
@@ -206,10 +215,25 @@ CREATE TABLE IF NOT EXISTS tradesperson_ratings (
   rating INT NOT NULL,
   review TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (job_id) REFERENCES jobs(id),
-  FOREIGN KEY (homeowner_id) REFERENCES users(id),
-  FOREIGN KEY (tradesperson_id) REFERENCES users(id)
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+  FOREIGN KEY (homeowner_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (tradesperson_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- =====================================================
+--  Automated Cleanup Event
+--  Runs every 1 hour to delete users with expired 
+--  deletion requests (older than 24 hours).
+-- =====================================================
+SET GLOBAL event_scheduler = ON;
+
+CREATE EVENT IF NOT EXISTS cleanup_expired_deletions
+ON SCHEDULE EVERY 1 HOUR
+DO
+  DELETE FROM users 
+  WHERE is_deletion_pending = TRUE 
+  AND deletion_requested_at <= NOW() - INTERVAL 24 HOUR;
+
 
 CREATE TABLE IF NOT EXISTS seo_pages (
   id INT AUTO_INCREMENT PRIMARY KEY,

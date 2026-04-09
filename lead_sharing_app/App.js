@@ -17,7 +17,6 @@ import PrivacyPolicyScreen from "./src/screens/PrivacyPolicyScreen";
 import TradespersonProfileScreen from "./src/screens/tradesperson/TradespersonProfileScreen";
 import OnboardingScreen from "./src/screens/tradesperson/OnboardingScreen";
 import NotificationHistoryScreen from "./src/screens/NotificationHistoryScreen";
-import { NotificationService } from "./src/services/NotificationService";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 
 const Stack = createNativeStackNavigator();
@@ -174,20 +173,6 @@ const linking = {
 };
 
 export default function App() {
-  React.useEffect(() => {
-    // Initial setup
-    NotificationService.init();
-
-    // Register notification listeners
-    const cleanup = NotificationService.addListener((notification) => {
-      console.log("[App] Notification foreground:", notification);
-    });
-
-    return () => {
-      if (typeof cleanup === 'function') cleanup();
-    };
-  }, []);
-
   return (
     <ErrorBoundary>
       <AuthProvider>

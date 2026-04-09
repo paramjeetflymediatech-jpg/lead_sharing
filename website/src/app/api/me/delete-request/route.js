@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { DeletionRequest } from "@/models/DeletionRequest";
+import { User } from "@/models/User";
 
 export async function POST(req) {
     try {
@@ -27,8 +28,15 @@ export async function POST(req) {
             );
         }
 
+        const user = await User.findById(userId);
+      // Mark user as pending deletion
+      await User.findByIdAndUpdate(userId, { isDeletionPending: true, deletionRequestedAt: new Date() });
+
         const newRequest = await DeletionRequest.create({
             userId,
+            email: user?.email || null,
+            name: user?.name || null,
+            phone: user?.phone || null,
             reason,
         });
 

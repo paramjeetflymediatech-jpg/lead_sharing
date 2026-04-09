@@ -13,8 +13,10 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { tradespersonAPI, jobAPI, userAPI, notificationAPI } from "../../services/api";
 import { Feather } from '@expo/vector-icons';
+import { normalize } from "../../utils/responsive";
 
 const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export default function TradespersonHomeTab({ navigation, route }) {
     const { user, updateUser } = useAuth();
@@ -154,8 +156,26 @@ export default function TradespersonHomeTab({ navigation, route }) {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} />
             }
         >
+            {/* Deletion Pending Banner */}
+            {user?.accountStatus === 'PENDING_DELETION' || user?.deleteRequestPending ? (
+                <TouchableOpacity 
+                    style={styles.deletionBanner}
+                    onPress={() => navigation.navigate("DeleteAccountRequest")}
+                >
+                    <Feather name="alert-triangle" size={20} color="#FFFFFF" />
+                    <Text style={styles.deletionBannerText}>Your account is scheduled for deletion</Text>
+                    <Feather name="chevron-right" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+            ) : null}
+
             {/* Header */}
             <View style={styles.header}>
+                <View>
+                    <Text style={styles.greeting}>Welcome back,</Text>
+                    <Text style={styles.companyName} numberOfLines={1}>
+                        {companyName}
+                    </Text>
+                </View>
                 <View>
                     <Text style={styles.greeting}>Welcome back,</Text>
                     <Text style={styles.companyName} numberOfLines={1}>
@@ -375,7 +395,7 @@ const styles = StyleSheet.create({
     },
     verifyingText: {
         marginTop: 12,
-        fontSize: 16,
+        fontSize: normalize(16),
         color: "#6B7280",
         fontWeight: "500",
     },
@@ -410,20 +430,20 @@ const styles = StyleSheet.create({
         borderColor: '#FFFFFF',
     },
     greeting: {
-        fontSize: 14,
+        fontSize: normalize(isTablet ? 17 : 14),
         color: "#6B7280",
         marginBottom: 4,
     },
     companyName: {
-        fontSize: 22,
+        fontSize: normalize(isTablet ? 30 : 22),
         fontWeight: "800",
         color: "#111827",
         maxWidth: width * 0.7,
     },
     profileButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: isTablet ? 52 : 40,
+        height: isTablet ? 52 : 40,
+        borderRadius: isTablet ? 26 : 20,
         backgroundColor: "#FFFFFF",
         justifyContent: "center",
         alignItems: "center",
@@ -435,7 +455,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         marginBottom: 24,
         borderRadius: 20,
-        padding: 20,
+        padding: isTablet ? 28 : 20,
         shadowColor: "#2563EB",
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.2,
@@ -452,8 +472,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     creditsIconBadge: {
-        width: 44,
-        height: 44,
+        width: isTablet ? 56 : 44,
+        height: isTablet ? 56 : 44,
         borderRadius: 12,
         backgroundColor: "rgba(255,255,255,0.2)",
         justifyContent: "center",
@@ -462,18 +482,18 @@ const styles = StyleSheet.create({
     },
     creditsLabel: {
         color: "rgba(255,255,255,0.8)",
-        fontSize: 13,
+        fontSize: normalize(isTablet ? 15 : 13),
         fontWeight: "500",
     },
     creditsValue: {
         color: "#FFFFFF",
-        fontSize: 20,
+        fontSize: normalize(isTablet ? 24 : 20),
         fontWeight: "700",
     },
     topUpButton: {
         backgroundColor: "#FFFFFF",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: isTablet ? 20 : 16,
+        paddingVertical: isTablet ? 13 : 10,
         borderRadius: 100,
         flexDirection: "row",
         alignItems: "center",
@@ -481,7 +501,7 @@ const styles = StyleSheet.create({
     },
     topUpText: {
         color: "#2563EB",
-        fontSize: 13,
+        fontSize: normalize(isTablet ? 15 : 13),
         fontWeight: "700",
     },
     statsContainer: {
@@ -489,7 +509,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: normalize(isTablet ? 22 : 18),
         fontWeight: "700",
         color: "#111827",
         marginBottom: 16,
@@ -501,10 +521,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     statCard: {
-        width: (width - 52) / 2, // Responsive grid (screen width - margins - gap) / 2
+        width: (width - 52) / 2,
         backgroundColor: "#FFFFFF",
         borderRadius: 16,
-        padding: 16,
+        padding: isTablet ? 20 : 16,
         borderWidth: 1,
         borderColor: "#F3F4F6",
         shadowColor: "#000",
@@ -514,8 +534,8 @@ const styles = StyleSheet.create({
         elevation: 1,
     },
     statIconContainer: {
-        width: 36,
-        height: 36,
+        width: isTablet ? 48 : 36,
+        height: isTablet ? 48 : 36,
         borderRadius: 10,
         justifyContent: "center",
         alignItems: "center",
@@ -525,12 +545,12 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     statValue: {
-        fontSize: 20,
+        fontSize: normalize(isTablet ? 26 : 20),
         fontWeight: "700",
         color: "#111827",
     },
     statLabel: {
-        fontSize: 13,
+        fontSize: normalize(isTablet ? 15 : 13),
         color: "#6B7280",
     },
     section: {
@@ -544,7 +564,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     viewAllText: {
-        fontSize: 14,
+        fontSize: normalize(isTablet ? 16 : 14),
         color: "#2563EB",
         fontWeight: "600",
     },
@@ -558,21 +578,21 @@ const styles = StyleSheet.create({
         borderStyle: "dashed",
     },
     emptyTitle: {
-        fontSize: 16,
+        fontSize: normalize(isTablet ? 18 : 16),
         fontWeight: "600",
         color: "#374151",
         marginTop: 12,
         marginBottom: 4,
     },
     emptyText: {
-        fontSize: 14,
+        fontSize: normalize(isTablet ? 16 : 14),
         color: "#9CA3AF",
         textAlign: "center",
     },
     jobCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 16,
-        padding: 16,
+        padding: isTablet ? 20 : 16,
         marginBottom: 12,
         borderWidth: 1,
         borderColor: "#F3F4F6",
@@ -590,7 +610,7 @@ const styles = StyleSheet.create({
     },
     jobTitle: {
         flex: 1,
-        fontSize: 16,
+        fontSize: normalize(isTablet ? 19 : 16),
         fontWeight: "600",
         color: "#111827",
         marginRight: 10,
@@ -603,7 +623,7 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         color: "#EF4444",
-        fontSize: 10,
+        fontSize: normalize(isTablet ? 12 : 10),
         fontWeight: "700",
         textTransform: "uppercase",
     },
@@ -611,7 +631,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     categoryText: {
-        fontSize: 12,
+        fontSize: normalize(isTablet ? 14 : 12),
         color: "#6B7280",
     },
     jobDetails: {
@@ -625,9 +645,9 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     detailText: {
-        fontSize: 13,
+        fontSize: normalize(isTablet ? 15 : 13),
         color: "#6B7280",
-        maxWidth: 150, // Added to prevent pushing other items
+        maxWidth: 150,
     },
     budgetRow: {
         flexDirection: "row",
@@ -636,7 +656,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     budgetText: {
-        fontSize: 13,
+        fontSize: normalize(isTablet ? 15 : 13),
         color: "#6B7280",
         fontWeight: "600",
     },
@@ -645,7 +665,6 @@ const styles = StyleSheet.create({
         height: 12,
         backgroundColor: "#E5E7EB",
         marginHorizontal: 12,
-
     },
     tapHint: {
         flexDirection: "row",
@@ -656,16 +675,32 @@ const styles = StyleSheet.create({
         borderTopColor: "#F9FAFB",
     },
     costText: {
-        fontSize: 12,
+        fontSize: normalize(isTablet ? 14 : 12),
         fontWeight: "600",
         color: "#F59E0B",
     },
     unlockedText: {
-        fontSize: 12,
+        fontSize: normalize(isTablet ? 14 : 12),
         fontWeight: "700",
         color: "#2563EB",
     },
     footerSpace: {
-        height: 100, // Space for floating tab bar
+        height: 100,
+    },
+    deletionBanner: {
+        marginHorizontal: 20,
+        marginTop: 10,
+        backgroundColor: '#EF4444',
+        borderRadius: 12,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    deletionBannerText: {
+        flex: 1,
+        color: '#FFFFFF',
+        fontSize: normalize(isTablet ? 16 : 14),
+        fontWeight: '600',
+        marginHorizontal: 12,
     },
 });

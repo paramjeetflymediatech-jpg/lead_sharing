@@ -37,28 +37,33 @@ function HomeStack({ navigation }) {
                 }}
             />
             <Stack.Screen
-                name="PostJob"
-                component={PostJobScreen}
-                options={{ title: "Post a Job", headerShown: false }}
-            />
-            <Stack.Screen
-                name="JobDetails"
-                component={JobDetailsScreen}
-                options={{ title: "Job Details" }}
-            />
-            <Stack.Screen
-                name="TradespersonProfile"
-                component={TradespersonProfileScreen}
-                options={{ headerShown: false }}
-            />
-        </Stack.Navigator>
-    );
-}
+                            name="PostJob"
+                            component={PostJobScreen}
+                            options={{ title: "Post a Job", headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="JobDetails"
+                            component={JobDetailsScreen}
+                            options={{ title: "Job Details" }}
+                        />
+                        <Stack.Screen
+                            name="TradespersonProfile"
+                            component={TradespersonProfileScreen}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="DeleteAccountRequest"
+                            component={DeleteAccountRequestScreen}
+                            options={{ headerShown: false }}
+                        />
+                    </Stack.Navigator>
+                );
+            }
 
-// Stack for Jobs tab
-function JobsStack() {
-    return (
-        <Stack.Navigator>
+            // Stack for Jobs tab
+        function JobsStack() {
+            return (
+                <Stack.Navigator>
             <Stack.Screen
                 name="JobsMain"
                 component={HomeownerJobsTab}

@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     },
     unlockedBadgeText: {
         color: "#10B981",
-        fontSize: normalize(13),
+        fontSize: normalize(15),
         fontWeight: "800",
     },
     unlockedInfo: {
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
         marginRight: wp(2),
     },
     unlockedInfoText: {
-        fontSize: normalize(14),
+        fontSize: normalize(16),
         fontWeight: "600",
         color: "#10B981",
     },

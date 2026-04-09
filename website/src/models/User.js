@@ -12,14 +12,16 @@ const userToMongoStyle = (row) => {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     profile_image: row.profile_image, // Ensure this field is passed through
-    profileImage: row.profile_image   // Add camelCase alias for convenience
+    profileImage: row.profile_image,   // Add camelCase alias for convenience
+    isDeletionPending: row.is_deletion_pending,
+    deletionRequestedAt: row.deletion_requested_at
   };
 };
 
 export const User = {
   async findById(id) {
     logToFile(`User.findById START id=${id}`);
-    const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [id]);
+    const [rows] = await pool.query('SELECT id, email, name, role, profile_image, phone, is_deletion_pending, deletion_requested_at FROM users WHERE id = ? LIMIT 1', [id]);
     logToFile(`User.findById QUERY DONE found=${!!rows[0]}`);
     const user = rows[0] ? userToMongoStyle(rows[0]) : null;
     if (!user) return null;

@@ -217,10 +217,20 @@ export const userAPI = {
     /**
      * Request account deletion
      */
-    requestAccountDeletion: async (reason) => {
-        return apiCall("/api/me/delete-request", {
+    // Request account deletion (expects email and reason)
+    requestAccountDeletion: async ({ email, reason }) => {
+        return apiCall("/api/data-deletion", {
             method: "POST",
-            body: JSON.stringify({ reason }),
+            body: JSON.stringify({ email, reason }),
+        });
+    },
+
+    /**
+     * Cancel account deletion
+     */
+    cancelAccountDeletion: async () => {
+        return apiCall("/api/me/delete-request/cancel", {
+            method: "POST",
         });
     },
 

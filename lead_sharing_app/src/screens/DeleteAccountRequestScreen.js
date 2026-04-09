@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -14,10 +14,32 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { normalize, wp, hp } from "../utils/responsive";
 import { userAPI } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function DeleteAccountRequestScreen({ navigation }) {
+    const { user, updateUser } = useAuth();
     const [reason, setReason] = useState('');
     const [loading, setLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState(user);
+
+    // Fetch fresh user data when screen mounts
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const { apiCall } = require('../services/api');
+                const res = await apiCall('/api/me');
+                if (res.success && res.user) {
+                    setCurrentUser(res.user);
+                }
+            } catch (e) {
+                console.warn('[DeleteAccountRequest] Failed to fetch user:', e);
+            }
+        }
+        fetchUser();
+    }, []);
+
+    // Check if user is already pending deletion - use currentUser for fresh data
+    const isPending = currentUser?.accountStatus === 'PENDING_DELETION' || currentUser?.deleteRequestPending;
 
     const handleSubmitRequest = async () => {
         if (!reason.trim()) {
@@ -27,7 +49,7 @@ export default function DeleteAccountRequestScreen({ navigation }) {
 
         Alert.alert(
             "Confirm Request",
-            "Are you sure you want to submit a request to delete your account? This action cannot be undone once approved by admin.",
+            "Are you sure you want to submit a request to delete your account? Your account will enter a 24-hour review period, during which you can cancel this request. After this period, deletion is permanent.",
             [
                 { text: "Cancel", style: "cancel" },
                 {
@@ -35,15 +57,45 @@ export default function DeleteAccountRequestScreen({ navigation }) {
                     onPress: async () => {
                         setLoading(true);
                         try {
-                            // Using the new API method
-                            await userAPI.requestAccountDeletion(reason);
+                            await userAPI.requestAccountDeletion({ email: user.email, reason });
+                            await updateUser({ accountStatus: 'PENDING_DELETION', deleteRequestPending: true });
+                            setCurrentUser(prev => ({ ...prev, accountStatus: 'PENDING_DELETION', deleteRequestPending: true }));
                             Alert.alert(
-                                "Success",
-                                "Your deletion request has been submitted. Our team will review it and process it shortly.",
-                                [{ text: "OK", onPress: () => navigation.pop(2) }] // Go back to profile
+                                "Request Submitted",
+                                "Your account is now scheduled for deletion in 24 hours. You can cancel this request from this screen before the period ends."
                             );
                         } catch (error) {
-                            Alert.alert("Error", error.message || "Failed to submit request");
+                            console.error('Delete request error:', error);
+                const errMsg = error?.response?.message || error.message || "Failed to submit request";
+                Alert.alert("Error", errMsg);
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleCancelRequest = async () => {
+        Alert.alert(
+            "Cancel Deletion",
+            "Are you sure you want to cancel your account deletion request and keep your account?",
+            [
+                { text: "No", style: "cancel" },
+                {
+                    text: "Yes, Keep Account",
+                    onPress: async () => {
+                        setLoading(true);
+                        try {
+                            if (userAPI.cancelAccountDeletion) {
+                                await userAPI.cancelAccountDeletion();
+                            }
+                            await updateUser({ accountStatus: 'ACTIVE', deleteRequestPending: false });
+                            Alert.alert("Cancelled", "Your account deletion request has been cancelled.");
+                            setCurrentUser(prev => ({ ...prev, accountStatus: 'ACTIVE', deleteRequestPending: false }));
+                        } catch (error) {
+                            Alert.alert("Error", error.message || "Failed to cancel request");
                         } finally {
                             setLoading(false);
                         }
@@ -67,50 +119,79 @@ export default function DeleteAccountRequestScreen({ navigation }) {
                 </View>
 
                 <View style={styles.content}>
-                    <View style={styles.warningCard}>
-                        <Feather name="alert-triangle" size={24} color="#EF4444" />
-                        <Text style={styles.warningText}>
-                            Account deletion is permanent. Once your request is processed by the admin, all your data will be removed.
-                        </Text>
-                    </View>
+                    {isPending ? (
+                        <View style={styles.pendingContainer}>
+                            <View style={styles.pendingCard}>
+                                <Feather name="clock" size={40} color="#D97706" style={{ marginBottom: hp(2) }} />
+                                <Text style={styles.pendingTitle}>Deletion Pending</Text>
+                                <Text style={styles.pendingText}>
+                                    Your account is currently scheduled for deletion. There is a 24-hour review period allowing you time to change your mind.
+                                </Text>
+                                <Text style={[styles.pendingText, { fontWeight: '700', marginTop: hp(1) }]}>
+                                    Once 24 hours have passed, your data will be permanently anonymized or removed.
+                                </Text>
+                            </View>
 
-                    <Text style={styles.description}>
-                        Please tell us why you would like to delete your account. This will help us improve our service.
-                    </Text>
+                            <TouchableOpacity
+                                style={[styles.button, { backgroundColor: '#3B82F6', marginTop: hp(4) }, loading && styles.buttonDisabled]}
+                                onPress={handleCancelRequest}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.buttonText}>Cancel Deletion Request</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <>
+                            <View style={styles.warningCard}>
+                                <Feather name="alert-triangle" size={24} color="#EF4444" />
+                                <Text style={styles.warningText}>
+                                    Account deletion is permanent. Once requested, a 24-hour cooldown begins before all data is removed safely.
+                                </Text>
+                            </View>
 
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Reason for Deletion</Text>
-                        <TextInput
-                            style={styles.textArea}
-                            placeholder="Tell us your reason..."
-                            placeholderTextColor="#9CA3AF"
-                            multiline
-                            numberOfLines={6}
-                            textAlignVertical="top"
-                            value={reason}
-                            onChangeText={setReason}
-                        />
-                    </View>
+                            <Text style={styles.description}>
+                                Please tell us why you would like to delete your account. This will help us improve our service.
+                            </Text>
 
-                    <TouchableOpacity
-                        style={[styles.button, loading && styles.buttonDisabled]}
-                        onPress={handleSubmitRequest}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#FFFFFF" />
-                        ) : (
-                            <Text style={styles.buttonText}>Submit Deletion Request</Text>
-                        )}
-                    </TouchableOpacity>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Reason for Deletion</Text>
+                                <TextInput
+                                    style={styles.textArea}
+                                    placeholder="Tell us your reason..."
+                                    placeholderTextColor="#9CA3AF"
+                                    multiline
+                                    numberOfLines={6}
+                                    textAlignVertical="top"
+                                    value={reason}
+                                    onChangeText={setReason}
+                                />
+                            </View>
 
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={() => navigation.goBack()}
-                        disabled={loading}
-                    >
-                        <Text style={styles.cancelButtonText}>I've changed my mind</Text>
-                    </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.button, loading && styles.buttonDisabled]}
+                                onPress={handleSubmitRequest}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.buttonText}>Submit Deletion Request</Text>
+                                )}
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => navigation.goBack()}
+                                disabled={loading}
+                            >
+                                <Text style={styles.cancelButtonText}>I've changed my mind</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -220,5 +301,28 @@ const styles = StyleSheet.create({
         color: '#2563EB',
         fontSize: normalize(15),
         fontWeight: '600',
+    },
+    pendingContainer: {
+        marginTop: hp(2),
+    },
+    pendingCard: {
+        backgroundColor: '#FFFBEB',
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+        borderRadius: wp(4),
+        padding: wp(6),
+        alignItems: 'center',
+    },
+    pendingTitle: {
+        fontSize: normalize(20),
+        fontWeight: '700',
+        color: '#92400E',
+        marginBottom: hp(1.5),
+    },
+    pendingText: {
+        fontSize: normalize(15),
+        color: '#92400E',
+        textAlign: 'center',
+        lineHeight: normalize(22),
     },
 });

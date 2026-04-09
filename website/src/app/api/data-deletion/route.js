@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import pool from '@/../config/db.js';
 import { DeletionRequest } from "@/models/DeletionRequest";
 import { User } from "@/models/User";
 
@@ -35,7 +36,13 @@ export async function POST(req) {
 
         const userId = user.id;
 
-        const newRequest = await DeletionRequest.create({
+                // Mark user as pending deletion (must match column name format in DB)
+                await pool.query(
+                    'UPDATE users SET is_deletion_pending = TRUE, deletion_requested_at = NOW() WHERE id = ?',
+                    [userId]
+                );
+
+                const newRequest = await DeletionRequest.create({
             userId: user.id,
             email: user.email,
             reason: reason,

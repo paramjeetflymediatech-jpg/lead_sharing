@@ -52,17 +52,22 @@ export async function GET(req) {
 
         // Add to user object for easy consumption by mobile app RootNavigator
         user.verificationStatus = tradespersonProfile.verification_status || tradespersonProfile.verificationStatus;
-      }
-    }
+              }
+            }
 
-    user.phoneVerified = !!userRaw.phone_verified;
+            user.phoneVerified = !!userRaw.phone_verified;
 
-    return NextResponse.json({
-      success: true,
-      user,
-      tradespersonProfile,
-      purchasedPlanKeys,
-    });
+            // Add mobile-compatible fields for deletion status
+            user.accountStatus = userRaw.is_deletion_pending ? 'PENDING_DELETION' : 'ACTIVE';
+            user.deleteRequestPending = !!userRaw.is_deletion_pending;
+            user.deletionRequestedAt = userRaw.deletion_requested_at;
+
+            return NextResponse.json({
+              success: true,
+              user,
+              tradespersonProfile,
+              purchasedPlanKeys,
+            });
   } catch (error) {
     console.error("GET ME error:", error);
     return NextResponse.json(

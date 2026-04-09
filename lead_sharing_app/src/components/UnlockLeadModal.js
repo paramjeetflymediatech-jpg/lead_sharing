@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import AlertModal from './AlertModal';
-
+import { normalize, hp, wp } from '../utils/responsive';
 const { width } = Dimensions.get('window');
 
 export default function UnlockLeadModal({
@@ -200,18 +200,18 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     title: {
-        fontSize: 20,
+        fontSize: normalize(22),
         fontWeight: '700',
         color: '#1F2937',
         marginBottom: 8,
         textAlign: 'center',
     },
     subtitle: {
-        fontSize: 14,
+        fontSize: normalize(14),
         color: '#6B7280',
         textAlign: 'center',
         marginBottom: 24,
-        lineHeight: 20,
+        lineHeight: normalize(20),
     },
     highlight: {
         color: '#2563EB',
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     label: {
-        fontSize: 13,
+        fontSize: normalize(13),
         fontWeight: '600',
         color: '#374151',
         marginBottom: 6,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 10,
-        fontSize: 14,
+        fontSize: normalize(14),
         color: '#1F2937',
     },
     textArea: {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     cancelText: {
-        fontSize: 15,
+        fontSize: normalize(15),
         fontWeight: '600',
         color: '#4B5563',
     },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     confirmText: {
-        fontSize: 15,
+        fontSize: normalize(15),
         fontWeight: '700',
         color: '#FFFFFF',
     },

@@ -111,13 +111,13 @@ export default function HomeownerHomeTab({ navigation }) {
                     <Text style={styles.userName}>{user?.name?.split(" ")[0] || "Homeowner"}</Text>
                 </View>
                 <View style={styles.headerRightActions}>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         onPress={() => navigation.navigate("NotificationHistory")}
                         style={styles.notificationHeaderIcon}
                     >
                         <Feather name="bell" size={24} color="#1F2937" />
                         {unreadCount > 0 && <View style={styles.badgeDot} />}
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity
                         style={styles.profileButton}
                         onPress={() => navigation.navigate("Profile")}
@@ -129,8 +129,20 @@ export default function HomeownerHomeTab({ navigation }) {
                 </View>
             </View>
 
+            {/* Deletion Pending Banner */}
+            {user?.accountStatus === 'PENDING_DELETION' || user?.deleteRequestPending ? (
+                <TouchableOpacity 
+                    style={styles.deletionBanner}
+                    onPress={() => navigation.navigate("DeleteAccountRequest")}
+                >
+                    <Feather name="alert-triangle" size={20} color="#FFFFFF" />
+                    <Text style={styles.deletionBannerText}>Your account is scheduled for deletion</Text>
+                    <Feather name="chevron-right" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+            ) : null}
+
             {/* Stats Grid */}
-            <View style={styles.statsGrid}>
+            <View {...styles.statsGrid}>
                 <StatCard
                     icon="activity"
                     value={activeJobs}
@@ -625,6 +637,20 @@ const styles = StyleSheet.create({
         flexDirection: "row",   // makes icon + text horizontal
         alignItems: "center",   // vertically centers them
     },
-
-
+    deletionBanner: {
+        marginHorizontal: wp(5),
+        marginTop: hp(2),
+        backgroundColor: '#EF4444',
+        borderRadius: wp(3),
+        padding: wp(4),
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    deletionBannerText: {
+        flex: 1,
+        color: '#FFFFFF',
+        fontSize: normalize(14),
+        fontWeight: '600',
+        marginHorizontal: wp(3),
+    },
 });

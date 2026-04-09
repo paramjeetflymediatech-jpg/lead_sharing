@@ -303,7 +303,7 @@ export default function OnboardingScreen({ navigation }) {
                             <Text style={styles.headerSubtitle}>Complete all steps to activate your account</Text>
                         </View>
                         <TouchableOpacity onPress={logout} style={{ padding: 8, marginTop: -4 }}>
-                            <Feather name="log-out" size={20} color="#EF4444" />
+                            <Feather name="log-out" size={normalize(20)} color="#EF4444" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
     },
 
     cardTitle: { fontSize: normalize(22), fontWeight: "800", color: "#111827" },
-    cardDesc: { fontSize: normalize(14), color: "#6B7280", marginTop: hp(1), marginBottom: hp(2.5), lineHeight: 22 },
+    cardDesc: { fontSize: normalize(14), color: "#6B7280", marginTop: hp(1), marginBottom: hp(2.5),   },
 
     pickerWrapper: {
         backgroundColor: "#F9FAFB",
@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
         marginVertical: hp(1.5),
         gap: 8,
     },
-    infoText: { flex: 1, fontSize: normalize(12), color: "#1D4ED8", lineHeight: 18 },
+    infoText: { flex: 1, fontSize: normalize(12), color: "#1D4ED8"},
 
     // Rejection
     rejectionBox: {
@@ -760,5 +760,5 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     rejectionLabel: { fontSize: normalize(12), fontWeight: "800", color: "#7F1D1D", marginBottom: 4, textTransform: "uppercase" },
-    rejectionText: { fontSize: normalize(14), color: "#991B1B", fontStyle: "italic", lineHeight: 20 },
+    rejectionText: { fontSize: normalize(14), color: "#991B1B", fontStyle: "italic", },
 });

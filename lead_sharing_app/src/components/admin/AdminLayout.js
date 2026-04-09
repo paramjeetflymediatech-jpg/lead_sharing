@@ -16,7 +16,6 @@ import LogoutModal from "../LogoutModal";
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { apiCall } from "../../services/api";
-import { NotificationService } from "../../services/NotificationService";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -33,37 +32,13 @@ export default function AdminLayout({
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = React.useState(false);
     const [logoutModalVisible, setLogoutModalVisible] = React.useState(false);
-    const [unreadCount, setUnreadCount] = React.useState(0);
     const insets = useSafeAreaInsets();
 
     React.useEffect(() => {
-        setupNotifications();
-        fetchUnreadCount();
-
-        // Refresh count every 30 seconds
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
+        // No notifications or unread count to fetch
     }, []);
 
-    async function setupNotifications() {
-        try {
-            await NotificationService.registerForPushNotificationsAsync();
-            await NotificationService.syncTokenWithBackend();
-        } catch (error) {
-            console.error("Error setting up push notifications:", error);
-        }
-    }
 
-    async function fetchUnreadCount() {
-        try {
-            const response = await apiCall('/api/notifications');
-            if (response.success) {
-                setUnreadCount(response.unreadCount || 0);
-            }
-        } catch (error) {
-            console.error("Error fetching unread count:", error);
-        }
-    }
 
     function handleMenuPress(screen) {
         setMenuVisible(false);
@@ -120,25 +95,7 @@ export default function AdminLayout({
                 </View>
 
                 <View style={styles.headerRight}>
-                    {/* <TouchableOpacity
-    onPress={() => {
-        navigation.navigate('NotificationHistory');
-        // Optimize: clear badge immediately on press
-        setUnreadCount(0);
-    }}
-    style={styles.notificationIcon}
->
-    <View>
-        <Feather name="bell" size={24} color={unreadCount > 0 ? "#2563EB" : "#1E293B"} />
-        {unreadCount > 0 && (
-            <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-            </View>
-        )}
-    </View>
-</TouchableOpacity> */}
+
                 </View>
             </View>
 

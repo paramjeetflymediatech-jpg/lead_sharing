@@ -70,18 +70,18 @@ const styles = StyleSheet.create({
         borderColor: '#FFFFFF',
     },
     title: {
-        fontSize: normalize(22),
+        fontSize: normalize(26),
         fontWeight: 'bold',
         color: '#1F2937', // Gray 800
         marginBottom: hp(1),
         textAlign: 'center',
     },
     message: {
-        fontSize: normalize(15),
+        fontSize: normalize(18),
         color: '#6B7280', // Gray 500
         textAlign: 'center',
         marginBottom: hp(3),
-        lineHeight: normalize(22),
+        lineHeight: normalize(24),
     },
     button: {
         backgroundColor: '#2563EB', // Blue 600
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#FFFFFF',
-        fontSize: normalize(16),
+        fontSize: normalize(18),
         fontWeight: '600',
     },
 });

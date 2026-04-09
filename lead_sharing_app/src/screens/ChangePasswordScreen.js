@@ -11,6 +11,7 @@ import {
     KeyboardAvoidingView,
     Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { normalize, wp, hp } from "../utils/responsive";
 import { authAPI } from "../services/api";
@@ -75,9 +76,15 @@ export default function ChangePasswordScreen({ navigation }) {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
+            style={{ flex: 1, backgroundColor: '#FFFFFF' }}
         >
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={24} color="#1F2937" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Change Password</Text>
+                </View>
 
                 <View style={styles.content}>
                     <Text style={styles.description}>
@@ -100,7 +107,7 @@ export default function ChangePasswordScreen({ navigation }) {
                         )}
                     </TouchableOpacity>
                 </View>
-            </View>
+            </SafeAreaView>
         </KeyboardAvoidingView>
     );
 }
@@ -108,7 +115,25 @@ export default function ChangePasswordScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: '#F8FAFC',
+        backgroundColor: '#FFFFFF',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: wp(5),
+        paddingVertical: hp(2),
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    backButton: {
+        marginRight: wp(4),
+        padding: wp(1),
+    },
+    headerTitle: {
+        fontSize: normalize(20),
+        fontWeight: '700',
+        color: '#111827',
     },
     scrollContent: {
         flexGrow: 1,

@@ -11,24 +11,31 @@ import {
     ActivityIndicator,
     Image,
     Dimensions,
+    Modal,
+    FlatList,
+    SafeAreaView,
 } from "react-native";
-import { Eye, EyeOff } from "lucide-react-native";
+import { Eye, EyeOff, ChevronDown, X } from "lucide-react-native";
 import { normalize, hp, wp, isSmallDevice } from "../utils/responsive";
-import { Picker } from "@react-native-picker/picker";
 import { authAPI } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
 import { useAuth } from "../context/AuthContext";
 
 const { height } = Dimensions.get("window");
 
+const COUNTRIES = [
+    { flag: "🇨🇦", code: "+1",  name: "Canada" },
+];
+
 export default function SignupScreen({ navigation }) {
     const { login } = useAuth();
     const [role, setRole] = useState("HOMEOWNER");
+    const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [name, setName] = useState("");
     const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
-    const [countryCode, setCountryCode] = useState("+91");
+    const [countryCode, setCountryCode] = useState("+1");
     const [password, setPassword] = useState("");
     const [otp, setOtp] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -269,23 +276,22 @@ export default function SignupScreen({ navigation }) {
                             </View>
 
                             {/* Phone Input with Country Code */}
-                            <View style={styles.inputContainer}>
+                             <View style={styles.inputContainer}>
                                 <View style={styles.phoneInputWrapper}>
-                                    <View style={styles.countryPickerContainer}>
-                                        <Picker
-                                            selectedValue={countryCode}
-                                            onValueChange={(itemValue) => setCountryCode(itemValue)}
-                                            style={styles.countryPicker}
-                                            dropdownIconColor="#6B7280"
-                                        >
-                                            <Picker.Item label="🇮🇳 +91" value="+91" />
-                                            <Picker.Item label="🇬🇧 +44" value="+44" />
-                                            <Picker.Item label="🇺🇸 +1" value="+1" />
-                                            <Picker.Item label="🇨🇦 +1" value="+1" />
-                                            <Picker.Item label="🇦🇺 +61" value="+61" />
-                                            <Picker.Item label="🇦🇪 +971" value="+971" />
-                                        </Picker>
-                                    </View>
+                                    {/* Custom Country Picker Button */}
+                                    <TouchableOpacity
+                                        style={styles.countryPickerContainer}
+                                        onPress={() => setShowCountryPicker(true)}
+                                        disabled={loading}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.countryPickerFlag}>
+                                            {COUNTRIES.find(c => c.code === countryCode)?.flag ?? "🇨🇦"}
+                                        </Text>
+                                        <Text style={styles.countryPickerCode}>{countryCode}</Text>
+                                        <ChevronDown size={14} color="#6B7280" />
+                                    </TouchableOpacity>
+
                                     <TextInput
                                         style={styles.phoneInput}
                                         placeholder="Phone Number"
@@ -297,6 +303,48 @@ export default function SignupScreen({ navigation }) {
                                     />
                                 </View>
                             </View>
+
+                            {/* Country Picker Modal */}
+                            <Modal
+                                visible={showCountryPicker}
+                                transparent
+                                animationType="slide"
+                                onRequestClose={() => setShowCountryPicker(false)}
+                            >
+                                <TouchableOpacity
+                                    style={styles.modalOverlay}
+                                    activeOpacity={1}
+                                    onPress={() => setShowCountryPicker(false)}
+                                />
+                                <SafeAreaView style={styles.modalSheet}>
+                                    <View style={styles.modalHeader}>
+                                        <Text style={styles.modalTitle}>Select Country Code</Text>
+                                        <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.modalCloseBtn}>
+                                            <X size={20} color="#6B7280" />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <FlatList
+                                        data={COUNTRIES}
+                                        keyExtractor={(item, index) => `${item.code}-${index}`}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.countryItem,
+                                                    item.code === countryCode && styles.countryItemActive,
+                                                ]}
+                                                onPress={() => {
+                                                    setCountryCode(item.code);
+                                                    setShowCountryPicker(false);
+                                                }}
+                                            >
+                                                <Text style={styles.countryItemFlag}>{item.flag}</Text>
+                                                <Text style={styles.countryItemName}>{item.name}</Text>
+                                                <Text style={styles.countryItemCode}>{item.code}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    />
+                                </SafeAreaView>
+                            </Modal>
 
                             {/* Password Input */}
                             <View style={styles.inputContainer}>
@@ -557,16 +605,73 @@ const styles = StyleSheet.create({
         height: hp(7), // Increased height
     },
     countryPickerContainer: {
-        width: wp(35), // Increased width for flag + code
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
         height: '100%',
-        justifyContent: 'center',
         borderRightWidth: 1,
         borderRightColor: '#E5E7EB',
+        gap: 4,
     },
-    countryPicker: {
-        width: '100%',
-        height: '100%',
+    countryPickerFlag: {
+        fontSize: normalize(18),
+    },
+    countryPickerCode: {
+        fontSize: normalize(13),
+        fontWeight: '600',
         color: '#1F2937',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    modalSheet: {
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: height * 0.5,
+        paddingBottom: 16,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    modalTitle: {
+        fontSize: normalize(16),
+        fontWeight: '700',
+        color: '#1F2937',
+    },
+    modalCloseBtn: {
+        padding: 4,
+    },
+    countryItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+        gap: 12,
+    },
+    countryItemActive: {
+        backgroundColor: '#EFF6FF',
+    },
+    countryItemFlag: {
+        fontSize: normalize(22),
+    },
+    countryItemName: {
+        flex: 1,
+        fontSize: normalize(14),
+        color: '#1F2937',
+        fontWeight: '500',
+    },
+    countryItemCode: {
+        fontSize: normalize(13),
+        color: '#6B7280',
+        fontWeight: '600',
     },
     phoneInput: {
         flex: 1,

@@ -10,6 +10,7 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
+    Modal,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
@@ -43,6 +44,8 @@ export default function PostJobScreen({ navigation }) {
         contactPhone: "", // Added
         contactEmail: "", // Added
     });
+
+    const [activePicker, setActivePicker] = useState(null); // 'category', 'subcategory', 'property_type', 'ownership', 'start_time', 'job_stage'
 
     const [media, setMedia] = useState([]); // Added for images
 
@@ -286,6 +289,32 @@ export default function PostJobScreen({ navigation }) {
         }
     }
 
+    const getPickerLabel = (type) => {
+        if (type === "category") {
+            return categories.find(c => c.id.toString() === formData.category_id)?.name || "Select a category...";
+        }
+        if (type === "subcategory") {
+            return subcategories.find(c => c.id.toString() === formData.subcategory_id)?.name || "Select a subcategory...";
+        }
+        if (type === "property_type") {
+            const labels = { "HOUSE": "House", "FLAT": "Flat/Apartment", "COMMERCIAL": "Commercial", "OTHER": "Other" };
+            return labels[formData.property_type];
+        }
+        if (type === "ownership") {
+            const labels = { "OWNER": "I own and live at this property", "LANDLORD": "I am the landlord", "AUTHORIZED": "I rent, but am authorised", "BUYING": "I am looking to buy" };
+            return labels[formData.ownership];
+        }
+        if (type === "start_time") {
+            const labels = { "URGENT": "Urgent", "WITHIN_2_DAYS": "Within 2 Days", "WITHIN_2_WEEKS": "Within 2 Weeks", "WITHIN_2_MONTHS": "Within 2 Months", "FLEXIBLE": "Flexible" };
+            return labels[formData.start_time];
+        }
+        if (type === "job_stage") {
+            const labels = { "READY_TO_HIRE": "Ready to hire", "PLANNING": "Planning", "INSURANCE_WORK": "Insurance work" };
+            return labels[formData.job_stage];
+        }
+        return "Select...";
+    };
+
     if (loadingData) {
         return (
             <View style={styles.loadingContainer}>
@@ -296,8 +325,9 @@ export default function PostJobScreen({ navigation }) {
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
         >
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
@@ -321,16 +351,27 @@ export default function PostJobScreen({ navigation }) {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Category <Text style={styles.required}>*</Text></Text>
                             <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.category_id}
-                                    onValueChange={(value) => updateField("category_id", value)}
-                                    style={styles.picker}
-                                >
-                                    <Picker.Item label="Select a category..." value="" />
-                                    {categories.map((cat, index) => (
-                                        <Picker.Item key={cat.id || index} label={cat.name} value={cat.id.toString()} />
-                                    ))}
-                                </Picker>
+                                {Platform.OS === "ios" ? (
+                                    <TouchableOpacity
+                                        style={{ flex: 1, justifyContent: "center", paddingHorizontal: wp(3) }}
+                                        onPress={() => setActivePicker("category")}
+                                    >
+                                        <Text style={{ fontSize: normalize(15), color: formData.category_id ? "#1F2937" : "#9CA3AF" }}>
+                                            {getPickerLabel("category")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <Picker
+                                        selectedValue={formData.category_id}
+                                        onValueChange={(value) => updateField("category_id", value)}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="Select a category..." value="" />
+                                        {categories.map((cat, index) => (
+                                            <Picker.Item key={cat.id || index} label={cat.name} value={cat.id.toString()} />
+                                        ))}
+                                    </Picker>
+                                )}
                             </View>
                         </View>
 
@@ -338,16 +379,27 @@ export default function PostJobScreen({ navigation }) {
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Subcategory</Text>
                                 <View style={styles.pickerContainer}>
-                                    <Picker
-                                        selectedValue={formData.subcategory_id}
-                                        onValueChange={(value) => updateField("subcategory_id", value)}
-                                        style={styles.picker}
-                                    >
-                                        <Picker.Item label="Select a subcategory..." value="" />
-                                        {subcategories.map((sub, index) => (
-                                            <Picker.Item key={sub.id || index} label={sub.name} value={sub.id.toString()} />
-                                        ))}
-                                    </Picker>
+                                    {Platform.OS === "ios" ? (
+                                        <TouchableOpacity
+                                            style={{ flex: 1, justifyContent: "center", paddingHorizontal: wp(3) }}
+                                            onPress={() => setActivePicker("subcategory")}
+                                        >
+                                            <Text style={{ fontSize: normalize(15), color: formData.subcategory_id ? "#1F2937" : "#9CA3AF" }}>
+                                                {getPickerLabel("subcategory")}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <Picker
+                                            selectedValue={formData.subcategory_id}
+                                            onValueChange={(value) => updateField("subcategory_id", value)}
+                                            style={styles.picker}
+                                        >
+                                            <Picker.Item label="Select a subcategory..." value="" />
+                                            {subcategories.map((sub, index) => (
+                                                <Picker.Item key={sub.id || index} label={sub.name} value={sub.id.toString()} />
+                                            ))}
+                                        </Picker>
+                                    )}
                                 </View>
                             </View>
                         )}
@@ -401,32 +453,54 @@ export default function PostJobScreen({ navigation }) {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Property Type</Text>
                             <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.property_type}
-                                    onValueChange={(value) => updateField("property_type", value)}
-                                    style={styles.picker}
-                                >
-                                    <Picker.Item label="House" value="HOUSE" />
-                                    <Picker.Item label="Flat/Apartment" value="FLAT" />
-                                    <Picker.Item label="Commercial" value="COMMERCIAL" />
-                                    <Picker.Item label="Other" value="OTHER" />
-                                </Picker>
+                                {Platform.OS === "ios" ? (
+                                    <TouchableOpacity
+                                        style={{ flex: 1, justifyContent: "center", paddingHorizontal: wp(3) }}
+                                        onPress={() => setActivePicker("property_type")}
+                                    >
+                                        <Text style={{ fontSize: normalize(15), color: "#1F2937" }}>
+                                            {getPickerLabel("property_type")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <Picker
+                                        selectedValue={formData.property_type}
+                                        onValueChange={(value) => updateField("property_type", value)}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="House" value="HOUSE" />
+                                        <Picker.Item label="Flat/Apartment" value="FLAT" />
+                                        <Picker.Item label="Commercial" value="COMMERCIAL" />
+                                        <Picker.Item label="Other" value="OTHER" />
+                                    </Picker>
+                                )}
                             </View>
                         </View>
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Ownership Status</Text>
                             <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.ownership}
-                                    onValueChange={(value) => updateField("ownership", value)}
-                                    style={styles.picker}
-                                >
-                                    <Picker.Item label="I own and live at this property" value="OWNER" />
-                                    <Picker.Item label="I am the landlord" value="LANDLORD" />
-                                    <Picker.Item label="I rent, but am authorised" value="AUTHORIZED" />
-                                    <Picker.Item label="I am looking to buy" value="BUYING" />
-                                </Picker>
+                                {Platform.OS === "ios" ? (
+                                    <TouchableOpacity
+                                        style={{ flex: 1, justifyContent: "center", paddingHorizontal: wp(3) }}
+                                        onPress={() => setActivePicker("ownership")}
+                                    >
+                                        <Text style={{ fontSize: normalize(15), color: "#1F2937" }}>
+                                            {getPickerLabel("ownership")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <Picker
+                                        selectedValue={formData.ownership}
+                                        onValueChange={(value) => updateField("ownership", value)}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="I own and live at this property" value="OWNER" />
+                                        <Picker.Item label="I am the landlord" value="LANDLORD" />
+                                        <Picker.Item label="I rent, but am authorised" value="AUTHORIZED" />
+                                        <Picker.Item label="I am looking to buy" value="BUYING" />
+                                    </Picker>
+                                )}
                             </View>
                         </View>
 
@@ -566,32 +640,54 @@ export default function PostJobScreen({ navigation }) {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>When do you need the work done?</Text>
                             <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.start_time}
-                                    onValueChange={(value) => updateField("start_time", value)}
-                                    style={styles.picker}
-                                >
-                                    <Picker.Item label="Urgent" value="URGENT" />
-                                    <Picker.Item label="Within 2 Days" value="WITHIN_2_DAYS" />
-                                    <Picker.Item label="Within 2 Weeks" value="WITHIN_2_WEEKS" />
-                                    <Picker.Item label="Within 2 Months" value="WITHIN_2_MONTHS" />
-                                    <Picker.Item label="Flexible" value="FLEXIBLE" />
-                                </Picker>
+                                {Platform.OS === "ios" ? (
+                                    <TouchableOpacity
+                                        style={{ flex: 1, justifyContent: "center", paddingHorizontal: wp(3) }}
+                                        onPress={() => setActivePicker("start_time")}
+                                    >
+                                        <Text style={{ fontSize: normalize(15), color: "#1F2937" }}>
+                                            {getPickerLabel("start_time")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <Picker
+                                        selectedValue={formData.start_time}
+                                        onValueChange={(value) => updateField("start_time", value)}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="Urgent" value="URGENT" />
+                                        <Picker.Item label="Within 2 Days" value="WITHIN_2_DAYS" />
+                                        <Picker.Item label="Within 2 Weeks" value="WITHIN_2_WEEKS" />
+                                        <Picker.Item label="Within 2 Months" value="WITHIN_2_MONTHS" />
+                                        <Picker.Item label="Flexible" value="FLEXIBLE" />
+                                    </Picker>
+                                )}
                             </View>
                         </View>
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Project Stage</Text>
                             <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.job_stage}
-                                    onValueChange={(value) => updateField("job_stage", value)}
-                                    style={styles.picker}
-                                >
-                                    <Picker.Item label="Ready to hire" value="READY_TO_HIRE" />
-                                    <Picker.Item label="Planning" value="PLANNING" />
-                                    <Picker.Item label="Insurance work" value="INSURANCE_WORK" />
-                                </Picker>
+                                {Platform.OS === "ios" ? (
+                                    <TouchableOpacity
+                                        style={{ flex: 1, justifyContent: "center", paddingHorizontal: wp(3) }}
+                                        onPress={() => setActivePicker("job_stage")}
+                                    >
+                                        <Text style={{ fontSize: normalize(15), color: "#1F2937" }}>
+                                            {getPickerLabel("job_stage")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <Picker
+                                        selectedValue={formData.job_stage}
+                                        onValueChange={(value) => updateField("job_stage", value)}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="Ready to hire" value="READY_TO_HIRE" />
+                                        <Picker.Item label="Planning" value="PLANNING" />
+                                        <Picker.Item label="Insurance work" value="INSURANCE_WORK" />
+                                    </Picker>
+                                )}
                             </View>
                         </View>
                     </View>
@@ -625,13 +721,98 @@ export default function PostJobScreen({ navigation }) {
 
             <SuccessModal
                 visible={showSuccessModal}
-                title="Success!"
-                subtitle="Your job has been posted successfully. Tradespeople will be in touch soon."
                 onClose={() => {
                     setShowSuccessModal(false);
                     navigation.goBack();
                 }}
             />
+
+            {/* iOS Picker Modal */}
+            <Modal
+                visible={!!activePicker}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setActivePicker(null)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setActivePicker(null)}
+                />
+                <View style={styles.pickerModalContent}>
+                    <View style={styles.pickerModalHeader}>
+                        <TouchableOpacity onPress={() => setActivePicker(null)}>
+                            <Text style={styles.pickerModalDone}>Done</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {activePicker === "category" && (
+                        <Picker
+                            selectedValue={formData.category_id}
+                            onValueChange={(value) => updateField("category_id", value)}
+                        >
+                            <Picker.Item label="Select a category..." value="" />
+                            {categories.map((cat, index) => (
+                                <Picker.Item key={cat.id || index} label={cat.name} value={cat.id.toString()} />
+                            ))}
+                        </Picker>
+                    )}
+                    {activePicker === "subcategory" && (
+                        <Picker
+                            selectedValue={formData.subcategory_id}
+                            onValueChange={(value) => updateField("subcategory_id", value)}
+                        >
+                            <Picker.Item label="Select a subcategory..." value="" />
+                            {subcategories.map((sub, index) => (
+                                <Picker.Item key={sub.id || index} label={sub.name} value={sub.id.toString()} />
+                            ))}
+                        </Picker>
+                    )}
+                    {activePicker === "property_type" && (
+                        <Picker
+                            selectedValue={formData.property_type}
+                            onValueChange={(value) => updateField("property_type", value)}
+                        >
+                            <Picker.Item label="House" value="HOUSE" />
+                            <Picker.Item label="Flat/Apartment" value="FLAT" />
+                            <Picker.Item label="Commercial" value="COMMERCIAL" />
+                            <Picker.Item label="Other" value="OTHER" />
+                        </Picker>
+                    )}
+                    {activePicker === "ownership" && (
+                        <Picker
+                            selectedValue={formData.ownership}
+                            onValueChange={(value) => updateField("ownership", value)}
+                        >
+                            <Picker.Item label="I own and live at this property" value="OWNER" />
+                            <Picker.Item label="I am the landlord" value="LANDLORD" />
+                            <Picker.Item label="I rent, but am authorised" value="AUTHORIZED" />
+                            <Picker.Item label="I am looking to buy" value="BUYING" />
+                        </Picker>
+                    )}
+                    {activePicker === "start_time" && (
+                        <Picker
+                            selectedValue={formData.start_time}
+                            onValueChange={(value) => updateField("start_time", value)}
+                        >
+                            <Picker.Item label="Urgent" value="URGENT" />
+                            <Picker.Item label="Within 2 Days" value="WITHIN_2_DAYS" />
+                            <Picker.Item label="Within 2 Weeks" value="WITHIN_2_WEEKS" />
+                            <Picker.Item label="Within 2 Months" value="WITHIN_2_MONTHS" />
+                            <Picker.Item label="Flexible" value="FLEXIBLE" />
+                        </Picker>
+                    )}
+                    {activePicker === "job_stage" && (
+                        <Picker
+                            selectedValue={formData.job_stage}
+                            onValueChange={(value) => updateField("job_stage", value)}
+                        >
+                            <Picker.Item label="Ready to hire" value="READY_TO_HIRE" />
+                            <Picker.Item label="Planning" value="PLANNING" />
+                            <Picker.Item label="Insurance work" value="INSURANCE_WORK" />
+                        </Picker>
+                    )}
+                </View>
+            </Modal>
         </KeyboardAvoidingView>
     );
 }
@@ -837,5 +1018,43 @@ const styles = StyleSheet.create({
         color: "#6B7280",
         marginTop: hp(0.5),
         fontWeight: "500",
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    pickerModalContent: {
+        backgroundColor: "#FFFFFF",
+        paddingBottom: hp(4),
+        borderTopLeftRadius: wp(4),
+        borderTopRightRadius: wp(4),
+    },
+    pickerModalHeader: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        padding: wp(4),
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E7EB",
+        backgroundColor: "#F9FAFB",
+        borderTopLeftRadius: wp(4),
+        borderTopRightRadius: wp(4),
+    },
+    pickerModalDone: {
+        color: "#2563EB",
+        fontSize: normalize(16),
+        fontWeight: "600",
+    },
+    iosPickerButton: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: wp(3),
+        height: "100%",
+        width: "100%",
+    },
+    iosPickerValue: {
+        fontSize: normalize(15),
+        color: "#1F2937",
     },
 });

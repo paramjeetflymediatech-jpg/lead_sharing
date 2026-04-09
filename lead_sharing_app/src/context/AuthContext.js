@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { authAPI } from "../services/api";
-import { NotificationService } from "../services/NotificationService";
+import { authAPI, apiCall } from "../services/api";
 
 console.log("[AuthContext] Initializing...");
 const AuthContext = createContext(null);
@@ -24,23 +23,22 @@ export function AuthProvider({ children }) {
           if (isMountedRef.current) {
             setUser(userData);
           }
-
-          // Sync token on every app launch if user exists and we have a token
-          // if (authToken && isMountedRef.current) {
-          //   setTimeout(async () => {
-          //     if (!isMountedRef.current) return;
-          //     try {
-          //       console.log("[AuthContext] Running background push token sync...");
-          //       const pushToken = await NotificationService.registerForPushNotificationsAsync();
-          //       console.log("[AuthContext] Push token obtained:", pushToken ? "YES" : "NO");
-          //       if (pushToken && isMountedRef.current) {
-          //         await NotificationService.syncTokenWithBackend();
-          //       }
-          //     } catch (e) {
-          //       console.warn("[AuthContext] Background push token sync failed:", e);
-          //     }
-          //   }, 5000);
-          // }
+          // Fetch fresh user data from API to get latest accountStatus/deleteRequestPending
+          if (authToken) {
+            try {
+              const res = await apiCall("/api/me");
+              // API returns { success, user, ... } - user is directly on response, not res.data
+              if (res.success && res.user && isMountedRef.current) {
+                setUser(prev => ({
+                  ...prev,
+                  ...res.user,
+                  token: prev?.token || authToken,
+                }));
+              }
+            } catch (apiError) {
+              console.warn("[AuthContext] Failed to fetch fresh user data:", apiError);
+            }
+          }
         }
       } catch (error) {
         console.error("[AuthContext] Error loading user:", error);
@@ -65,16 +63,6 @@ export function AuthProvider({ children }) {
       if (userData.token) {
         await AsyncStorage.setItem("token", userData.token);
       }
-
-      // Register push token after login
-      // try {
-      //   const pushToken = await NotificationService.registerForPushNotificationsAsync();
-      //   if (pushToken && isMountedRef.current) {
-      //     await NotificationService.syncTokenWithBackend();
-      //   }
-      // } catch (e) {
-      //   console.warn("Error registering push token on login:", e);
-      // }
     } catch (e) {
       console.error("[AuthContext] Error in login:", e);
     }
@@ -83,7 +71,9 @@ export function AuthProvider({ children }) {
   async function logout() {
     if (!isMountedRef.current) return;
     try {
-      await authAPI.logout();
+      if (authAPI.logout) {
+        await authAPI.logout();
+      }
     } catch (e) {
       console.warn("Logout API call failed:", e);
     }
