@@ -43,7 +43,15 @@
             "enableShrinkResourcesInReleaseBuilds": true
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow All Care Pros to access your photo library to upload profile pictures, share job requirements (such as showing a broken pipe or a room that needs painting), and provide verification documents like trade licenses.",
+          "cameraPermission": "Allow All Care Pros to access your camera to take profile photos, document job requirements, and capture verification documents for account approval."
+        }
       ]
+
     ]
   }
 }
