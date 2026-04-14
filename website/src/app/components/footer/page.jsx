@@ -1,6 +1,5 @@
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { SOCIAL_LINKS } from "@/constants/locations";
-console.log(SOCIAL_LINKS)
+import { FaAppStore, FaGooglePlay, FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa'
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-zinc-200">
@@ -114,7 +113,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="/privacy-policy" className="hover:text-[#1149C7]">
-                 Privacy Policy
+                  Privacy Policy
                 </a>
               </li>
             </ul>
@@ -127,16 +126,32 @@ export default function Footer() {
             </h3>
 
             <div className="flex flex-col space-y-3 w-full max-w-[200px]">
-              {/* <a className="bg-black text-white px-4 py-2 rounded-lg text-xs text-center hover:bg-gray-800">
-                Available on the
-                <br />
-                <span className="text-sm font-semibold">App Store</span>
-              </a> */}
+              {/* App Store Badge */}
+              <a
+                href="https://apps.apple.com/us/app/allcarepros/id6761529453"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-colors duration-200 w-full"
+              >
+                <FaAppStore className="text-white flex-shrink-0" style={{ fontSize: '28px' }} />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[10px] text-gray-300">Available on the</span>
+                  <span className="text-sm font-semibold">App Store</span>
+                </div>
+              </a>
 
-              <a className="bg-black text-white px-4 py-2 rounded-lg text-xs text-center hover:bg-gray-800">
-                Android app on
-                <br />
-                <span className="text-sm font-semibold">Google Play</span>
+              {/* Google Play Badge */}
+              <a
+                href="https://play.google.com/store"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-colors duration-200 w-full"
+              >
+                <FaGooglePlay className="text-white flex-shrink-0" style={{ fontSize: '26px' }} />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[10px] text-gray-300">Get it on</span>
+                  <span className="text-sm font-semibold">Google Play</span>
+                </div>
               </a>
             </div>
 
@@ -146,7 +161,7 @@ export default function Footer() {
                 Follow us
               </h3>
               <div className="flex gap-4 justify-center sm:justify-start">
-                {[Facebook, Twitter, Linkedin, Instagram].map((Icon, index) => (
+                {[FaFacebook, FaTwitter, FaInstagram, FaLinkedin].map((Icon, index) => (
                   <a
                     key={index}
                     href={SOCIAL_LINKS[Icon.displayName]}
