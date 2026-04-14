@@ -1,26 +1,13 @@
 "use client";
 
-import { LOCATION_DATA } from "@/constants/locations";
-
 import { useState, useRef, useEffect, useCallback } from "react";
+import { LOCATION_DATA } from "@/constants/locations";
+import { FaAppStore, FaGooglePlay } from 'react-icons/fa';
 import JobCreationForm from "./jobForm";
 import Testimonials from "./Testimonials";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-    MagnifyingGlassIcon,
-    MapPinIcon,
-    ShieldCheckIcon,
-    CheckCircleIcon,
-    DevicePhoneMobileIcon,
-    DocumentCheckIcon,
-    UserGroupIcon,
-    ChevronDownIcon,
-    ChevronLeftIcon,
-    ChevronRightIcon,
-    PencilSquareIcon,
-    CheckBadgeIcon,
-} from "@heroicons/react/24/solid";
+import { DocumentCheckIcon, ChevronRightIcon} from "@heroicons/react/24/solid";
 
 export default function LeadsharingHome({ location }) {
     const router = useRouter();
@@ -416,56 +403,121 @@ export default function LeadsharingHome({ location }) {
             </section>
 
             {/* --- APP DOWNLOAD SECTION --- */}
-            {/* Mobile Responsive: Reduced padding on mobile */}
-            <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-[#1149C7] text-white">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-12">
+            <section className="relative overflow-hidden py-14 sm:py-16 md:py-20 px-4 sm:px-6 text-white" style={{ background: 'linear-gradient(135deg, #0d3bbf 0%, #1149C7 50%, #1a5ce8 100%)' }}>
 
-                    {/* TEXT — 1st on mobile, LEFT on desktop */}
-                    <div className="order-1 flex-1 text-center md:text-left">
-                        <h2 className="text-lg xs:text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
-                            Track quotes and chat with pros on the go.
-                        </h2>
+                {/* Decorative background orbs */}
+                <div className="absolute top-[-60px] left-[-60px] w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff, transparent)' }} />
+                <div className="absolute bottom-[-80px] right-[-40px] w-80 h-80 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff, transparent)' }} />
+                <div className="absolute top-1/2 left-1/3 w-40 h-40 rounded-full opacity-5" style={{ background: 'radial-gradient(circle, #ffffff, transparent)' }} />
 
-                        <p className="text-sm xs:text-base sm:text-lg md:text-lg lg:text-xl text-white/90">
-                            Available on the Apple store and Google play
-                        </p>
-                    </div>
+                <div className="relative max-w-6xl mx-auto">
 
-                    {/* QR CODE — 2nd on mobile, RIGHT on desktop */}
-                    <div className="order-2 md:order-3 flex-1 flex justify-center">
-                        <div className="bg-white p-2.5 xs:p-3 sm:p-4 rounded-md xs:rounded-lg">
-                            <div className="w-28 h-28 xs:w-32 xs:h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-48 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-[10px] xs:text-xs sm:text-sm">
-                                QRCode Placeholder
+                    {/* Main flex: stack on mobile, row on md+ */}
+                    <div className="flex flex-col md:flex-row items-center gap-10 md:gap-12 lg:gap-20">
+
+                        {/* ── LEFT: TEXT ── */}
+                        <div className="flex-1 text-center md:text-left">
+
+                            {/* Pill badge */}
+                            <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 mb-5 backdrop-blur-sm">
+                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                                <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Available Now</span>
                             </div>
-                            <p className="text-black text-center mt-1.5 xs:mt-2 font-bold text-[10px] xs:text-xs sm:text-sm">
-                                Scan me to download!
+
+                            <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight tracking-tight">
+                                Track quotes &amp; chat<br className="hidden sm:block" />
+                                <span className="text-yellow-300"> with pros on the go.</span>
+                            </h2>
+
+                            <p className="text-white/80 text-sm sm:text-base md:text-lg mb-6 max-w-md mx-auto md:mx-0 leading-relaxed">
+                                Download the AllCarePros app and manage your jobs from anywhere. Scan a QR code or tap your store below.
                             </p>
+
+                            {/* Feature chips */}
+                            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                {['Real-time quotes', 'In-app chat', 'Verified pros', 'Free to use'].map((f) => (
+                                    <span key={f} className="text-xs bg-white/10 border border-white/20 text-white/90 rounded-full px-3 py-1">
+                                        {f}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ── RIGHT: QR CARDS ── */}
+                        <div className="flex flex-row gap-4 sm:gap-6 justify-center flex-shrink-0">
+
+                            {/* App Store Card */}
+                            <div className="group flex flex-col items-center bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 hover:border-white/40 rounded-3xl p-4 sm:p-5 w-[150px] sm:w-[165px] md:w-[175px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+
+                                {/* Store label */}
+                                <div className="flex items-center gap-1.5 mb-3">
+                                    <FaAppStore style={{ fontSize: '22px' }} className="text-white" />
+                                    <span className="text-xs font-semibold text-white/90">App Store</span>
+                                </div>
+
+                                {/* QR Code */}
+                                <div className="bg-white rounded-xl p-2 mb-3 shadow-lg w-full flex justify-center">
+                                    <img
+                                        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://apps.apple.com/us/app/allcarepros/id6761529453"
+                                        alt="App Store QR Code"
+                                        className="w-[100px] h-[100px] sm:w-[110px] sm:h-[110px] md:w-[120px] md:h-[120px] rounded"
+                                    />
+                                </div>
+
+                                <p className="text-white/60 text-[9px] mb-3 text-center tracking-wide uppercase">Scan to download</p>
+
+                                {/* Download badge */}
+                                <a
+                                    href="https://apps.apple.com/us/app/allcarepros/id6761529453"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 bg-black/80 hover:bg-black text-white px-3 py-2 rounded-xl transition-colors duration-200 w-full justify-center"
+                                >
+                                    <FaAppStore className="flex-shrink-0" style={{ fontSize: '16px' }} />
+                                    <div className="flex flex-col leading-none">
+                                        <span className="text-[8px] text-gray-400">Download on the</span>
+                                        <span className="text-[11px] font-bold">App Store</span>
+                                    </div>
+                                </a>
+                            </div>
+
+                            {/* Google Play Card */}
+                            <div className="group flex flex-col items-center bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 hover:border-white/40 rounded-3xl p-4 sm:p-5 w-[150px] sm:w-[165px] md:w-[175px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+
+                                {/* Store label */}
+                                <div className="flex items-center gap-1.5 mb-3">
+                                    <FaGooglePlay style={{ fontSize: '20px' }} className="text-white" />
+                                    <span className="text-xs font-semibold text-white/90">Google Play</span>
+                                </div>
+
+                                {/* QR Code */}
+                                <div className="bg-white rounded-xl p-2 mb-3 shadow-lg w-full flex justify-center">
+                                    <img
+                                        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://play.google.com/store/apps/details?id=com.allcarepros.app"
+                                        alt="Google Play QR Code"
+                                        className="w-[100px] h-[100px] sm:w-[110px] sm:h-[110px] md:w-[120px] md:h-[120px] rounded"
+                                    />
+                                </div>
+
+                                <p className="text-white/60 text-[9px] mb-3 text-center tracking-wide uppercase">Scan to download</p>
+
+                                {/* Download badge */}
+                                <a
+                                    href="https://play.google.com/store/apps/details?id=com.allcarepros.app"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 bg-black/80 hover:bg-black text-white px-3 py-2 rounded-xl transition-colors duration-200 w-full justify-center"
+                                >
+                                    <FaGooglePlay className="flex-shrink-0" style={{ fontSize: '14px' }} />
+                                    <div className="flex flex-col leading-none">
+                                        <span className="text-[8px] text-gray-400">Get it on</span>
+                                        <span className="text-[11px] font-bold">Google Play</span>
+                                    </div>
+                                </a>
+                            </div>
+
                         </div>
                     </div>
-
-                    {/* BUTTONS — 3rd on mobile, UNDER TEXT on desktop */}
-                    <div className="order-3 md:order-2 flex-1 flex justify-center md:justify-start">
-                        <div className="flex flex-col xs:flex-row gap-2.5 xs:gap-3 sm:gap-4 w-full max-w-[200px]">
-                            <button className="bg-black text-white px-3.5 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 rounded-md xs:rounded-lg flex items-center justify-center hover:bg-gray-900 transition">
-                                <span className="text-[10px] xs:text-xs leading-tight text-left">
-                                    Download on the<br />
-                                    <span className="text-sm xs:text-base sm:text-lg font-bold">
-                                        App Store
-                                    </span>
-                                </span>
-                            </button>
-
-                            <button className="bg-black text-white px-3.5 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 rounded-md xs:rounded-lg flex items-center justify-center hover:bg-gray-900 transition">
-                                <span className="text-[10px] xs:text-xs leading-tight text-left">
-                                    GET IT ON<br />
-                                    <span className="text-sm xs:text-base sm:text-lg font-bold">
-                                        Google Play
-                                    </span>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
             </section>
 
