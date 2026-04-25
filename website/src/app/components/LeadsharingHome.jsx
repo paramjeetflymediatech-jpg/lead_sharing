@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { LOCATION_DATA } from "@/constants/locations";
+import { LOCATION_DATA,TRADE_SERVICE_LINKS } from "@/constants/locations";
 import { FaAppStore, FaGooglePlay } from 'react-icons/fa';
 import JobCreationForm from "./jobForm";
 import Testimonials from "./Testimonials";
@@ -20,8 +20,14 @@ export default function LeadsharingHome({ location }) {
     const [user, setUser] = useState(null);
     const [isLoadingUser, setIsLoadingUser] = useState(true);
 
+    // Pagination for All Trades section
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedLocationData, setSelectedLocationData] = useState(null);
+    const itemsPerPage = 48;
+
     // Ref to job form section
     const jobFormRef = useRef(null);
+    const allTradesRef = useRef(null);
 
     const images = [
         "/trades/painter.png",
@@ -66,6 +72,45 @@ export default function LeadsharingHome({ location }) {
     useEffect(() => {
         fetchUser();
     }, [fetchUser]);
+
+    useEffect(() => {
+        if (allTradesRef.current && currentPage !== 1) {
+            allTradesRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [currentPage]);
+
+    // Update SEO dynamically when a service is selected
+    useEffect(() => {
+        if (selectedLocationData?.seo) {
+            document.title = selectedLocationData.seo.title;
+            const metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) {
+                metaDesc.setAttribute('content', selectedLocationData.seo.description);
+            }
+            const metaKeywords = document.querySelector('meta[name="keywords"]');
+            if (metaKeywords) {
+                metaKeywords.setAttribute('content', selectedLocationData.seo.keywords);
+            }
+        }
+    }, [selectedLocationData]);
+
+    useEffect(() => {
+        if (location) {
+            // Find if the location matches a city directly
+            if (TRADE_SERVICE_LINKS[location]) {
+                setSelectedLocationData(TRADE_SERVICE_LINKS[location]);
+            } else {
+                // Find if the location matches a service string (case-insensitive)
+                const entry = Object.values(TRADE_SERVICE_LINKS).find(loc => 
+                    loc.location.toLowerCase() === location.toLowerCase() ||
+                    loc.services.some(s => s.toLowerCase() === location.toLowerCase())
+                );
+                if (entry) {
+                    setSelectedLocationData(entry);
+                }
+            }
+        }
+    }, [location]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -189,8 +234,19 @@ export default function LeadsharingHome({ location }) {
         }
     };
 
-    // Flatten LOCATION_DATA to get all areas for search/dropdown
-    const allLocations = Object.values(LOCATION_DATA).flat();
+    // Flatten TRADE_SERVICE_LINKS to get all services for the grid
+    const allLocations = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => loc.services);
+
+    const handleServiceClick = (e, service) => {
+        // We don't prevent default anymore because we want to navigate to the new page
+        // But we can set the state for immediate UI feedback if needed
+        const locationEntry = Object.values(TRADE_SERVICE_LINKS).find(loc => 
+            loc.services.includes(service)
+        );
+        if (locationEntry) {
+            setSelectedLocationData(locationEntry);
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-white font-sans text-zinc-900" suppressHydrationWarning>
@@ -546,19 +602,32 @@ export default function LeadsharingHome({ location }) {
 
             {/* --- ALL TRADES --- */}
             {/* Mobile Responsive: Reduced padding on mobile */}
-            <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-white">
+            <section ref={allTradesRef} className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     {/* Mobile Responsive: Fluid heading and margin scaling */}
-                    <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8 border-b border-gray-200 pb-2 xs:pb-2.5 sm:pb-3 md:pb-4">Our Trades and Services</h2>
+                    <div className="flex flex-col sm:flex-row items-baseline justify-between gap-4 border-b border-gray-200 pb-4 mb-8">
+                        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">
+                            Local Trades & Services
+                        </h2>
+                        <Link 
+                            href="/local-tradespeople" 
+                            className="text-[#1149C7] font-bold hover:underline flex items-center gap-1 text-sm md:text-base group"
+                        >
+                            View Entire Directory
+                            <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                    </div>
                     {/* Mobile Responsive: Progressive grid columns for all breakpoints */}
-                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-1.5 xs:gap-y-2 gap-x-3 xs:gap-x-4 sm:gap-x-5 md:gap-x-6 lg:gap-x-8">
-                        {displayAllTrades.length > 0 ? (
-                            displayAllTrades.map((trade, index) => (
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-1.5 xs:gap-y-2 gap-x-3 xs:gap-x-4 sm:gap-x-5 md:gap-x-6 lg:gap-x-8 min-h-[300px]">
+                        {allLocations.length > 0 ? (
+                            allLocations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((trade, index) => (
                                 // Mobile Responsive: Responsive link text
                                 <Link
                                     key={index}
-                                    href={(user?.role === 'HOMEOWNER' || user?.user?.role === 'HOMEOWNER') ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${trade.toLowerCase().replace(/ /g, '-')}`}
-                                    className="text-[#1149C7] hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block"
+                                    href={`/local-tradespeople/${trade.toLowerCase().replace(/ /g, '-')}`}
+                                    onClick={(e) => handleServiceClick(e, trade)}
+                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${selectedLocationData?.services.includes(trade) ? 'text-[#1149C7] font-bold' : 'text-[#1149C7]'}`}
+                                    title={trade}
                                 >
                                     {trade}
                                 </Link>
@@ -585,8 +654,126 @@ export default function LeadsharingHome({ location }) {
                             ))
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {allLocations.length > itemsPerPage && (
+                        <div className="mt-12 flex flex-col sm:flex-row items-center justify-between border-t border-gray-100 pt-8 gap-6">
+                            <p className="text-sm text-gray-500 order-2 sm:order-1 font-medium">
+                                Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, allLocations.length)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, allLocations.length)}</span> of <span className="text-gray-900 font-bold">{allLocations.length}</span> services
+                            </p>
+                            <div className="flex items-center gap-2 order-1 sm:order-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className={`flex items-center justify-center px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed border border-gray-100' : 'text-gray-700 hover:bg-white hover:text-[#1149C7] border border-gray-200 hover:border-[#1149C7] hover:shadow-md active:scale-95'}`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    Previous
+                                </button>
+                                
+                                <div className="hidden sm:flex items-center gap-1.5">
+                                    {[...Array(Math.min(5, Math.ceil(allLocations.length / itemsPerPage)))].map((_, i) => {
+                                        const totalPages = Math.ceil(allLocations.length / itemsPerPage);
+                                        let pageNum;
+                                        
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 ${currentPage === pageNum ? 'bg-[#1149C7] text-white shadow-lg shadow-blue-200 scale-110' : 'text-gray-600 hover:bg-gray-50 hover:text-[#1149C7] border border-transparent hover:border-gray-200'}`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(allLocations.length / itemsPerPage)))}
+                                    disabled={currentPage === Math.ceil(allLocations.length / itemsPerPage)}
+                                    className={`flex items-center justify-center px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${currentPage === Math.ceil(allLocations.length / itemsPerPage) ? 'text-gray-300 cursor-not-allowed border border-gray-100' : 'text-gray-700 hover:bg-white hover:text-[#1149C7] border border-gray-200 hover:border-[#1149C7] hover:shadow-md active:scale-95'}`}
+                                >
+                                    Next
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
+
+            {/* --- DYNAMIC SERVICE INFO (SEO, CONTENT & FAQ) --- */}
+            {selectedLocationData && (
+                <section id="service-info-section" className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gray-50 border-t border-gray-100">
+                    <div className="max-w-4xl mx-auto">
+                        {/* SEO Title & Description */}
+                        <div className="mb-10 animate-fadeIn">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
+                                {selectedLocationData.seo.title.split('|')[0].trim()}
+                            </h2>
+                            <div className="prose prose-blue max-w-none text-gray-600 leading-relaxed text-base sm:text-lg mb-8">
+                                <p className="font-medium text-gray-700">{selectedLocationData.seo.description}</p>
+                            </div>
+                        </div>
+
+                        {/* Detailed Content Section */}
+                        {selectedLocationData.content && (
+                            <div className="mb-12 md:mb-16 bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100 animate-fadeIn" style={{ animationDelay: '50ms' }}>
+                                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                    <span className="w-1.5 h-8 bg-[#1149C7] rounded-full"></span>
+                                    About Our Services in {selectedLocationData.location}
+                                </h3>
+                                <div className="text-gray-600 leading-relaxed text-base sm:text-lg space-y-4">
+                                    {selectedLocationData.content.split('\n').map((paragraph, i) => (
+                                        <p key={i}>{paragraph}</p>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* FAQ Section */}
+                        {selectedLocationData.faq && selectedLocationData.faq.length > 0 && (
+                            <div className="animate-fadeIn" style={{ animationDelay: '100ms' }}>
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#1149C7]/10 flex items-center justify-center">
+                                        <span className="text-2xl text-[#1149C7]">?</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Frequently Asked Questions</h3>
+                                        <p className="text-gray-500 text-sm sm:text-base">Everything you need to know about our services</p>
+                                    </div>
+                                </div>
+                                <div className="grid gap-4 sm:gap-6">
+                                    {selectedLocationData.faq.map((item, idx) => (
+                                        <div key={idx} className="group bg-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#1149C7]/20 transition-all duration-300">
+                                            <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-3 group-hover:text-[#1149C7] transition-colors">
+                                                {item.question}
+                                            </h4>
+                                            <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                                                {item.answer}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
+            )}
 
         </div>
     );
