@@ -119,7 +119,7 @@ export default function Header() {
   });
   const [activeAdviceCategory, setActiveAdviceCategory] = useState("Homeowner Advice");
 
-  const [activeRegion, setActiveRegion] = useState("Ontario");
+  const [activeRegion, setActiveRegion] = useState("Abbotsford");
 
   /* const LOCATION_DATA moved to constants */
 
