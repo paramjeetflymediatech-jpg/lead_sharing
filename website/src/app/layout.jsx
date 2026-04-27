@@ -12,11 +12,22 @@ export const metadata = {
 };
 
 import { AuthProvider } from "@/context/AuthContext";
+import { getGlobalSeoSchema } from "@/lib/seo-helper";
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const globalSchema = await getGlobalSeoSchema();
+
   return (
     // Add suppressHydrationWarning to the <html> tag
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {globalSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: globalSchema }}
+          />
+        )}
+      </head>
       <body className="antialiased bg-zinc-50 text-zinc-900" suppressHydrationWarning>
         <AuthProvider>
           {children}

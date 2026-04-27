@@ -82,13 +82,22 @@ export default function SeoManagementPage() {
                     <h1 className="text-2xl font-bold text-zinc-900">SEO Management</h1>
                     <p className="text-zinc-500 text-sm">Create and manage SEO meta tags for your pages</p>
                 </div>
-                <Link
-                    href="/admin/seo/create"
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                    <PlusIcon className="w-4 h-4" />
-                    Add New SEO Page
-                </Link>
+                <div className="flex gap-2">
+                    <Link
+                        href="/admin/seo/global"
+                        className="flex items-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <GlobeAltIcon className="w-4 h-4" />
+                        Global Schema
+                    </Link>
+                    <Link
+                        href="/admin/seo/create"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <PlusIcon className="w-4 h-4" />
+                        Add New SEO Page
+                    </Link>
+                </div>
             </div>
 
             {/* Filters */}

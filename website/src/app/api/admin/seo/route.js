@@ -4,7 +4,9 @@ import { Seo } from '@/models/Seo';
 export async function GET() {
     try {
         const seoPages = await Seo.find({});
-        return NextResponse.json(seoPages);
+        // Filter out global schema if it exists in the list
+        const filteredPages = seoPages.filter(page => page.pageName !== 'global');
+        return NextResponse.json(filteredPages);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch SEO pages' }, { status: 500 });
     }

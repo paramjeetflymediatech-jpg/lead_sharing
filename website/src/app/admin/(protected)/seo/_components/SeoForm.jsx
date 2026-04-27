@@ -153,7 +153,14 @@ export default function SeoForm({ initialData, isEditing = false }) {
                                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                         required
                                     />
-                                    <p className="text-xs text-zinc-500">Select the page you want to configure SEO for.</p>
+                                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                        <p className="text-xs text-blue-700 font-medium mb-1">Dynamic Path Support:</p>
+                                        <p className="text-xs text-blue-600 leading-relaxed">
+                                            You can use dynamic patterns like <code className="bg-blue-100 px-1 rounded">/local-tradespeople/[location]</code>. 
+                                            The <code className="bg-blue-100 px-1 rounded">[location]</code> placeholder will be automatically replaced in your titles and descriptions.
+                                        </p>
+                                    </div>
+                                    <p className="text-xs text-zinc-500 mt-1">Select the page or enter a pattern to configure SEO for.</p>
                                 </div>
                             )}
                         </div>
