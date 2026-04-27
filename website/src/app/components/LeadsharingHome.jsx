@@ -23,7 +23,21 @@ export default function LeadsharingHome({ location }) {
     // Pagination for All Trades section
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedLocationData, setSelectedLocationData] = useState(null);
-    const itemsPerPage = 48;
+    const [itemsPerPage, setItemsPerPage] = useState(48);
+
+    useEffect(() => {
+        const updateItemsPerPage = () => {
+            if (window.innerWidth < 640) {
+                setItemsPerPage(20);
+            } else {
+                setItemsPerPage(48);
+            }
+        };
+
+        updateItemsPerPage();
+        window.addEventListener('resize', updateItemsPerPage);
+        return () => window.removeEventListener('resize', updateItemsPerPage);
+    }, []);
 
     // Ref to job form section
     const jobFormRef = useRef(null);
@@ -96,17 +110,41 @@ export default function LeadsharingHome({ location }) {
 
     useEffect(() => {
         if (location) {
-            // Find if the location matches a city directly
+            const normalizedLocation = location.toLowerCase();
+            
+            // 1. Check if the location matches a city directly
             if (TRADE_SERVICE_LINKS[location]) {
                 setSelectedLocationData(TRADE_SERVICE_LINKS[location]);
-            } else {
-                // Find if the location matches a service string (case-insensitive)
-                const entry = Object.values(TRADE_SERVICE_LINKS).find(loc => 
-                    loc.location.toLowerCase() === location.toLowerCase() ||
-                    loc.services.some(s => s.toLowerCase() === location.toLowerCase())
+                return;
+            }
+
+            // 2. Search all cities for a match (city name or service name)
+            for (const city of Object.values(TRADE_SERVICE_LINKS)) {
+                if (city.location.toLowerCase() === normalizedLocation) {
+                    setSelectedLocationData(city);
+                    return;
+                }
+
+                const serviceMatch = city.services.find(s => 
+                    (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
                 );
-                if (entry) {
-                    setSelectedLocationData(entry);
+
+                if (serviceMatch) {
+                    if (typeof serviceMatch === 'string') {
+                        setSelectedLocationData({
+                            location: city.location,
+                            services: city.services,
+                            seo: city.seo,
+                            content: city.content,
+                            faq: city.faq
+                        });
+                    } else {
+                        setSelectedLocationData({
+                            ...serviceMatch,
+                            location: city.location
+                        });
+                    }
+                    return;
                 }
             }
         }
@@ -121,6 +159,8 @@ export default function LeadsharingHome({ location }) {
                 ]);
                 const catsData = await catsRes.json();
                 const subCatsData = await subCatsRes.json();
+                console.log('catsData', catsData)
+                console.log('subCatsData', subCatsData)
                 setCategories(catsData);
                 setSubcategories(subCatsData);
             } catch (error) {
@@ -157,6 +197,7 @@ export default function LeadsharingHome({ location }) {
     }));
 
     const displayPopularTrades = popularTrades;
+    console.log('displayPopularTrades', displayPopularTrades)
 
     const allTrades = subcategories.map(sub => sub.name);
     const displayAllTrades = allTrades;
@@ -235,16 +276,26 @@ export default function LeadsharingHome({ location }) {
     };
 
     // Flatten TRADE_SERVICE_LINKS to get all services for the grid
-    const allLocations = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => loc.services);
+    const allLocations = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => 
+        loc.services.map(s => ({
+            name: typeof s === 'string' ? s : s.name,
+            cityName: loc.location,
+            data: typeof s === 'string' ? null : s
+        }))
+    );
 
-    const handleServiceClick = (e, service) => {
-        // We don't prevent default anymore because we want to navigate to the new page
-        // But we can set the state for immediate UI feedback if needed
-        const locationEntry = Object.values(TRADE_SERVICE_LINKS).find(loc => 
-            loc.services.includes(service)
-        );
-        if (locationEntry) {
-            setSelectedLocationData(locationEntry);
+    const handleServiceClick = (e, trade) => {
+        // Find the specific service data
+        if (trade.data) {
+            setSelectedLocationData({
+                ...trade.data,
+                location: trade.cityName
+            });
+        } else {
+            const locationEntry = TRADE_SERVICE_LINKS[trade.cityName];
+            if (locationEntry) {
+                setSelectedLocationData(locationEntry);
+            }
         }
     };
 
@@ -618,18 +669,23 @@ export default function LeadsharingHome({ location }) {
                         </Link>
                     </div>
                     {/* Mobile Responsive: Progressive grid columns for all breakpoints */}
-                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-1.5 xs:gap-y-2 gap-x-3 xs:gap-x-4 sm:gap-x-5 md:gap-x-6 lg:gap-x-8 min-h-[300px]">
+                    <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-1.5 xs:gap-y-2 gap-x-3 xs:gap-x-4 sm:gap-x-5 md:gap-x-6 lg:gap-x-8 min-h-[300px]">
                         {allLocations.length > 0 ? (
                             allLocations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((trade, index) => (
                                 // Mobile Responsive: Responsive link text
                                 <Link
                                     key={index}
-                                    href={`/local-tradespeople/${trade.toLowerCase().replace(/ /g, '-')}`}
+                                    href={`/local-tradespeople/${trade.name.toLowerCase().replace(/ /g, '-')}`}
                                     onClick={(e) => handleServiceClick(e, trade)}
-                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${selectedLocationData?.services.includes(trade) ? 'text-[#1149C7] font-bold' : 'text-[#1149C7]'}`}
-                                    title={trade}
+                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${
+                                        (selectedLocationData?.name === trade.name) || 
+                                        (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === trade.name)) 
+                                        ? 'text-[#1149C7] font-bold' 
+                                        : 'text-[#1149C7]'
+                                    }`}
+                                    title={trade.name}
                                 >
-                                    {trade}
+                                    {trade.name}
                                 </Link>
                             ))
                         ) : (
@@ -748,6 +804,24 @@ export default function LeadsharingHome({ location }) {
                         {/* FAQ Section */}
                         {selectedLocationData.faq && selectedLocationData.faq.length > 0 && (
                             <div className="animate-fadeIn" style={{ animationDelay: '100ms' }}>
+                                {/* FAQ Schema */}
+                                <script
+                                    type="application/ld+json"
+                                    dangerouslySetInnerHTML={{
+                                        __html: JSON.stringify({
+                                            "@context": "https://schema.org",
+                                            "@type": "FAQPage",
+                                            "mainEntity": selectedLocationData.faq.map(item => ({
+                                                "@type": "Question",
+                                                "name": item.question,
+                                                "acceptedAnswer": {
+                                                    "@type": "Answer",
+                                                    "text": item.answer
+                                                }
+                                            }))
+                                        })
+                                    }}
+                                />
                                 <div className="flex items-center gap-4 mb-8">
                                     <div className="w-12 h-12 rounded-2xl bg-[#1149C7]/10 flex items-center justify-center">
                                         <span className="text-2xl text-[#1149C7]">?</span>

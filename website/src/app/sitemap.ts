@@ -28,7 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Generate dynamic pages for each service in each location
     const servicePages = Object.values(TRADE_SERVICE_LINKS).flatMap((entry) => {
         return entry.services.map((service) => ({
-            url: `${baseUrl}/local-tradespeople/${service.toLowerCase().replace(/ /g, '-')}`,
+            url: `${baseUrl}/local-tradespeople/${(typeof service === 'string' ? service : service.name).toLowerCase().replace(/ /g, '-')}`,
             lastModified: new Date(),
             changeFrequency: 'weekly' as const,
             priority: 0.7,

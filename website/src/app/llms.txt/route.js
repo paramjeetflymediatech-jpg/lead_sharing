@@ -2,7 +2,7 @@ import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 
 export async function GET() {
     const locations = Object.values(TRADE_SERVICE_LINKS);
-    const allServices = locations.flatMap(loc => loc.services);
+    const allServices = locations.flatMap(loc => loc.services.map(s => typeof s === 'string' ? s : s.name));
     const uniqueServices = [...new Set(allServices)];
 
     const content = `# Leadsharing - Professional Tradespeople Directory

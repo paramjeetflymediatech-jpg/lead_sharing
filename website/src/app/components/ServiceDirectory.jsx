@@ -12,10 +12,12 @@ export default function ServiceDirectory() {
     const directoryRef = useRef(null);
 
     const allLocationsData = Object.values(TRADE_SERVICE_LINKS);
-    const allServices = allLocationsData.flatMap(loc => loc.services);
+    const allServices = allLocationsData.flatMap(loc => 
+        loc.services.map(s => typeof s === 'string' ? s : s.name)
+    );
     
-    const filteredServices = allServices.filter(service => 
-        service.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredServices = allServices.filter(serviceName => 
+        serviceName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const totalPages = Math.ceil(filteredServices.length / itemsPerPage);

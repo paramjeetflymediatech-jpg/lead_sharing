@@ -11,12 +11,38 @@ export default function ServiceDetailView({ location }) {
 
     useEffect(() => {
         if (location) {
-            const entry = Object.values(TRADE_SERVICE_LINKS).find(loc => 
-                loc.location.toLowerCase() === location.toLowerCase() ||
-                loc.services.some(s => s.toLowerCase() === location.toLowerCase())
-            );
-            if (entry) {
-                setSelectedData(entry);
+            const normalizedLocation = location.toLowerCase();
+            
+            // Search all cities for a match (city name or service name)
+            for (const city of Object.values(TRADE_SERVICE_LINKS)) {
+                if (city.location.toLowerCase() === normalizedLocation) {
+                    setSelectedData(city);
+                    return;
+                }
+
+                const serviceMatch = city.services.find(s => 
+                    (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
+                );
+
+                if (serviceMatch) {
+                    if (typeof serviceMatch === 'string') {
+                        setSelectedData({
+                            location: city.location,
+                            services: city.services,
+                            seo: city.seo,
+                            content: city.content,
+                            faq: city.faq
+                        });
+                    } else {
+                        setSelectedData({
+                            ...serviceMatch,
+                            location: city.location,
+                            // Keep all city services for the "Our Expertise" section
+                            allCityServices: city.services 
+                        });
+                    }
+                    return;
+                }
             }
         }
     }, [location]);
@@ -35,7 +61,9 @@ export default function ServiceDetailView({ location }) {
         );
     }
 
-    const allServices = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => loc.services);
+    const allServices = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => 
+        loc.services.map(s => typeof s === 'string' ? s : s.name)
+    );
 
     return (
         <div className="bg-white min-h-screen font-sans text-zinc-900">
@@ -96,10 +124,10 @@ export default function ServiceDetailView({ location }) {
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-6">Our Expertise in {selectedData.location}</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {selectedData.services.map((service, idx) => (
+                                {(selectedData.allCityServices || selectedData.services).map((service, idx) => (
                                     <div key={idx} className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:border-[#1149C7]/30 transition-all">
                                         <CheckBadgeIcon className="w-6 h-6 text-green-500 flex-shrink-0" />
-                                        <span className="text-gray-800 font-medium">{service}</span>
+                                        <span className="text-gray-800 font-medium">{typeof service === 'string' ? service : service.name}</span>
                                     </div>
                                 ))}
                             </div>
@@ -108,6 +136,24 @@ export default function ServiceDetailView({ location }) {
                         {/* FAQ Section */}
                         {selectedData.faq && selectedData.faq.length > 0 && (
                             <div className="pt-8">
+                                {/* FAQ Schema */}
+                                <script
+                                    type="application/ld+json"
+                                    dangerouslySetInnerHTML={{
+                                        __html: JSON.stringify({
+                                            "@context": "https://schema.org",
+                                            "@type": "FAQPage",
+                                            "mainEntity": selectedData.faq.map(item => ({
+                                                "@type": "Question",
+                                                "name": item.question,
+                                                "acceptedAnswer": {
+                                                    "@type": "Answer",
+                                                    "text": item.answer
+                                                }
+                                            }))
+                                        })
+                                    }}
+                                />
                                 <div className="flex items-center gap-4 mb-8">
                                     <div className="w-12 h-12 rounded-2xl bg-[#1149C7]/10 flex items-center justify-center">
                                         <span className="text-2xl text-[#1149C7]">?</span>

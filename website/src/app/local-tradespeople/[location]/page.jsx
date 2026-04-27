@@ -17,10 +17,22 @@ export async function generateMetadata({ params }) {
     const formattedLocation = formatLocation(location);
 
     // Find matching SEO data in TRADE_SERVICE_LINKS
-    const entry = Object.values(TRADE_SERVICE_LINKS).find(loc => 
-        loc.location.toLowerCase() === formattedLocation.toLowerCase() ||
-        loc.services.some(s => s.toLowerCase() === formattedLocation.toLowerCase())
-    );
+    let entry = null;
+    let serviceMatch = null;
+
+    for (const city of Object.values(TRADE_SERVICE_LINKS)) {
+        if (city.location.toLowerCase() === formattedLocation.toLowerCase()) {
+            entry = city;
+            break;
+        }
+        serviceMatch = city.services.find(s => 
+            (typeof s === 'string' ? s : s.name).toLowerCase() === formattedLocation.toLowerCase()
+        );
+        if (serviceMatch) {
+            entry = typeof serviceMatch === 'string' ? city : serviceMatch;
+            break;
+        }
+    }
 
     if (entry?.seo) {
         return {
