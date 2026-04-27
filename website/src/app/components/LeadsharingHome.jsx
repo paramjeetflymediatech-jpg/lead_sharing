@@ -22,7 +22,28 @@ export default function LeadsharingHome({ location }) {
 
     // Pagination for All Trades section
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedLocationData, setSelectedLocationData] = useState(null);
+    
+    // Initial location data lookup for SSR support
+    const getInitialData = () => {
+        if (!location) return null;
+        const normalizedLocation = location.toLowerCase();
+        if (TRADE_SERVICE_LINKS[location]) return TRADE_SERVICE_LINKS[location];
+        
+        for (const city of Object.values(TRADE_SERVICE_LINKS)) {
+            if (city.location.toLowerCase() === normalizedLocation) return city;
+            const serviceMatch = city.services.find(s => 
+                (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
+            );
+            if (serviceMatch) {
+                return typeof serviceMatch === 'string' 
+                    ? { location: city.location, services: city.services, seo: city.seo, content: city.content, faq: city.faq }
+                    : { ...serviceMatch, location: city.location };
+            }
+        }
+        return null;
+    };
+
+    const [selectedLocationData, setSelectedLocationData] = useState(getInitialData());
     const [itemsPerPage, setItemsPerPage] = useState(48);
 
     useEffect(() => {
@@ -109,44 +130,9 @@ export default function LeadsharingHome({ location }) {
     }, [selectedLocationData]);
 
     useEffect(() => {
-        if (location) {
-            const normalizedLocation = location.toLowerCase();
-            
-            // 1. Check if the location matches a city directly
-            if (TRADE_SERVICE_LINKS[location]) {
-                setSelectedLocationData(TRADE_SERVICE_LINKS[location]);
-                return;
-            }
-
-            // 2. Search all cities for a match (city name or service name)
-            for (const city of Object.values(TRADE_SERVICE_LINKS)) {
-                if (city.location.toLowerCase() === normalizedLocation) {
-                    setSelectedLocationData(city);
-                    return;
-                }
-
-                const serviceMatch = city.services.find(s => 
-                    (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
-                );
-
-                if (serviceMatch) {
-                    if (typeof serviceMatch === 'string') {
-                        setSelectedLocationData({
-                            location: city.location,
-                            services: city.services,
-                            seo: city.seo,
-                            content: city.content,
-                            faq: city.faq
-                        });
-                    } else {
-                        setSelectedLocationData({
-                            ...serviceMatch,
-                            location: city.location
-                        });
-                    }
-                    return;
-                }
-            }
+        if (location && !selectedLocationData) {
+            // Re-sync if props change after mount
+            setSelectedLocationData(getInitialData());
         }
     }, [location]);
 

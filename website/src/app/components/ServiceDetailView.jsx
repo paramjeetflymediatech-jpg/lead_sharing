@@ -7,45 +7,34 @@ import { ChevronRightIcon, CheckBadgeIcon, MapPinIcon, WrenchScrewdriverIcon } f
 import JobCreationForm from "./jobForm";
 
 export default function ServiceDetailView({ location }) {
-    const [selectedData, setSelectedData] = useState(null);
-
-    useEffect(() => {
-        if (location) {
-            const normalizedLocation = location.toLowerCase();
-            
-            // Search all cities for a match (city name or service name)
-            for (const city of Object.values(TRADE_SERVICE_LINKS)) {
-                if (city.location.toLowerCase() === normalizedLocation) {
-                    setSelectedData(city);
-                    return;
-                }
-
-                const serviceMatch = city.services.find(s => 
-                    (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
-                );
-
-                if (serviceMatch) {
-                    if (typeof serviceMatch === 'string') {
-                        setSelectedData({
-                            location: city.location,
-                            services: city.services,
-                            seo: city.seo,
-                            content: city.content,
-                            faq: city.faq
-                        });
-                    } else {
-                        setSelectedData({
-                            ...serviceMatch,
-                            location: city.location,
-                            // Keep all city services for the "Our Expertise" section
-                            allCityServices: city.services 
-                        });
-                    }
-                    return;
-                }
+    // Perform lookup during render for SSR support (crucial for SEO/Schema)
+    let selectedData = null;
+    if (location) {
+        const normalizedLocation = location.toLowerCase();
+        for (const city of Object.values(TRADE_SERVICE_LINKS)) {
+            if (city.location.toLowerCase() === normalizedLocation) {
+                selectedData = city;
+                break;
+            }
+            const serviceMatch = city.services.find(s => 
+                (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
+            );
+            if (serviceMatch) {
+                selectedData = typeof serviceMatch === 'string' ? {
+                    location: city.location,
+                    services: city.services,
+                    seo: city.seo,
+                    content: city.content,
+                    faq: city.faq
+                } : {
+                    ...serviceMatch,
+                    location: city.location,
+                    allCityServices: city.services 
+                };
+                break;
             }
         }
-    }, [location]);
+    }
 
     const [activeFaq, setActiveFaq] = useState(null);
 
