@@ -37,12 +37,12 @@ async function runMigration() {
       "deletion_requests", "pending_users", "blogs", "tradesperson_ratings", "messages",
       "payments", "leads", "jobs", "tradesperson_profiles",
       "sub_categories", "categories", "credit_plans", "seo_pages",
-      "push_tokens", "notifications", "auth_tokens", "migrations", "users",
+      "push_tokens", "notifications", "auth_tokens", "migrations", "users", "services",
       // Cleanup: remove leftover server-only tables
       "provider_rating_summary", "provider_reviews", "provider_bank_accounts",
       "provider_documents", "invoices", "chat_messages", "booking_photos",
       "booking_status_history", "booking_time_logs", "bookings",
-      "job_photos", "service_providers", "services", "service_categories",
+      "job_photos", "service_providers", "service_categories",
     ];
     for (const table of tables) {
       await connection.query(`DROP TABLE IF EXISTS ${table}`);
@@ -202,6 +202,26 @@ async function runMigration() {
       );
     `);
     console.log("✅ sub_categories");
+
+    /* ===== SERVICES ===== */
+    await connection.query(`
+      CREATE TABLE services (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        description JSON,
+        content TEXT,
+        category_id INT NOT NULL,
+        image VARCHAR(255),
+        is_active TINYINT(1) DEFAULT 1,
+        faq JSON,
+        location VARCHAR(255) DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+      );
+    `);
+    console.log("✅ services");
 
     /* ===== TRADESPERSON PROFILES ===== */
     await connection.query(`

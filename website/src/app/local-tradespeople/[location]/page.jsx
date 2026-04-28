@@ -1,6 +1,5 @@
 import MainLayout from "../../main/layout";
 import ServiceDetailView from "../../components/ServiceDetailView";
-import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 import { Service } from "@/models/Service";
 
@@ -33,23 +32,7 @@ async function getServiceData(slug) {
         console.error("Error fetching service from DB:", error);
     }
 
-    // 2. Fallback to static TRADE_SERVICE_LINKS
-    const formattedLocation = formatLocation(slug);
-    let entry = null;
-    for (const city of Object.values(TRADE_SERVICE_LINKS)) {
-        if (city.location.toLowerCase() === formattedLocation.toLowerCase()) {
-            entry = city;
-            break;
-        }
-        const match = city.services.find(s => 
-            (typeof s === 'string' ? s : s.name).toLowerCase() === formattedLocation.toLowerCase()
-        );
-        if (match) {
-            entry = typeof match === 'string' ? { ...city, name: match } : { ...match, location: city.location };
-            break;
-        }
-    }
-    return entry;
+    return null;
 }
 
 export async function generateMetadata({ params }) {

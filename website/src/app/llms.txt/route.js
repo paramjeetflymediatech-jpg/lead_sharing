@@ -1,5 +1,5 @@
-import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 import { Service } from "@/models/Service";
+import { Location } from "@/models/Location";
 
 export async function GET() {
     let dynamicServices = [];
@@ -10,10 +10,15 @@ export async function GET() {
         console.error("Error fetching services for llms.txt:", error);
     }
 
-    const locations = Object.values(TRADE_SERVICE_LINKS);
-    const staticServices = locations.flatMap(loc => loc.services.map(s => typeof s === 'string' ? s : s.name));
-    const allServicesList = [...dynamicServices, ...staticServices];
-    const uniqueServices = [...new Set(allServicesList)];
+    let dbLocations = [];
+    try {
+        const locs = await Location.find();
+        dbLocations = locs.map(l => l.name);
+    } catch (error) {
+        console.error("Error fetching locations for llms.txt:", error);
+    }
+
+    const uniqueServices = [...new Set(dynamicServices)];
 
     const content = `# Leadsharing - Professional Tradespeople Directory
 
@@ -25,7 +30,7 @@ ${uniqueServices.map(s => `- ${s}`).join('\n')}
 
 ## Locations Served
 We serve multiple locations across Canada, including:
-${locations.map(l => `- ${l.location}`).join('\n')}
+${dbLocations.map(l => `- ${l}`).join('\n')}
 
 ## How it Works
 1. Homeowners post a job with details, photos, and budget.
@@ -36,7 +41,7 @@ ${locations.map(l => `- ${l.location}`).join('\n')}
 Professionals can join the platform, create a profile, and find leads in their local area.
 
 ## Latest Updates
-- Dynamically serving over ${allServicesList.length} localized service pages.
+- Dynamically serving localized service pages.
 - Real-time quote tracking and in-app chat enabled.
 `;
 

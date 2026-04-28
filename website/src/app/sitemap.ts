@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next'
-import { TRADE_SERVICE_LINKS } from '@/constants/locations'
 import { Service } from '@/models/Service';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -27,10 +26,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
 
     // 1. Get Dynamic Services from DB
-    let dynamicServicePages = [];
+    let dynamicServicePages: MetadataRoute.Sitemap = [];
     try {
         const services = await Service.find({ isActive: true });
-        dynamicServicePages = services.map((s) => ({
+        dynamicServicePages = services.map((s: any) => ({
             url: `${baseUrl}/local-tradespeople/${s.slug}`,
             lastModified: s.updatedAt || new Date(),
             changeFrequency: 'weekly' as const,
@@ -40,18 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         console.error("Error fetching services for sitemap:", error);
     }
 
-    // 2. Generate pages from static TRADE_SERVICE_LINKS (fallback/legacy)
-    const staticServicePages = Object.values(TRADE_SERVICE_LINKS).flatMap((entry) => {
-        return entry.services.map((service) => ({
-            url: `${baseUrl}/local-tradespeople/${(typeof service === 'string' ? service : service.name).toLowerCase().replace(/ /g, '-')}`,
-            lastModified: new Date(),
-            changeFrequency: 'weekly' as const,
-            priority: 0.7,
-        }));
-    });
-
     // Combine all, use a Map to filter duplicates by URL
-    const allPages = [...staticPages, ...dynamicServicePages, ...staticServicePages];
+    const allPages = [...staticPages, ...dynamicServicePages];
     const uniquePagesMap = new Map();
     allPages.forEach(page => uniquePagesMap.set(page.url, page));
 

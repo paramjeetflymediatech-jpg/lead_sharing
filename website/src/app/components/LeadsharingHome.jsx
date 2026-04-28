@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { LOCATION_DATA, TRADE_SERVICE_LINKS } from "@/constants/locations";
+import { LOCATION_DATA } from "@/constants/locations";
 import { FaAppStore, FaGooglePlay } from 'react-icons/fa';
 import JobCreationForm from "./jobForm";
 import Testimonials from "./Testimonials";
@@ -23,23 +23,9 @@ export default function LeadsharingHome({ location }) {
     // Pagination for All Trades section
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Initial location data lookup for SSR support
     const getInitialData = () => {
-        if (!location) return null;
-        const normalizedLocation = location.toLowerCase();
-        if (TRADE_SERVICE_LINKS[location]) return TRADE_SERVICE_LINKS[location];
-
-        for (const city of Object.values(TRADE_SERVICE_LINKS)) {
-            if (city.location.toLowerCase() === normalizedLocation) return city;
-            const serviceMatch = city.services.find(s =>
-                (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
-            );
-            if (serviceMatch) {
-                return typeof serviceMatch === 'string'
-                    ? { location: city.location, services: city.services, seo: city.seo, content: city.content, faq: city.faq }
-                    : { ...serviceMatch, location: city.location };
-            }
-        }
+        // Since we removed static fallback, returning null when no initial dynamic data is provided.
+        // If needed, dynamic fetching handles the hydration.
         return null;
     };
 
@@ -278,19 +264,10 @@ export default function LeadsharingHome({ location }) {
         fetchDynamicServices();
     }, []);
 
-    // Flatten TRADE_SERVICE_LINKS and add dynamic services to the grid
-    const staticLocations = Object.values(TRADE_SERVICE_LINKS).flatMap(loc =>
-        loc.services.map(s => ({
-            name: typeof s === 'string' ? s : s.name,
-            cityName: loc.location,
-            data: typeof s === 'string' ? null : s,
-            isDynamic: false
-        }))
-    );
-
+    // Map dynamic services to the grid
     const dynamicLocations = dynamicServices.map(s => {
-        const descText = Array.isArray(s.description) 
-            ? s.description.map(b => b.text).join(" ") 
+        const descText = Array.isArray(s.description)
+            ? s.description.map(b => b.text).join(" ")
             : (s.description || s.name);
 
         return {
@@ -310,7 +287,7 @@ export default function LeadsharingHome({ location }) {
         };
     });
 
-    const allLocations = [...dynamicLocations, ...staticLocations];
+    const allLocations = [...dynamicLocations];
 
     const handleServiceClick = (e, trade) => {
         // Find the specific service data
@@ -319,11 +296,6 @@ export default function LeadsharingHome({ location }) {
                 ...trade.data,
                 location: trade.cityName
             });
-        } else {
-            const locationEntry = TRADE_SERVICE_LINKS[trade.cityName];
-            if (locationEntry) {
-                setSelectedLocationData(locationEntry);
-            }
         }
     };
 
@@ -706,9 +678,9 @@ export default function LeadsharingHome({ location }) {
                                     href={`/local-tradespeople/${trade.name.toLowerCase().replace(/ /g, '-')}`}
                                     onClick={(e) => handleServiceClick(e, trade)}
                                     className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${(selectedLocationData?.name === trade.name) ||
-                                            (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === trade.name))
-                                            ? 'text-[#1149C7] font-bold'
-                                            : 'text-[#1149C7]'
+                                        (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === trade.name))
+                                        ? 'text-[#1149C7] font-bold'
+                                        : 'text-[#1149C7]'
                                         }`}
                                     title={trade.name}
                                 >
@@ -798,116 +770,6 @@ export default function LeadsharingHome({ location }) {
                     )}
                 </div>
             </section>
-
-            {/* --- DYNAMIC SERVICE INFO (SEO, CONTENT & FAQ) --- */}
-            {selectedLocationData && (
-                <section id="service-info-section" className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gray-50 border-t border-gray-100">
-                    <div className="max-w-4xl mx-auto">
-                        {/* SEO Title & Description */}
-                        <div className="mb-10 animate-fadeIn">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
-                                {selectedLocationData.seo.title.split('|')[0].trim()}
-                            </h2>
-                            <div className="prose prose-blue max-w-none text-gray-600 leading-relaxed text-base sm:text-lg mb-8">
-                                <p className="font-medium text-gray-700">{selectedLocationData.seo.description}</p>
-                            </div>
-                        </div>
-
-                        {/* Description Section */}
-                        {selectedLocationData.description && Array.isArray(selectedLocationData.description) && (
-                            <div className="mb-12 md:mb-16 bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100 animate-fadeIn space-y-4" style={{ animationDelay: '30ms' }}>
-                                {selectedLocationData.description.map((block, idx) => {
-                                    if (block.tag === 'h2') {
-                                        return <h2 key={idx} className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mt-6 mb-4">{block.text}</h2>;
-                                    }
-                                    if (block.tag === 'h3') {
-                                        return <h3 key={idx} className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mt-5 mb-3">{block.text}</h3>;
-                                    }
-                                    if (block.tag === 'ul') {
-                                        return (
-                                            <ul key={idx} className="list-disc list-inside text-gray-600 leading-relaxed text-base sm:text-lg space-y-2 mb-4">
-                                                {block.text.split('\n').filter(line => line.trim()).map((line, i) => (
-                                                    <li key={i}>{line}</li>
-                                                ))}
-                                            </ul>
-                                        );
-                                    }
-                                    if (block.tag === 'ol') {
-                                        return (
-                                            <ol key={idx} className="list-decimal list-inside text-gray-600 leading-relaxed text-base sm:text-lg space-y-2 mb-4">
-                                                {block.text.split('\n').filter(line => line.trim()).map((line, i) => (
-                                                    <li key={i}>{line}</li>
-                                                ))}
-                                            </ol>
-                                        );
-                                    }
-                                    return <p key={idx} className="text-gray-600 leading-relaxed text-base sm:text-lg">{block.text}</p>;
-                                })}
-                            </div>
-                        )}
-
-                        {/* Detailed Content Section */}
-                        {selectedLocationData.content && (
-                            <div className="mb-12 md:mb-16 bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100 animate-fadeIn" style={{ animationDelay: '50ms' }}>
-                                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                    <span className="w-1.5 h-8 bg-[#1149C7] rounded-full"></span>
-                                    About Our Services in {selectedLocationData.location}
-                                </h3>
-                                <div className="text-gray-600 leading-relaxed text-base sm:text-lg space-y-4">
-                                    {selectedLocationData.content.split('\n').map((paragraph, i) => (
-                                        <p key={i}>{paragraph}</p>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* FAQ Section */}
-                        {selectedLocationData.faq && selectedLocationData.faq.length > 0 && (
-                            <div className="animate-fadeIn" style={{ animationDelay: '100ms' }}>
-                                {/* FAQ Schema */}
-                                <script
-                                    type="application/ld+json"
-                                    dangerouslySetInnerHTML={{
-                                        __html: JSON.stringify({
-                                            "@context": "https://schema.org",
-                                            "@type": "FAQPage",
-                                            "mainEntity": selectedLocationData.faq.map(item => ({
-                                                "@type": "Question",
-                                                "name": item.question,
-                                                "acceptedAnswer": {
-                                                    "@type": "Answer",
-                                                    "text": item.answer
-                                                }
-                                            }))
-                                        })
-                                    }}
-                                />
-                                <div className="flex items-center gap-4 mb-8">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#1149C7]/10 flex items-center justify-center">
-                                        <span className="text-2xl text-[#1149C7]">?</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Frequently Asked Questions</h3>
-                                        <p className="text-gray-500 text-sm sm:text-base">Everything you need to know about our services</p>
-                                    </div>
-                                </div>
-                                <div className="grid gap-4 sm:gap-6">
-                                    {selectedLocationData.faq.map((item, idx) => (
-                                        <div key={idx} className="group bg-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#1149C7]/20 transition-all duration-300">
-                                            <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-3 group-hover:text-[#1149C7] transition-colors">
-                                                {item.question}
-                                            </h4>
-                                            <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                                                {item.answer}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </section>
-            )}
 
         </div>
     );

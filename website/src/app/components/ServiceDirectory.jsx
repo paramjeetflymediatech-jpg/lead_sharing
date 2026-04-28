@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 import Link from "next/link";
 import { ChevronRightIcon, MagnifyingGlassIcon, MapIcon } from "@heroicons/react/24/outline";
 
@@ -10,7 +9,6 @@ export default function ServiceDirectory() {
     const [searchTerm, setSearchTerm] = useState("");
     const itemsPerPage = 60;
     const directoryRef = useRef(null);
-
     const [dynamicServices, setDynamicServices] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -31,13 +29,7 @@ export default function ServiceDirectory() {
         fetchServices();
     }, []);
 
-    const allLocationsData = Object.values(TRADE_SERVICE_LINKS);
-    const staticServices = allLocationsData.flatMap(loc => 
-        loc.services.map(s => typeof s === 'string' ? s : s.name)
-    );
-    
-    const allServices = [...dynamicServices.map(s => s.name), ...staticServices];
-    
+    const allServices = [...dynamicServices.map(s => s.name)];
     const filteredServices = allServices.filter(serviceName => 
         serviceName.toLowerCase().includes(searchTerm.toLowerCase())
     );

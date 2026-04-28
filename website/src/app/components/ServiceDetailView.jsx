@@ -1,42 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 import Link from "next/link";
 import { ChevronRightIcon, CheckBadgeIcon, MapPinIcon, WrenchScrewdriverIcon } from "@heroicons/react/24/solid";
 import JobCreationForm from "./jobForm";
 
 export default function ServiceDetailView({ location, initialData }) {
-    // Perform lookup during render for SSR support (crucial for SEO/Schema)
     let selectedData = initialData || null;
-    
-    if (!selectedData && location) {
-        const normalizedLocation = location.toLowerCase();
-        for (const city of Object.values(TRADE_SERVICE_LINKS)) {
-            if (city.location.toLowerCase() === normalizedLocation) {
-                selectedData = city;
-                break;
-            }
-            const serviceMatch = city.services.find(s => 
-                (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
-            );
-            if (serviceMatch) {
-                selectedData = typeof serviceMatch === 'string' ? {
-                    location: city.location,
-                    services: city.services,
-                    description: city.description,
-                    seo: city.seo,
-                    content: city.content,
-                    faq: city.faq
-                } : {
-                    ...serviceMatch,
-                    location: city.location,
-                    allCityServices: city.services 
-                };
-                break;
-            }
-        }
-    }
 
     const [activeFaq, setActiveFaq] = useState(null);
 
@@ -52,9 +22,14 @@ export default function ServiceDetailView({ location, initialData }) {
         );
     }
 
-    const allServices = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => 
-        (loc.services || []).map(s => typeof s === 'string' ? s : s.name)
-    );
+    const [allServices, setAllServices] = useState([]);
+
+    useEffect(() => {
+        fetch('/api/services')
+            .then(res => res.json())
+            .then(data => setAllServices(data.map(s => s.name)))
+            .catch(console.error);
+    }, []);
 
     console.log(selectedData,'f')
 
