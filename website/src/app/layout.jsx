@@ -1,5 +1,3 @@
-
-
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -12,13 +10,13 @@ export const metadata = {
 };
 
 import { AuthProvider } from "@/context/AuthContext";
-import { getGlobalSeoSchema } from "@/lib/seo-helper";
+import { getGlobalSeoSchema, getGlobalScripts } from "@/lib/seo-helper";
 
 export default async function RootLayout({ children }) {
   const globalSchema = await getGlobalSeoSchema();
+  const { headerScripts, footerScripts } = await getGlobalScripts();
 
   return (
-    // Add suppressHydrationWarning to the <html> tag
     <html lang="en" suppressHydrationWarning>
       <head>
         {globalSchema && (
@@ -29,9 +27,20 @@ export default async function RootLayout({ children }) {
         )}
       </head>
       <body className="antialiased bg-zinc-50 text-zinc-900" suppressHydrationWarning>
+        {/* Global Scripts (Header - placed at top of body to avoid head nesting issues) */}
+        {headerScripts && (
+          <div dangerouslySetInnerHTML={{ __html: headerScripts }} />
+        )}
+
         <AuthProvider>
           {children}
         </AuthProvider>
+
+        {/* Global Scripts (Footer) */}
+        {footerScripts && (
+          <div dangerouslySetInnerHTML={{ __html: footerScripts }} />
+        )}
+
         <Toaster
           position="top-right"
           toastOptions={{

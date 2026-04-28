@@ -10,7 +10,11 @@ export default function GlobalSeoPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [schemaMarkup, setSchemaMarkup] = useState("");
+    const [formData, setFormData] = useState({
+        schemaMarkup: "",
+        headerScripts: "",
+        footerScripts: ""
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -18,13 +22,17 @@ export default function GlobalSeoPage() {
                 const res = await fetch("/api/admin/seo/global");
                 if (res.ok) {
                     const data = await res.json();
-                    setSchemaMarkup(data.schemaMarkup || "");
+                    setFormData({
+                        schemaMarkup: data.schemaMarkup || "",
+                        headerScripts: data.headerScripts || "",
+                        footerScripts: data.footerScripts || ""
+                    });
                 } else {
-                    toast.error("Failed to load global schema");
+                    toast.error("Failed to load global settings");
                 }
             } catch (error) {
                 console.error(error);
-                toast.error("Error fetching global schema");
+                toast.error("Error fetching global settings");
             } finally {
                 setLoading(false);
             }
@@ -32,6 +40,11 @@ export default function GlobalSeoPage() {
 
         fetchData();
     }, []);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,7 +54,7 @@ export default function GlobalSeoPage() {
             const res = await fetch("/api/admin/seo/global", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ schemaMarkup }),
+                body: JSON.stringify(formData),
             });
 
             if (res.ok) {
@@ -81,33 +94,70 @@ export default function GlobalSeoPage() {
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200 space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="block text-sm font-medium text-zinc-700">
                                 Global Schema Markup (JSON-LD)
                             </label>
                             <span className="text-xs text-zinc-400 font-mono">
-                                Type: Organization / Website / LocalBusiness
+                                Type: Organization / Website
                             </span>
                         </div>
                         <textarea
-                            value={schemaMarkup}
-                            onChange={(e) => setSchemaMarkup(e.target.value)}
-                            rows={20}
+                            name="schemaMarkup"
+                            value={formData.schemaMarkup}
+                            onChange={handleChange}
+                            rows={8}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-mono text-sm bg-zinc-50"
-                            placeholder='{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "AllCarePros",
-  "url": "https://allcarepros.ca",
-  "logo": "https://allcarepros.ca/logo.png"
-}'
+                            placeholder='{ "@context": "https://schema.org", ... }'
                         />
                         <p className="text-xs text-zinc-500 mt-2">
-                            Tip: You can use tools like the Schema Markup Generator to create this JSON-LD. 
-                            Make sure to include the script tags if you are pasting a full block, 
-                            but usually only the JSON content is needed depending on how you inject it.
+                            Cleaned of &lt;script&gt; tags automatically for safety.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-zinc-700">
+                                Header Scripts
+                            </label>
+                            <span className="text-xs text-zinc-400 font-mono">
+                                Injected in &lt;head&gt;
+                            </span>
+                        </div>
+                        <textarea
+                            name="headerScripts"
+                            value={formData.headerScripts}
+                            onChange={handleChange}
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-mono text-sm bg-zinc-50"
+                            placeholder="<!-- Google Tag Manager --> ..."
+                        />
+                        <p className="text-xs text-zinc-500 mt-2">
+                            Useful for Analytics, Pixels, and Verification tags. Include &lt;script&gt; tags.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-zinc-700">
+                                Footer Scripts
+                            </label>
+                            <span className="text-xs text-zinc-400 font-mono">
+                                Injected before &lt;/body&gt;
+                            </span>
+                        </div>
+                        <textarea
+                            name="footerScripts"
+                            value={formData.footerScripts}
+                            onChange={handleChange}
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-mono text-sm bg-zinc-50"
+                            placeholder="<!-- Chat widgets, etc. --> ..."
+                        />
+                        <p className="text-xs text-zinc-500 mt-2">
+                            Useful for chat widgets, tracking pixels, or non-critical scripts. Include &lt;script&gt; tags.
                         </p>
                     </div>
 

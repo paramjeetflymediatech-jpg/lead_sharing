@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { LOCATION_DATA,TRADE_SERVICE_LINKS } from "@/constants/locations";
+import { LOCATION_DATA, TRADE_SERVICE_LINKS } from "@/constants/locations";
 import { FaAppStore, FaGooglePlay } from 'react-icons/fa';
 import JobCreationForm from "./jobForm";
 import Testimonials from "./Testimonials";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DocumentCheckIcon, ChevronRightIcon} from "@heroicons/react/24/solid";
+import { DocumentCheckIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 export default function LeadsharingHome({ location }) {
     const router = useRouter();
@@ -22,20 +22,20 @@ export default function LeadsharingHome({ location }) {
 
     // Pagination for All Trades section
     const [currentPage, setCurrentPage] = useState(1);
-    
+
     // Initial location data lookup for SSR support
     const getInitialData = () => {
         if (!location) return null;
         const normalizedLocation = location.toLowerCase();
         if (TRADE_SERVICE_LINKS[location]) return TRADE_SERVICE_LINKS[location];
-        
+
         for (const city of Object.values(TRADE_SERVICE_LINKS)) {
             if (city.location.toLowerCase() === normalizedLocation) return city;
-            const serviceMatch = city.services.find(s => 
+            const serviceMatch = city.services.find(s =>
                 (typeof s === 'string' ? s : s.name).toLowerCase() === normalizedLocation
             );
             if (serviceMatch) {
-                return typeof serviceMatch === 'string' 
+                return typeof serviceMatch === 'string'
                     ? { location: city.location, services: city.services, seo: city.seo, content: city.content, faq: city.faq }
                     : { ...serviceMatch, location: city.location };
             }
@@ -261,14 +261,56 @@ export default function LeadsharingHome({ location }) {
         }
     };
 
-    // Flatten TRADE_SERVICE_LINKS to get all services for the grid
-    const allLocations = Object.values(TRADE_SERVICE_LINKS).flatMap(loc => 
+    const [dynamicServices, setDynamicServices] = useState([]);
+
+    useEffect(() => {
+        const fetchDynamicServices = async () => {
+            try {
+                const res = await fetch('/api/services');
+                if (res.ok) {
+                    const data = await res.json();
+                    setDynamicServices(data);
+                }
+            } catch (error) {
+                console.error("Error fetching dynamic services:", error);
+            }
+        };
+        fetchDynamicServices();
+    }, []);
+
+    // Flatten TRADE_SERVICE_LINKS and add dynamic services to the grid
+    const staticLocations = Object.values(TRADE_SERVICE_LINKS).flatMap(loc =>
         loc.services.map(s => ({
             name: typeof s === 'string' ? s : s.name,
             cityName: loc.location,
-            data: typeof s === 'string' ? null : s
+            data: typeof s === 'string' ? null : s,
+            isDynamic: false
         }))
     );
+
+    const dynamicLocations = dynamicServices.map(s => {
+        const descText = Array.isArray(s.description) 
+            ? s.description.map(b => b.text).join(" ") 
+            : (s.description || s.name);
+
+        return {
+            name: s.name,
+            cityName: s.location || s.name.split(" in ")[1] || "Local Area",
+            data: {
+                location: s.location || s.name.split(" in ")[1] || "Local Area",
+                content: s.content || "",
+                description: s.description,
+                faq: s.faq || [],
+                seo: {
+                    title: s.name,
+                    description: descText
+                }
+            },
+            isDynamic: true
+        };
+    });
+
+    const allLocations = [...dynamicLocations, ...staticLocations];
 
     const handleServiceClick = (e, trade) => {
         // Find the specific service data
@@ -646,8 +688,8 @@ export default function LeadsharingHome({ location }) {
                         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">
                             Local Trades & Services
                         </h2>
-                        <Link 
-                            href="/local-tradespeople" 
+                        <Link
+                            href="/local-tradespeople"
                             className="text-[#1149C7] font-bold hover:underline flex items-center gap-1 text-sm md:text-base group"
                         >
                             View Entire Directory
@@ -663,12 +705,11 @@ export default function LeadsharingHome({ location }) {
                                     key={index}
                                     href={`/local-tradespeople/${trade.name.toLowerCase().replace(/ /g, '-')}`}
                                     onClick={(e) => handleServiceClick(e, trade)}
-                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${
-                                        (selectedLocationData?.name === trade.name) || 
-                                        (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === trade.name)) 
-                                        ? 'text-[#1149C7] font-bold' 
-                                        : 'text-[#1149C7]'
-                                    }`}
+                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${(selectedLocationData?.name === trade.name) ||
+                                            (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === trade.name))
+                                            ? 'text-[#1149C7] font-bold'
+                                            : 'text-[#1149C7]'
+                                        }`}
                                     title={trade.name}
                                 >
                                     {trade.name}
@@ -714,12 +755,12 @@ export default function LeadsharingHome({ location }) {
                                     </svg>
                                     Previous
                                 </button>
-                                
+
                                 <div className="hidden sm:flex items-center gap-1.5">
                                     {[...Array(Math.min(5, Math.ceil(allLocations.length / itemsPerPage)))].map((_, i) => {
                                         const totalPages = Math.ceil(allLocations.length / itemsPerPage);
                                         let pageNum;
-                                        
+
                                         if (totalPages <= 5) {
                                             pageNum = i + 1;
                                         } else if (currentPage <= 3) {
@@ -729,7 +770,7 @@ export default function LeadsharingHome({ location }) {
                                         } else {
                                             pageNum = currentPage - 2 + i;
                                         }
-                                        
+
                                         return (
                                             <button
                                                 key={pageNum}
@@ -771,6 +812,39 @@ export default function LeadsharingHome({ location }) {
                                 <p className="font-medium text-gray-700">{selectedLocationData.seo.description}</p>
                             </div>
                         </div>
+
+                        {/* Description Section */}
+                        {selectedLocationData.description && Array.isArray(selectedLocationData.description) && (
+                            <div className="mb-12 md:mb-16 bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100 animate-fadeIn space-y-4" style={{ animationDelay: '30ms' }}>
+                                {selectedLocationData.description.map((block, idx) => {
+                                    if (block.tag === 'h2') {
+                                        return <h2 key={idx} className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mt-6 mb-4">{block.text}</h2>;
+                                    }
+                                    if (block.tag === 'h3') {
+                                        return <h3 key={idx} className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mt-5 mb-3">{block.text}</h3>;
+                                    }
+                                    if (block.tag === 'ul') {
+                                        return (
+                                            <ul key={idx} className="list-disc list-inside text-gray-600 leading-relaxed text-base sm:text-lg space-y-2 mb-4">
+                                                {block.text.split('\n').filter(line => line.trim()).map((line, i) => (
+                                                    <li key={i}>{line}</li>
+                                                ))}
+                                            </ul>
+                                        );
+                                    }
+                                    if (block.tag === 'ol') {
+                                        return (
+                                            <ol key={idx} className="list-decimal list-inside text-gray-600 leading-relaxed text-base sm:text-lg space-y-2 mb-4">
+                                                {block.text.split('\n').filter(line => line.trim()).map((line, i) => (
+                                                    <li key={i}>{line}</li>
+                                                ))}
+                                            </ol>
+                                        );
+                                    }
+                                    return <p key={idx} className="text-gray-600 leading-relaxed text-base sm:text-lg">{block.text}</p>;
+                                })}
+                            </div>
+                        )}
 
                         {/* Detailed Content Section */}
                         {selectedLocationData.content && (

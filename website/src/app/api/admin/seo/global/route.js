@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(req) {
     try {
         const body = await req.json();
-        const { schemaMarkup } = body;
+        const { schemaMarkup, headerScripts, footerScripts } = body;
 
         let globalSeo = await Seo.findOne({ pageName: 'global' });
 
@@ -33,6 +33,8 @@ export async function POST(req) {
             // Update existing
             const updated = await Seo.findByIdAndUpdate(globalSeo._id, {
                 schemaMarkup,
+                headerScripts,
+                footerScripts,
                 title: 'Global Schema', // Keep it consistent
                 updatedAt: new Date()
             }, { new: true });
@@ -42,8 +44,10 @@ export async function POST(req) {
             const newSeo = await Seo.create({
                 pageName: 'global',
                 title: 'Global Schema',
-                metaDescription: 'Site-wide global schema markup',
+                metaDescription: 'Site-wide global settings and scripts',
                 schemaMarkup,
+                headerScripts,
+                footerScripts,
                 metaRobots: 'noindex, nofollow' // It's a virtual page
             });
             return NextResponse.json(newSeo, { status: 201 });

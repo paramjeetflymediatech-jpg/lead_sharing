@@ -13,6 +13,10 @@ export default function Header() {
   // Mobile accordion states
   const [mobileExpanded, setMobileExpanded] = useState({ trades: false, advice: false, location: false });
 
+  // Dynamic Locations State
+  const [dbLocations, setDbLocations] = useState([]);
+  const [servicesByLocation, setServicesByLocation] = useState({});
+
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -44,6 +48,29 @@ export default function Header() {
         if (categories.length > 0) {
           setActiveTradeCategory(categories[0]);
         }
+      })
+      .catch(err => console.error(err));
+
+    // Fetch services by location
+    fetch('/api/services')
+      .then(res => res.json())
+      .then(data => {
+        const grouped = data.reduce((acc, service) => {
+          const loc = service.location || (service.name.includes(" in ") ? service.name.split(" in ")[1] : "Other");
+          if (!acc[loc]) acc[loc] = [];
+          acc[loc].push(service);
+          return acc;
+        }, {});
+        setServicesByLocation(grouped);
+      })
+      .catch(err => console.error(err));
+
+    // Fetch locations
+    fetch('/api/locations')
+      .then(res => res.json())
+      .then(data => {
+        setDbLocations(data);
+        if (data.length > 0) setActiveRegion(data[0].name);
       })
       .catch(err => console.error(err));
 
@@ -120,11 +147,6 @@ export default function Header() {
   const [activeAdviceCategory, setActiveAdviceCategory] = useState("Homeowner Advice");
 
   const [activeRegion, setActiveRegion] = useState("Abbotsford");
-
-  /* const LOCATION_DATA moved to constants */
-
-
-  const locations = Object.keys(LOCATION_DATA);
 
   const toggleMobileSection = (section) => {
     setMobileExpanded(prev => ({ ...prev, [section]: !prev[section] }));
@@ -312,18 +334,18 @@ export default function Header() {
                 <div className="max-w-7xl mx-auto flex min-h-[600px] max-h-[80vh]">
                   {/* Left Column: Regions */}
                   <div className="w-1/3 border-r border-gray-100 overflow-y-auto py-6 scrollbar-hide">
-                    {locations.map((region) => (
+                    {dbLocations.map((locObj) => (
                       <div
-                        key={region}
+                        key={locObj._id}
                         id="sub_category"
-                        className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeRegion === region
+                        className={`px-8 py-2 cursor-pointer text-sm font-medium transition-colors flex justify-between items-center ${activeRegion === locObj.name
                           ? "text-[#1149C7]"
                           : "text-gray-600 hover:text-[#1149C7]"
                           }`}
-                        onClick={() => setActiveRegion(region)}
+                        onClick={() => setActiveRegion(locObj.name)}
                       >
-                        {region}
-                        {activeRegion === region && <span className="text-[#1149C7]">›</span>}
+                        {locObj.name}
+                        {activeRegion === locObj.name && <span className="text-[#1149C7]">›</span>}
                       </div>
                     ))}
                   </div>
@@ -334,7 +356,17 @@ export default function Header() {
                       {activeRegion}
                     </h3>
                     <div className="grid grid-cols-3 gap-x-8 gap-y-4">
-                      {activeRegion && LOCATION_DATA[activeRegion] && LOCATION_DATA[activeRegion].map((area) => (
+                      {activeRegion && servicesByLocation[activeRegion] && servicesByLocation[activeRegion].map((service) => (
+                        <Link
+                          key={service._id}
+                          href={`/local-tradespeople/${service.slug || service.name.toLowerCase().replace(/ /g, '-')}`}
+                          className="text-gray-600 hover:text-[#1149C7] text-sm font-medium transition-colors hover:underline"
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          {service.name}
+                        </Link>
+                      ))}
+                      {activeRegion && !servicesByLocation[activeRegion] && LOCATION_DATA[activeRegion] && LOCATION_DATA[activeRegion].map((area) => (
                         <Link
                           key={area}
                           href={`/local-tradespeople/${area.toLowerCase().replace(/ /g, '-')}`}
@@ -555,22 +587,32 @@ export default function Header() {
                 </button>
                 {mobileExpanded.location && (
                   <div className="pl-4 flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-lg">
-                    {locations.map((region) => (
-                      <div key={region} className="border-b border-gray-200 last:border-0 pb-2">
+                    {dbLocations.map((locObj) => (
+                      <div key={locObj._id} className="border-b border-gray-200 last:border-0 pb-2">
                         <button
                           className="flex w-full justify-between items-center py-2 text-sm font-bold text-gray-700 hover:text-[#1149C7]"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setActiveRegion(activeRegion === region ? null : region);
+                            setActiveRegion(activeRegion === locObj.name ? null : locObj.name);
                           }}
                         >
-                          {region}
-                          <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeRegion === region ? 'rotate-180' : ''}`} />
+                          {locObj.name}
+                          <ChevronDownIcon className={`w-4 h-4 transition-transform ${activeRegion === locObj.name ? 'rotate-180' : ''}`} />
                         </button>
 
-                        {activeRegion === region && (
+                        {activeRegion === locObj.name && (
                           <div className="pl-4 mt-2 grid grid-cols-1 gap-1">
-                            {LOCATION_DATA[region] && LOCATION_DATA[region].map((area) => (
+                            {servicesByLocation[locObj.name] && servicesByLocation[locObj.name].map((service) => (
+                              <Link
+                                key={service._id}
+                                href={`/local-tradespeople/${service.slug || service.name.toLowerCase().replace(/ /g, '-')}`}
+                                className="text-gray-600 text-sm py-1 hover:text-[#1149C7] block"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {service.name}
+                              </Link>
+                            ))}
+                            {!servicesByLocation[locObj.name] && LOCATION_DATA[locObj.name] && LOCATION_DATA[locObj.name].map((area) => (
                               <Link
                                 key={area}
                                 href={`/local-tradespeople/${area.toLowerCase().replace(/ /g, '-')}`}

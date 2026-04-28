@@ -2,6 +2,7 @@ import MainLayout from "../../main/layout";
 import ServiceDetailView from "../../components/ServiceDetailView";
 import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
+import { Service } from "@/models/Service";
 
 function formatLocation(slug) {
     if (!slug) return "";
@@ -13,66 +14,74 @@ function formatLocation(slug) {
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }) {
-    const { location } = await params;
-    const path = `/local-tradespeople/${location}`;
-    
-    // 1. Try to get SEO from Admin Panel (supports patterns like /local-tradespeople/[location])
-    const adminSeo = await getSeoMetadata(path);
-    if (adminSeo && adminSeo.title !== 'AllCarePros Canada') {
-        return adminSeo;
+async function getServiceData(slug) {
+    // 1. Try to fetch from dynamic Services table
+    try {
+        const service = await Service.findOne({ slug: slug });
+        if (service) {
+            return {
+                name: service.name,
+                location: service.location || service.name.split(" in ")[1] || "Local Area", // Use explicit location if provided
+                content: service.content || "",
+                description: service.description,
+                faq: service.faq || [],
+                services: [], // Could be expanded later
+                isDynamic: true
+            };
+        }
+    } catch (error) {
+        console.error("Error fetching service from DB:", error);
     }
 
-    // 2. Fallback to hardcoded constants if no admin override exists
-    const formattedLocation = formatLocation(location);
+    // 2. Fallback to static TRADE_SERVICE_LINKS
+    const formattedLocation = formatLocation(slug);
     let entry = null;
-    let serviceMatch = null;
-
     for (const city of Object.values(TRADE_SERVICE_LINKS)) {
         if (city.location.toLowerCase() === formattedLocation.toLowerCase()) {
             entry = city;
             break;
         }
-        serviceMatch = city.services.find(s => 
+        const match = city.services.find(s => 
             (typeof s === 'string' ? s : s.name).toLowerCase() === formattedLocation.toLowerCase()
         );
-        if (serviceMatch) {
-            entry = typeof serviceMatch === 'string' ? city : serviceMatch;
+        if (match) {
+            entry = typeof match === 'string' ? { ...city, name: match } : { ...match, location: city.location };
             break;
         }
     }
+    return entry;
+}
 
-    if (entry?.seo) {
+export async function generateMetadata({ params }) {
+    const { location } = await params;
+    const path = `/local-tradespeople/${location}`;
+    
+    const adminSeo = await getSeoMetadata(path);
+    if (adminSeo && adminSeo.title !== 'AllCarePros Canada') {
+        return adminSeo;
+    }
+
+    const data = await getServiceData(location);
+    if (data?.seo) {
         return {
-            title: entry.seo.title,
-            description: entry.seo.description,
-            keywords: entry.seo.keywords,
-            openGraph: {
-                title: entry.seo.title,
-                description: entry.seo.description,
-            },
+            title: data.seo.title,
+            description: data.seo.description,
+            keywords: data.seo.keywords,
         };
     }
 
-    const title = `Local Tradespeople in ${formattedLocation} | Leadsharing`;
-    const description = `Find reliable local tradespeople in ${formattedLocation}. Post your job for free and get quotes from rated professionals in your area.`;
-
+    const formattedLocation = formatLocation(location);
     return {
-        title,
-        description,
-        openGraph: {
-            title,
-            description,
-        },
+        title: `Local Tradespeople in ${formattedLocation} | Leadsharing`,
+        description: `Find reliable local tradespeople in ${formattedLocation}.`,
     };
 }
 
 export default async function LocationPage({ params }) {
     const { location } = await params;
     const path = `/local-tradespeople/${location}`;
-    const locationName = formatLocation(location);
+    const serviceData = await getServiceData(location);
     
-    // Get schema markup (could be from admin pattern match or global)
     const schema = await getSeoSchema(path);
 
     return (
@@ -83,7 +92,7 @@ export default async function LocationPage({ params }) {
                     dangerouslySetInnerHTML={{ __html: schema }}
                 />
             )}
-            <ServiceDetailView location={locationName} />
+            <ServiceDetailView location={location} initialData={serviceData} />
         </MainLayout>
     );
 }

@@ -164,3 +164,17 @@ export async function getGlobalSeoSchema() {
         return null;
     }
 }
+
+export async function getGlobalScripts() {
+    try {
+        const globalSeo = await Seo.findOne({ pageName: 'global' });
+        return {
+            headerScripts: globalSeo?.headerScripts || null,
+            footerScripts: globalSeo?.footerScripts || null
+        };
+    } catch (error) {
+        console.error('Error fetching global scripts:', error);
+        return { headerScripts: null, footerScripts: null };
+    }
+}
+

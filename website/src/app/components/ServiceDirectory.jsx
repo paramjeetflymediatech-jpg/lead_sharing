@@ -11,10 +11,32 @@ export default function ServiceDirectory() {
     const itemsPerPage = 60;
     const directoryRef = useRef(null);
 
+    const [dynamicServices, setDynamicServices] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const res = await fetch('/api/services');
+                if (res.ok) {
+                    const data = await res.json();
+                    setDynamicServices(data);
+                }
+            } catch (error) {
+                console.error("Error fetching dynamic services:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchServices();
+    }, []);
+
     const allLocationsData = Object.values(TRADE_SERVICE_LINKS);
-    const allServices = allLocationsData.flatMap(loc => 
+    const staticServices = allLocationsData.flatMap(loc => 
         loc.services.map(s => typeof s === 'string' ? s : s.name)
     );
+    
+    const allServices = [...dynamicServices.map(s => s.name), ...staticServices];
     
     const filteredServices = allServices.filter(serviceName => 
         serviceName.toLowerCase().includes(searchTerm.toLowerCase())

@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/serverAuth";
 import { redirect } from "next/navigation";
 import DashboardLayout from "../../components/DashboardLayout";
-import { HomeIcon, UsersIcon, Squares2X2Icon, ListBulletIcon, BriefcaseIcon, MagnifyingGlassPlusIcon, CurrencyDollarIcon, Cog6ToothIcon, ChartBarIcon, ArrowTrendingUpIcon, DocumentTextIcon, ShieldCheckIcon, StarIcon, ChatBubbleLeftRightIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, UsersIcon, Squares2X2Icon, ListBulletIcon, WrenchScrewdriverIcon, BriefcaseIcon, MagnifyingGlassPlusIcon, CurrencyDollarIcon, Cog6ToothIcon, ChartBarIcon, ArrowTrendingUpIcon, DocumentTextIcon, ShieldCheckIcon, StarIcon, ChatBubbleLeftRightIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default async function AdminLayout({ children }) {
     const user = await getCurrentUser();
@@ -14,7 +14,9 @@ export default async function AdminLayout({ children }) {
         { name: "Dashboard", href: "/admin", icon: "HomeIcon" },
         { name: "Users", href: "/admin/users", icon: "UsersIcon" },
         { name: "Categories", href: "/admin/categories", icon: "Squares2X2Icon" },
+        { name: "Locations", href: "/admin/locations", icon: "MapPinIcon" },
         { name: "Subcategories", href: "/admin/subcategories", icon: "ListBulletIcon" },
+        { name: "Services", href: "/admin/services", icon: "WrenchScrewdriverIcon" },
         { name: "Jobs", href: "/admin/jobs", icon: "BriefcaseIcon" },
         { name: "Leads", href: "/admin/leads", icon: "MagnifyingGlassPlusIcon" },
         { name: "Payments", href: "/admin/payments", icon: "CurrencyDollarIcon" },

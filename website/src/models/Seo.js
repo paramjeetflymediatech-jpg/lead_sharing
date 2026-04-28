@@ -17,6 +17,8 @@ const seoToMongoStyle = (row) => {
         schemaMarkup: row.schema_markup,
         googleAnalyticsId: row.google_analytics_id,
         googleTagManagerId: row.google_tag_manager_id,
+        headerScripts: row.header_scripts,
+        footerScripts: row.footer_scripts,
         createdAt: row.created_at,
         updatedAt: row.updated_at
     };
@@ -69,19 +71,22 @@ export const Seo = {
         const {
             pageName, title, metaDescription, keywords,
             metaRobots, ogTitle, ogDescription, ogImage,
-            canonicalUrl, schemaMarkup, googleAnalyticsId, googleTagManagerId
+            canonicalUrl, schemaMarkup, googleAnalyticsId, googleTagManagerId,
+            headerScripts, footerScripts
         } = data;
 
         const [result] = await pool.query(
             `INSERT INTO seo_pages (
                 page_name, title, meta_description, keywords,
                 meta_robots, og_title, og_description, og_image,
-                canonical_url, schema_markup, google_analytics_id, google_tag_manager_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                canonical_url, schema_markup, google_analytics_id, google_tag_manager_id,
+                header_scripts, footer_scripts
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 pageName, title, metaDescription, keywords,
                 metaRobots || 'index, follow', ogTitle, ogDescription, ogImage,
-                canonicalUrl, schemaMarkup, googleAnalyticsId, googleTagManagerId
+                canonicalUrl, schemaMarkup, googleAnalyticsId, googleTagManagerId,
+                headerScripts, footerScripts
             ]
         );
         return { _id: result.insertId, ...data };
@@ -103,7 +108,9 @@ export const Seo = {
             canonicalUrl: 'canonical_url',
             schemaMarkup: 'schema_markup',
             googleAnalyticsId: 'google_analytics_id',
-            googleTagManagerId: 'google_tag_manager_id'
+            googleTagManagerId: 'google_tag_manager_id',
+            headerScripts: 'header_scripts',
+            footerScripts: 'footer_scripts'
         };
 
         for (const [key, value] of Object.entries(data)) {
