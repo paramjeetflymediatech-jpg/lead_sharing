@@ -40,6 +40,7 @@ export default function ServicesManagement() {
         is_active: 1
     });
     const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchServices();
@@ -141,6 +142,35 @@ export default function ServicesManagement() {
         });
         setSelectedItem(item);
         setIsModalOpen(true);
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formDataUpload,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFormData({ ...formData, image: data.url });
+                toast.success("Image uploaded successfully");
+            } else {
+                toast.error("Upload failed");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Error uploading image");
+        } finally {
+            setUploading(false);
+        }
     };
 
     const closeModal = () => {
@@ -420,18 +450,48 @@ export default function ServicesManagement() {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Image URL</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        className="flex-1 px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white outline-none"
-                                        value={formData.image}
-                                        onChange={e => setFormData({ ...formData, image: e.target.value })}
-                                    />
-                                    <div className="w-10 h-10 border rounded-xl flex items-center justify-center bg-zinc-50">
-                                        <PhotoIcon className="w-6 h-6 text-zinc-400" />
+                             <div>
+                                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Service Image</label>
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Image URL"
+                                            className="flex-1 px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white outline-none"
+                                            value={formData.image}
+                                            onChange={e => setFormData({ ...formData, image: e.target.value })}
+                                        />
+                                        <label className="cursor-pointer bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 p-2 rounded-xl border border-zinc-200 dark:border-zinc-700 transition-colors flex items-center justify-center min-w-[44px]">
+                                            {uploading ? (
+                                                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <PhotoIcon className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
+                                            )}
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                disabled={uploading}
+                                            />
+                                        </label>
                                     </div>
+                                    {formData.image && (
+                                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                                            <img
+                                                src={formData.image}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, image: "" })}
+                                                className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                                            >
+                                                <XMarkIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
