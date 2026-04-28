@@ -114,12 +114,14 @@ export default function ServiceDetailView({ location, initialData }) {
                                     )}
                                 </div>
                             )}
+                            {selectedData.content && (
                             <div className="bg-gray-50 rounded-3xl p-5 sm:p-6 md:p-10 border border-gray-100 shadow-sm transition-all hover:shadow-md">
                                 <div 
                                     className="prose prose-blue max-w-none text-gray-600 leading-relaxed text-base sm:text-lg space-y-4 break-words"
                                     dangerouslySetInnerHTML={{ __html: selectedData.content }}
                                 />
                             </div>
+                            )}
                         </div>
 
                         {/* Services Grid */}
