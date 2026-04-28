@@ -37,8 +37,10 @@ export default function ServicesManagement() {
         content: "",
         category_id: "",
         image: "",
+        faq: [],
         is_active: 1
     });
+    const [faqRaw, setFaqRaw] = useState("[]");
     const [submitting, setSubmitting] = useState(false);
     const [uploading, setUploading] = useState(false);
 
@@ -103,7 +105,8 @@ export default function ServicesManagement() {
 
     const openCreateModal = () => {
         setModalType("create");
-        setFormData({ name: "", slug: "", location: "", description: [], content: "", category_id: "", image: "", is_active: 1 });
+        setFormData({ name: "", slug: "", location: "", description: [], content: "", category_id: "", image: "", faq: [], is_active: 1 });
+        setFaqRaw("[]");
         setSelectedItem(null);
         setIsModalOpen(true);
     };
@@ -138,8 +141,10 @@ export default function ServicesManagement() {
             content: item.content || "",
             category_id: item.category_id || "",
             image: item.image || "",
+            faq: item.faq || [],
             is_active: item.is_active
         });
+        setFaqRaw(JSON.stringify(item.faq || [], null, 2));
         setSelectedItem(item);
         setIsModalOpen(true);
     };
@@ -182,8 +187,18 @@ export default function ServicesManagement() {
         e.preventDefault();
         setSubmitting(true);
 
+        let parsedFaq = [];
+        try {
+            parsedFaq = JSON.parse(faqRaw);
+        } catch (e) {
+            toast.error("Invalid FAQ JSON format");
+            setSubmitting(false);
+            return;
+        }
+
         const dataToSend = {
             ...formData,
+            faq: parsedFaq,
             slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
         };
 
@@ -495,7 +510,19 @@ export default function ServicesManagement() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">FAQ (JSON format)</label>
+                                <textarea
+                                    rows={6}
+                                    className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white outline-none font-mono text-xs"
+                                    placeholder='[{"question": "...", "answer": "..."}]'
+                                    value={faqRaw}
+                                    onChange={e => setFaqRaw(e.target.value)}
+                                />
+                                <p className="text-[10px] text-zinc-500 mt-1">Must be a valid JSON array of objects with "question" and "answer" keys.</p>
+                            </div>
+
+                            <div className="flex items-center gap-2 py-2">
                                 <input
                                     type="checkbox"
                                     id="is_active"
