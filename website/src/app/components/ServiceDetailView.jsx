@@ -14,6 +14,27 @@ export default function ServiceDetailView({ location, initialData }) {
         setActiveFaq(activeFaq === index ? null : index);
     };
 
+    const formatTitle = (text) => {
+        if (!text) return "";
+        return text.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
+    const displayLocation = formatTitle(location);
+
+    // Smart content formatter: if plain text, convert newlines → <p> tags
+    const formatContent = (content) => {
+        if (!content) return "";
+        // Already has HTML tags — use as-is
+        if (/<[a-z][\s\S]*>/i.test(content)) return content;
+        // Plain text — split by blank lines into paragraphs
+        return content
+            .split(/\n{2,}/)
+            .map(para => para.trim())
+            .filter(Boolean)
+            .map(para => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
+            .join('');
+    };
+
     if (!selectedData) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -55,7 +76,7 @@ export default function ServiceDetailView({ location, initialData }) {
                     </div>
                     
                     <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight animate-slideUp">
-                        Expert <span className="text-yellow-400">{location}</span> <br className="hidden md:block" />
+                        Expert <span className="text-yellow-400">{displayLocation}</span> <br className="hidden md:block" />
                         Professional Services
                     </h1>
                     
@@ -77,7 +98,7 @@ export default function ServiceDetailView({ location, initialData }) {
                         <div className="animate-fadeIn">
                             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-5 sm:mb-6 flex items-center gap-3">
                                 <WrenchScrewdriverIcon className="w-6 h-6 sm:w-8 sm:h-8 text-[#1149C7] flex-shrink-0" />
-                                About Our {location} Services
+                                About Our {displayLocation} Services
                             </h2>
                             {selectedData.description && (
                                 <div className="bg-white rounded-3xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm mb-6 sm:mb-8 space-y-3 sm:space-y-4">
@@ -117,8 +138,8 @@ export default function ServiceDetailView({ location, initialData }) {
                             {selectedData.content && (
                             <div className="bg-gray-50 rounded-3xl p-5 sm:p-6 md:p-10 border border-gray-100 shadow-sm transition-all hover:shadow-md">
                                 <div 
-                                    className="prose prose-blue max-w-none text-gray-600 leading-relaxed text-base sm:text-lg space-y-4 break-words"
-                                    dangerouslySetInnerHTML={{ __html: selectedData.content }}
+                                    className="prose prose-blue max-w-none text-gray-600 leading-relaxed text-base sm:text-lg space-y-4 break-words [&>p]:mb-4 [&>p]:last:mb-0"
+                                    dangerouslySetInnerHTML={{ __html: formatContent(selectedData.content) }}
                                 />
                             </div>
                             )}

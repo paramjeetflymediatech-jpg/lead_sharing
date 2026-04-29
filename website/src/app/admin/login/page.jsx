@@ -3,13 +3,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheckIcon, KeyIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon, KeyIcon, EnvelopeIcon, EyeIcon, EyeSlashIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 
 export default function AdminLogin() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,93 +38,92 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#09090b] overflow-hidden">
-      {/* Animated Background Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse delay-700" />
-
-      <div className="relative z-10 w-full max-w-[440px] px-6">
-        {/* Decorative Header Icon */}
-        <div className="flex justify-center mb-8">
-          <div className="relative">
-            <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-20 animate-pulse"></div>
-            <div className="relative bg-zinc-900 border border-zinc-800 p-4 rounded-2xl shadow-2xl">
-              <ShieldCheckIcon className="w-10 h-10 text-blue-500" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-zinc-50 font-sans p-4">
+      <div className="w-full max-w-[400px]">
+        {/* Main Clean Card */}
+        <div className="bg-white border border-zinc-200 p-8 sm:p-10 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+          
+          {/* Header */}
+          <div className="mb-8 text-center flex flex-col items-center">
+            <div className="w-12 h-12 rounded-xl bg-zinc-50 flex items-center justify-center mb-5 border border-zinc-200 shadow-sm">
+              <ShieldCheckIcon className="w-6 h-6 text-zinc-700" />
             </div>
-          </div>
-        </div>
-
-        {/* Main Card */}
-        <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] shadow-3xl">
-          <div className="mb-10 text-center">
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
-              Terminal Access
+            <h1 className="text-2xl font-semibold text-zinc-900 tracking-tight mb-1">
+              Admin Portal
             </h1>
-            <p className="text-zinc-500 text-sm font-medium uppercase tracking-[0.2em]">
-              Authorized Personnel Only
+            <p className="text-zinc-500 text-sm">
+              Sign in to manage your system
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs py-3 px-4 rounded-xl text-center animate-shake">
-                {error}
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm py-3 px-4 rounded-lg text-center flex items-center justify-center gap-2">
+                <span>{error}</span>
               </div>
             )}
 
             <div className="space-y-4">
               {/* Email Input */}
               <div className="group relative">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                  <EnvelopeIcon className="h-5 w-5 text-zinc-600 group-focus-within:text-blue-400 transition-colors" />
+                <label className="block text-xs font-medium text-zinc-700 mb-1.5 ml-0.5">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <EnvelopeIcon className="h-5 w-5 text-zinc-400 group-focus-within:text-zinc-900 transition-colors duration-200" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    placeholder="admin@example.com"
+                    className="w-full bg-white border border-zinc-200 text-zinc-900 pl-10 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all placeholder:text-zinc-400 text-sm shadow-sm"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
                 </div>
-                <input
-                  type="email"
-                  required
-                  placeholder="Admin Email"
-                  className="w-full bg-zinc-950/50 border border-zinc-800 text-white pl-12 pr-4 py-4 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-700"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
               </div>
 
               {/* Password Input */}
               <div className="group relative">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                  <KeyIcon className="h-5 w-5 text-zinc-600 group-focus-within:text-blue-400 transition-colors" />
+                <label className="block text-xs font-medium text-zinc-700 mb-1.5 ml-0.5">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <KeyIcon className="h-5 w-5 text-zinc-400 group-focus-within:text-zinc-900 transition-colors duration-200" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    className="w-full bg-white border border-zinc-200 text-zinc-900 pl-10 pr-10 py-2.5 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all placeholder:text-zinc-400 text-sm shadow-sm"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
-                <input
-                  type="password"
-                  required
-                  placeholder="Password"
-                  className="w-full bg-zinc-950/50 border border-zinc-800 text-white pl-12 pr-4 py-4 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-700"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="relative w-full group overflow-hidden bg-white py-4 rounded-2xl font-bold text-black transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:hover:scale-100"
+              className="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-2.5 rounded-lg font-medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-zinc-900 shadow-sm flex items-center justify-center mt-2 text-sm"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="relative flex items-center justify-center gap-2 group-hover:text-white transition-colors">
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                ) : (
-                  "Identify & Enter"
-                )}
-              </span>
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                "Sign in"
+              )}
             </button>
           </form>
-
-          <div className="mt-8 pt-8 border-t border-zinc-800/50 text-center">
-            <span className="text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-              Encrypted Session: v2.4.0
-            </span>
-          </div>
         </div>
       </div>
     </div>
