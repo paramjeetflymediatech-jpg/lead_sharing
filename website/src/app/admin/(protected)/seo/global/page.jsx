@@ -59,7 +59,7 @@ export default function GlobalSeoPage() {
 
             if (res.ok) {
                 toast.success("Global schema updated successfully");
-                router.refresh();
+                router.push("/admin/seo");
             } else {
                 const error = await res.json();
                 toast.error(error.error || "Something went wrong");
