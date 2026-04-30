@@ -39,6 +39,7 @@ async function getServiceData(slug) {
 export async function generateMetadata({ params }) {
     const { location } = await params;
     const path = `/local-tradespeople/${location}`;
+    const formattedLocation = formatLocation(location);
 
     const adminSeo = await getSeoMetadata(path);
     if (adminSeo && adminSeo.title !== 'AllCarePros Canada') {
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }) {
     }
 
     const data = await getServiceData(location);
-
+    const seoArray = []
     if (data?.seo) {
         return {
             title: data.seo.title,
@@ -54,33 +55,27 @@ export async function generateMetadata({ params }) {
             keywords: data.seo.keywords,
         };
     } else {
-        const newData = Object.values(TRADE_SERVICE_LINKS).find((item) => {
-            if (item.location.toLowerCase() === formatLocation(location).toLowerCase()) {
-                return {
+        Object.values(TRADE_SERVICE_LINKS).find((item) => {
+            if (item.location.toLowerCase() === formattedLocation.toLowerCase()) {
+                seoArray.push({
                     title: item.seo.title,
                     description: item.seo.description,
                     keywords: item.seo.keywords
-                };
+                })
             } else {
-                const s = item.services.filter((service) => {
-                    if (service.name.toLowerCase() === formatLocation(location).toLowerCase()) {
-                        return {
+                item.services.find((service) => {
+                    if (service.name.toLowerCase() === formattedLocation.toLowerCase()) {
+                        seoArray.push({
                             title: service.seo.title,
                             description: service.seo.description,
                             keywords: service.seo.keywords
-                        };
+                        });
                     }
                 });
-                return s?.[0]?.seo
             }
         });
-        return newData?.seo
+        return seoArray[0]
     }
-    const formattedLocation = formatLocation(location);
-    return {
-        title: `Local Tradespeople in ${formattedLocation} | Leadsharing`,
-        description: `Find reliable local tradespeople in ${formattedLocation}.`,
-    };
 }
 
 export default async function LocationPage({ params }) {
