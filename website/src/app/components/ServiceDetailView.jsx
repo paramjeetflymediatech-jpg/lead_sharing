@@ -52,7 +52,7 @@ export default function ServiceDetailView({ location, initialData }) {
             .catch(console.error);
     }, []);
 
-    console.log(selectedData,'f')
+
 
     return (
         <div className="bg-white min-h-screen font-sans text-zinc-900">

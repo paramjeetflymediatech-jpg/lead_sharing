@@ -2,6 +2,7 @@ import MainLayout from "../../main/layout";
 import ServiceDetailView from "../../components/ServiceDetailView";
 import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 import { Service } from "@/models/Service";
+import { TRADE_SERVICE_LINKS } from "@/constants/locations";
 
 function formatLocation(slug) {
     if (!slug) return "";
@@ -38,21 +39,43 @@ async function getServiceData(slug) {
 export async function generateMetadata({ params }) {
     const { location } = await params;
     const path = `/local-tradespeople/${location}`;
-    
+
     const adminSeo = await getSeoMetadata(path);
     if (adminSeo && adminSeo.title !== 'AllCarePros Canada') {
         return adminSeo;
     }
 
     const data = await getServiceData(location);
+
     if (data?.seo) {
         return {
             title: data.seo.title,
             description: data.seo.description,
             keywords: data.seo.keywords,
         };
+    } else {
+        const newData = Object.values(TRADE_SERVICE_LINKS).find((item) => {
+            if (item.location.toLowerCase() === formatLocation(location).toLowerCase()) {
+                return {
+                    title: item.seo.title,
+                    description: item.seo.description,
+                    keywords: item.seo.keywords
+                };
+            } else {
+                const s = item.services.filter((service) => {
+                    if (service.name.toLowerCase() === formatLocation(location).toLowerCase()) {
+                        return {
+                            title: service.seo.title,
+                            description: service.seo.description,
+                            keywords: service.seo.keywords
+                        };
+                    }
+                });
+                return s?.[0]?.seo
+            }
+        });
+        return newData?.seo
     }
-
     const formattedLocation = formatLocation(location);
     return {
         title: `Local Tradespeople in ${formattedLocation} | Leadsharing`,
@@ -64,7 +87,7 @@ export default async function LocationPage({ params }) {
     const { location } = await params;
     const path = `/local-tradespeople/${location}`;
     const serviceData = await getServiceData(location);
-    
+
     const schema = await getSeoSchema(path);
 
     return (
