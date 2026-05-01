@@ -55,8 +55,8 @@ async function checkSchema() {
         )
         .join("\n") + "\n\n";
 
-    fs.writeFileSync("schema_output.txt", output);
-    console.log("Schema written to schema_output.txt");
+    // fs.writeFileSync("schema_output.txt", output);
+    console.log("Schema written to schema_output.txt",output);
     process.exit(0);
   } catch (error) {
     console.error("Error:", error);
