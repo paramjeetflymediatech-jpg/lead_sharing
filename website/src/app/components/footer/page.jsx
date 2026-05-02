@@ -149,7 +149,7 @@ export default function Footer() {
 
               {/* Google Play Badge */}
               <a
-                href="https://play.google.com/store"
+                href="https://play.google.com/store/apps/details?id=com.allcarepros.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-colors duration-200 w-full"
