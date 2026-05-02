@@ -1,3 +1,4 @@
+import { FaFacebook, FaTwitter, FaInstagram, FaPinterest, FaYoutube } from 'react-icons/fa'
 export const LOCATION_DATA = {
   "Abbotsford": [
     "Gutter Installation in Abbotsford",
@@ -678,12 +679,11 @@ export const LOCATION_DATA = {
 };
 
 export const SOCIAL_LINKS = {
-  Facebook: "https://www.facebook.com/profile.php?id=61588823335052",
-  Instagram: "https://www.instagram.com/allcarepros189/",
-  Twitter: "https://x.com/AllcareP45841",
-  Linkedin: "https://www.linkedin.com",
-  YouTube: "https://www.youtube.com/@AllcarePros",
-  Pinterest:"https://in.pinterest.com/allcarepros"
+  Facebook: { icon: "FaFacebook", link: "https://www.facebook.com/profile.php?id=61588823335052" },
+  Instagram: { icon: "FaInstagram", link: "https://www.instagram.com/allcarepros189/" },
+  Twitter: { icon: "FaTwitter", link: "https://x.com/AllcareP45841" }, 
+  YouTube: { icon: "FaYoutube", link: "https://www.youtube.com/@AllcarePros" },
+  Pinterest: { icon: "FaPinterest", link: "https://in.pinterest.com/allcarepros" }
 };
 
 

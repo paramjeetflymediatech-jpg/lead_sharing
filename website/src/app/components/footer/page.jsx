@@ -1,5 +1,12 @@
 import { SOCIAL_LINKS } from "@/constants/locations";
-import { FaAppStore, FaGooglePlay, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPinterest, FaYoutube } from 'react-icons/fa'
+import { FaAppStore, FaGooglePlay, FaFacebook, FaTwitter, FaInstagram, FaPinterest, FaYoutube } from 'react-icons/fa'
+const socialIcons = [
+  FaFacebook,
+  FaInstagram,
+  FaTwitter,
+  FaYoutube,
+  FaPinterest,
+]
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-zinc-200">
@@ -161,15 +168,19 @@ export default function Footer() {
                 Follow us
               </h3>
               <div className="flex gap-4 justify-center sm:justify-start">
-                {[FaFacebook,  FaInstagram,FaTwitter, FaLinkedin,FaYoutube, FaPinterest].map((Icon, index) => (
-                  <a
-                    key={index}
-                    href={SOCIAL_LINKS[Icon.displayName]}
-                    className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#1149C7] hover:text-white transition"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </a>
-                ))}
+                {Object.entries(SOCIAL_LINKS).map(([icon, item], index) => {
+                  const Icon = socialIcons[index]
+                  const link = item.link
+                  return (
+                    <a
+                      key={index}
+                      href={link}
+                      className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#1149C7] hover:text-white transition"
+                    >
+                      <Icon className="w-4 h-4" />
+                    </a>
+                  )
+                })}
               </div>
             </div>
           </div>
