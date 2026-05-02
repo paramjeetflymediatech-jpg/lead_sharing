@@ -1,0 +1,207 @@
+const cities = [
+    {
+        "location": "Surrey",
+        "title": "Find Roofing Leak Repair Companies in Surrey, Roof Leak Repair in Surrey"
+    },
+    {
+        "location": "Surrey",
+        "title": "Find Roof Repair Companies in Surrey, Roof Repair in Surrey"
+    },
+    {
+        "location": "Surrey",
+        "title": "Find Tile Roofing Companies in Surrey, Tile Roofing in Surrey"
+    },
+    {
+        "location": "Surrey",
+        "title": "Find Gutter Installation Companies in Surrey, Gutter Installation in Surrey"
+    },
+    {
+        "location": "Surrey",
+        "title": "Find Metal Roofing Companies in Surrey, Metal Roofing in Surrey"
+    },
+    {
+        "location": "Surrey",
+        "title": "Find Roof Inspection Companies in Surrey, Roof Inspection in Surrey"
+    },
+    {
+        "location": "Surrey",
+        "title": "Find Roof Installation Companies in Surrey, Roof Installation in Surrey"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Roofing Leak Repair Companies in Calgary, Roof Leak Repair in Calgary"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Roof Repair Companies in Calgary, Roof Repair in Calgary"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Tile Roofing Companies in Calgary, Tile Roofing in Calgary"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Gutter Installation Companies in Calgary, Gutter Installation in Calgary"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Metal Roofing Companies in Calgary, Metal Roofing in Calgary"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Roof Inspection Companies in Calgary, Roof Inspection in Calgary"
+    },
+    {
+        "location": "Calgary",
+        "title": "Find Roof Installation Companies in Calgary, Roof Installation in Calgary"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Roofing Leak Repair Companies in Edmonton, Roof Leak Repair in Edmonton"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Roof Repair Companies in Edmonton, Roof Repair in Edmonton"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Tile Roofing Companies in Edmonton, Tile Roofing in Edmonton"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Gutter Installation Companies in Edmonton, Gutter Installation in Edmonton"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Metal Roofing Companies in Edmonton, Metal Roofing in Edmonton"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Roof Inspection Companies in Edmonton, Roof Inspection in Edmonton"
+    },
+    {
+        "location": "Edmonton",
+        "title": "Find Roof Installation Companies in Edmonton, Roof Installation in Edmonton"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Roofing Leak Repair Companies in Red Deer, Roof Leak Repair in Red Deer"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Roof Repair Companies in Red Deer, Roof Repair in Red Deer"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Tile Roofing Companies in Red Deer, Tile Roofing in Red Deer"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Gutter Installation Companies in Red Deer, Gutter Installation in Red Deer"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Metal Roofing Companies in Red Deer, Metal Roofing in Red Deer"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Roof Inspection Companies in Red Deer, Roof Inspection in Red Deer"
+    },
+    {
+        "location": "Red Deer",
+        "title": "Find Roof Installation Companies in Red Deer, Roof Installation in Red Deer"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Roofing Leak Repair Companies in Lethbridge, Roof Leak Repair in Lethbridge"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Roof Repair Companies in Lethbridge, Roof Repair in Lethbridge"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Tile Roofing Companies in Lethbridge, Tile Roofing in Lethbridge"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Gutter Installation Companies in Lethbridge, Gutter Installation in Lethbridge"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Metal Roofing Companies in Lethbridge, Metal Roofing in Lethbridge"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Roof Inspection Companies in Lethbridge, Roof Inspection in Lethbridge"
+    },
+    {
+        "location": "Lethbridge",
+        "title": "Find Roof Installation Companies in Lethbridge, Roof Installation in Lethbridge"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Roofing Leak Repair Companies in Medicine Hat, Roof Leak Repair in Medicine Hat"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Roof Repair Companies in Medicine Hat, Roof Repair in Medicine Hat"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Tile Roofing Companies in Medicine Hat, Tile Roofing in Medicine Hat"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Gutter Installation Companies in Medicine Hat, Gutter Installation in Medicine Hat"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Metal Roofing Companies in Medicine Hat, Metal Roofing in Medicine Hat"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Roof Inspection Companies in Medicine Hat, Roof Inspection in Medicine Hat"
+    },
+    {
+        "location": "Medicine Hat",
+        "title": "Find Roof Installation Companies in Medicine Hat, Roof Installation in Medicine Hat"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Roofing Leak Repair Companies in Fort McMurray, Roof Leak Repair in Fort McMurray"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Roof Repair Companies in Fort McMurray, Roof Repair in Fort McMurray"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Tile Roofing Companies in Fort McMurray, Tile Roofing in Fort McMurray"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Gutter Installation Companies in Fort McMurray, Gutter Installation in Fort McMurray"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Metal Roofing Companies in Fort McMurray, Metal Roofing in Fort McMurray"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Roof Inspection Companies in Fort McMurray, Roof Inspection in Fort McMurray"
+    },
+    {
+        "location": "Fort McMurray",
+        "title": "Find Roof Installation Companies in Fort McMurray, Roof Installation in Fort McMurray"
+    },
+    {
+        "location": "Grande Prairie",
+        "title": "Find Roofing Leak Repair Companies in Grande Prairie, Roof Leak Repair in Grande Prairie"
+    }
+]
+
+ const sortedLocations = Object.values(cities)
+  .sort((a, b) => a.location.localeCompare(b.location));
+
+console.log(sortedLocations,'d')
