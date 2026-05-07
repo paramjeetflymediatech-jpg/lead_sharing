@@ -28,9 +28,10 @@ const COMMON_PAGES = [
     { label: "Trade Advice Centre", value: "/trade-advice" },
     { label: "Trends Report", value: "/trends-report" },
     { label: "Contact Us", value: "/contact" },
-    { label: "Privacy Policy", value: "/privacy" },
+    { label: "Privacy Policy", value: "/privacy-policy" },
     { label: "Terms of Service", value: "/terms" },
-
+    { label: "Data Deletion", value: "/data-deletion" },
+    { label: "Blog", value: "/blog" },
 ];
 
 export default function SeoForm({ initialData, isEditing = false }) {
@@ -156,7 +157,7 @@ export default function SeoForm({ initialData, isEditing = false }) {
                                     <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
                                         <p className="text-xs text-blue-700 font-medium mb-1">Dynamic Path Support:</p>
                                         <p className="text-xs text-blue-600 leading-relaxed">
-                                            You can use dynamic patterns like <code className="bg-blue-100 px-1 rounded">/local-tradespeople/[location]</code>. 
+                                            You can use dynamic patterns like <code className="bg-blue-100 px-1 rounded">/local-tradespeople/[location]</code>.
                                             The <code className="bg-blue-100 px-1 rounded">[location]</code> placeholder will be automatically replaced in your titles and descriptions.
                                         </p>
                                     </div>
