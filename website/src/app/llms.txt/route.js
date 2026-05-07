@@ -1,5 +1,6 @@
 import { Service } from "@/models/Service";
 import { Location } from "@/models/Location";
+import { Blog } from "@/models/Blog";
 
 export async function GET() {
     let dynamicServices = [];
@@ -18,7 +19,16 @@ export async function GET() {
         console.error("Error fetching locations for llms.txt:", error);
     }
 
+    let blogs = [];
+    try {
+        const blogsResult = await Blog.find({ status: 'published' }).select('title slug');
+        blogs = blogsResult.map(b => b.title);
+    } catch (error) {
+        console.error("Error fetching blogs for llms.txt:", error);
+    }
+
     const uniqueServices = [...new Set(dynamicServices)];
+    const uniqueBlogs = [...new Set(blogs)];
 
     const content = `# Leadsharing - Professional Tradespeople Directory
 
@@ -31,6 +41,10 @@ ${uniqueServices.map(s => `- ${s}`).join('\n')}
 ## Locations Served
 We serve multiple locations across Canada, including:
 ${dbLocations.map(l => `- ${l}`).join('\n')}
+
+## Blogs
+Here are some of our blogs:
+${uniqueBlogs.map(b => `- ${b}`).join('\n')}
 
 ## How it Works
 1. Homeowners post a job with details, photos, and budget.

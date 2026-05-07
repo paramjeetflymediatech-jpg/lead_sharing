@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { Service } from '@/models/Service';
+import { Blog } from '@/models/Blog';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leadsharing.socialflymediatech.com';
@@ -38,9 +39,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     } catch (error) {
         console.error("Error fetching services for sitemap:", error);
     }
+    
+    let dynamicBlogPages: MetadataRoute.Sitemap = [];
+    try {
+        const blogsResult = await Blog.find({ status: 'published' }, { limit: 1000 });
+        dynamicBlogPages = blogsResult.blogs.map((b: any) => ({
+            url: `${baseUrl}/blog/${b.slug}`,
+            lastModified: b.updatedAt || new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+        }));
+    } catch (error) {
+        console.error("Error fetching blogs for sitemap:", error);
+    }
 
     // Combine all, use a Map to filter duplicates by URL
-    const allPages = [...staticPages, ...dynamicServicePages];
+    const allPages = [...staticPages, ...dynamicServicePages, ...dynamicBlogPages];
     const uniquePagesMap = new Map();
     allPages.forEach(page => uniquePagesMap.set(page.url, page));
 
