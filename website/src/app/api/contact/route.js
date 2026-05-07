@@ -27,7 +27,7 @@ export async function POST(request) {
         // 📧 Notify Admin
         try {
             await sendEmail({
-                to: process.env.EMAIL_SERVER_USER,
+                to: "anujguptaflymedia@gmail.com",
                 subject: `New Support Inquiry: ${subject || 'No Subject'}`,
                 html: `
                     <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 12px;">
