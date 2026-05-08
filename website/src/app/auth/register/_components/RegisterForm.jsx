@@ -592,9 +592,9 @@ function RegisterFormContent() {
                             >
                                 ← Edit details
                             </button>
-                            <h2 className="mt-4 text-2xl font-bold text-black">Verify Phone</h2>
+                            <h2 className="mt-4 text-2xl font-bold text-black">Verify Email</h2>
                             <p className="text-sm text-zinc-500">
-                                Enter the 6-digit code sent to <span className="font-bold text-black">{phone}</span>
+                                Enter the 6-digit code sent to <span className="font-bold text-black">{email}</span>
                             </p>
                         </div>
 

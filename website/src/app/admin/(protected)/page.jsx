@@ -86,7 +86,7 @@ export default function AdminDashboard() {
             value: stats.pendingVerifications || 0,
             icon: ClipboardDocumentCheckIcon,
             color: "purple",
-            href: "/admin/tradespeople",
+            href: "/admin/verifications",
             detail: "Tradespeople awaiting approval"
         },
         {
