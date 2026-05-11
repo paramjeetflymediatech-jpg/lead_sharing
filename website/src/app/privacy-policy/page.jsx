@@ -1,13 +1,23 @@
 import MainLayout from "../main/layout";
-import { getSeoMetadata } from "@/lib/seo-helper";
+import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
     return await getSeoMetadata("/privacy-policy");
 }
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+    const schema = await getSeoSchema("/privacy-policy");
+
     return (
         <MainLayout>
+            {schema && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: schema }}
+                />
+            )}
             <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm">
                     <h1 className="text-3xl font-extrabold text-gray-900 mb-8 pb-4 border-b">Privacy Policy</h1>
