@@ -124,9 +124,10 @@ export default function SeoForm({ initialData, isEditing = false }) {
                             {isEditing ? (
                                 <input
                                     type="text"
+                                    name="pageName"
                                     value={formData.pageName}
-                                  
-                                    className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500"
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 />
                             ) : (
                                 <div className="space-y-2">
