@@ -1,15 +1,24 @@
 import MainLayout from "../main/layout";
 import ServiceDirectory from "../components/ServiceDirectory";
+import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 
-export const metadata = {
-    title: "Service Directory | Local Tradespeople in Canada",
-    description: "Browse our comprehensive directory of local tradespeople across Canada. Find reliable professionals for plumbing, electrical, roofing, and more in your neighborhood.",
-    keywords: "local tradespeople canada, service directory, home improvement pros, vetted tradespeople"
-};
+export const dynamic = "force-dynamic";
 
-export default function DirectoryPage() {
+export async function generateMetadata() {
+    return await getSeoMetadata("/local-tradespeople");
+}
+
+export default async function DirectoryPage() {
+    const schema = await getSeoSchema("/local-tradespeople");
+
     return (
         <MainLayout>
+            {schema && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: schema }}
+                />
+            )}
             <ServiceDirectory />
         </MainLayout>
     );

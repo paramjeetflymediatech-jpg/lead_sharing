@@ -1,133 +1,24 @@
-"use client";
+import AdminDashboardClient from "./_components/AdminDashboardClient";
+import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import {
-    UserGroupIcon,
-    BriefcaseIcon,
-    ClipboardDocumentCheckIcon,
-    CurrencyDollarIcon
-} from "@heroicons/react/24/outline";
+export const dynamic = "force-dynamic";
 
-export default function AdminDashboard() {
-    const [stats, setStats] = useState({
-        totalUsers: 0,
-        totalHomeowners: 0,
-        totalTradespeople: 0,
-        totalJobs: 0,
-        totalLeads: 0,
-        pendingVerifications: 0,
-        totalDeletionRequests: 0,
-        revenue: 0
-    });
-    const [loading, setLoading] = useState(true);
+export async function generateMetadata() {
+    return await getSeoMetadata("/admin");
+}
 
-    useEffect(() => {
-        fetchDashboardStats();
-    }, []);
-
-    const fetchDashboardStats = async () => {
-        try {
-            const res = await fetch("/api/admin/dashboard");
-            if (res.ok) {
-                const data = await res.json();
-                setStats(data);
-            }
-        } catch (error) {
-            console.error("Error fetching admin stats:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
-
-    const statCards = [
-        {
-            title: "Total Users",
-            value: stats.totalUsers || 0,
-            icon: UserGroupIcon,
-            color: "blue",
-            href: "/admin/users",
-            detail: `${stats.totalHomeowners || 0} Homeowners • ${stats.totalTradespeople || 0} Trades`
-        },
-        {
-            title: "Total Jobs",
-            value: stats.totalJobs || 0,
-            icon: BriefcaseIcon,
-            color: "green",
-            href: "/admin/jobs",
-            detail: "Posted across all categories"
-        },
-        {
-            title: "Total Leads",
-            value: stats.totalLeads || 0,
-            icon: ClipboardDocumentCheckIcon,
-            color: "purple",
-            href: "/admin/leads",
-            detail: "Unlocked leads"
-        },
-        {
-            title: "Total Revenue",
-            value: `$${stats.revenue || 0}`,
-            icon: CurrencyDollarIcon,
-            color: "orange",
-            href: "/admin/revenue",
-            detail: "Total platform revenue"
-        },
-        {
-            title: "Verifications",
-            value: stats.pendingVerifications || 0,
-            icon: ClipboardDocumentCheckIcon,
-            color: "purple",
-            href: "/admin/verifications",
-            detail: "Tradespeople awaiting approval"
-        },
-        {
-            title: "Deletion Requests",
-            value: stats.totalDeletionRequests || 0,
-            icon: ClipboardDocumentCheckIcon,
-            color: "red",
-            href: "/admin/deletion-requests",
-            detail: "Pending account deletions"
-        }
-    ];
+export default async function AdminDashboard() {
+    const schema = await getSeoSchema("/admin");
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Admin Dashboard</h1>
-                <p className="text-zinc-500 mt-2">Platform overview and performance metrics.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {statCards.map((card, index) => (
-                    <Link
-                        key={index}
-                        href={card.href}
-                        className="group bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-xl hover:scale-[1.02] hover:border-blue-500 transition-all duration-300"
-                    >
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-bold text-zinc-500 uppercase tracking-widest group-hover:text-blue-600 transition-colors uppercase">{card.title}</p>
-                                <h3 className="text-3xl font-black text-zinc-900 dark:text-white mt-2 group-hover:scale-110 origin-left transition-transform">{card.value}</h3>
-                            </div>
-                            <div className={`p-3 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-900/10 group-hover:bg-blue-600 group-hover:text-white transition-all`}>
-                                <card.icon className={`w-6 h-6 text-${card.color}-600 dark:text-${card.color}-400 group-hover:text-white transition-colors`} />
-                            </div>
-                        </div>
-                        <p className="text-xs text-zinc-400 font-medium mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
-                            {card.detail}
-                        </p>
-                    </Link>
-                ))}
-            </div>
-        </div>
+        <>
+            {schema && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: schema }}
+                />
+            )}
+            <AdminDashboardClient />
+        </>
     );
 }

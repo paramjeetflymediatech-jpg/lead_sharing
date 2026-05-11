@@ -621,6 +621,11 @@ import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Lead } from "@/models/Lead";
 import db from "../../../config/db";
 import TradespersonJobsList from "./TradespersonJobsList";
+import { getSeoMetadata, getSeoSchema } from "@/lib/seo-helper";
+
+export async function generateMetadata() {
+  return await getSeoMetadata("/tradesperson");
+}
 import {
   UserCircle,
   Building,
@@ -799,7 +804,16 @@ export default async function TradespersonDashboard({ searchParams }) {
         .slice(0, 2);
     };
 
+    const schema = await getSeoSchema("/tradesperson");
+
     return (
+      <>
+        {schema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: schema }}
+          />
+        )}
       <div className="space-y-8">
         {/* Payment Success Notification */}
         {/* Payment Success Notification */}
@@ -1179,7 +1193,8 @@ export default async function TradespersonDashboard({ searchParams }) {
           </aside>
         </div>
       </div>
-    );
+    </>
+  );
   } catch (error) {
     console.error("Dashboard Error:", error);
     return (
