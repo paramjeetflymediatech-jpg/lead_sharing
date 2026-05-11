@@ -125,7 +125,7 @@ export default function SeoForm({ initialData, isEditing = false }) {
                                 <input
                                     type="text"
                                     value={formData.pageName}
-                                    disabled
+                                  
                                     className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500"
                                 />
                             ) : (
