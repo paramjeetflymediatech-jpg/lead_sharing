@@ -239,7 +239,7 @@ export default function ServiceDetailView({ location, initialData }) {
                     <div className="lg:col-span-1">
                         <div className="lg:sticky lg:top-24 space-y-6 sm:space-y-8">
                         {/* Trust Badge Card */}
-                        <div className="bg-[#1149C7] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-200/50">
+                        {/* <div className="bg-[#1149C7] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-200/50">
                             <h3 className="text-lg sm:text-xl font-bold mb-4">Why choose AllCarePros in {selectedData.location}?</h3>
                             <ul className="space-y-3 sm:space-y-4">
                                 {[
@@ -257,7 +257,7 @@ export default function ServiceDetailView({ location, initialData }) {
                             <button className="w-full mt-6 sm:mt-8 bg-white text-[#1149C7] font-bold py-3.5 sm:py-4 rounded-xl shadow-lg hover:bg-gray-50 transition-colors text-sm sm:text-base">
                                 Post Your Job Now
                             </button>
-                        </div>
+                        </div> */}
 
                         {/* More Locations Card */}
                         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm">
