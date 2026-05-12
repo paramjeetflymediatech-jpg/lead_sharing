@@ -3,8 +3,8 @@ import { FaAppStore, FaGooglePlay, FaFacebook, FaTwitter, FaInstagram, FaPintere
 const socialIcons = [
   FaFacebook,
   FaInstagram,
-  FaTwitter,
   FaYoutube,
+  FaTwitter,
   FaPinterest,
 ]
 export default function Footer() {
