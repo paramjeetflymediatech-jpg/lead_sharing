@@ -71,3 +71,27 @@ body {
 .animate-scale-in {
   animation: scaleIn 0.3s ease-out;
 }
+
+/* CKEditor 5 custom styling overrides */
+.ck-editor__editable {
+  min-height: 350px !important;
+  max-height: 650px !important;
+  border-bottom-left-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  padding: 0 1.5rem !important;
+}
+.ck-toolbar {
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  border-color: #E5E7EB !important;
+  background-color: #F9FAFB !important;
+}
+.ck.ck-editor__main>.ck-editor__editable:focus {
+  border-color: #1149C7 !important;
+  box-shadow: 0 0 0 2px rgba(17, 73, 199, 0.1) !important;
+}
+.ck.ck-editor {
+  width: 100% !important;
+}

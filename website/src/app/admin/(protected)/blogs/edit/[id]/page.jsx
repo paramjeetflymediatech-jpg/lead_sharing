@@ -5,6 +5,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, PhotoIcon, GlobeAltIcon, ShareIcon, CodeBracketIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+import CKEditorField from "@/app/components/CKEditorField";
 
 export default function EditBlogPage({ params }) {
     const { id } = use(params);
@@ -80,6 +81,14 @@ export default function EditBlogPage({ params }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validation for editor content
+        const cleanContent = formData.content.replace(/<[^>]*>/g, '').trim();
+        if (!cleanContent) {
+            toast.error("Content is required");
+            return;
+        }
+
         setSaving(true);
 
         try {
@@ -179,13 +188,11 @@ export default function EditBlogPage({ params }) {
 
                             <div className="space-y-1">
                                 <label className="text-sm font-bold text-gray-700">Content <span className="text-red-500">*</span></label>
-                                <textarea
-                                    required
-                                    name="content"
-                                    rows="12"
+                                <p className="text-xs text-gray-400 mb-2">Supports rich text HTML formatting</p>
+                                <CKEditorField
                                     value={formData.content}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all font-mono text-sm"
+                                    onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
+                                    placeholder="Write your blog content here..."
                                 />
                             </div>
 
