@@ -70,6 +70,8 @@ async function runMigration() {
         phone_verified BOOLEAN DEFAULT FALSE,
         otp_code VARCHAR(10) DEFAULT NULL,
         otp_expires_at DATETIME DEFAULT NULL,
+        is_deletion_pending BOOLEAN DEFAULT FALSE,
+        deletion_requested_at DATETIME DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       );
@@ -222,6 +224,22 @@ async function runMigration() {
       );
     `);
     console.log("✅ services");
+
+    /* ===== LOCATIONS ===== */
+    await connection.query(`
+      CREATE TABLE locations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        address_line1 VARCHAR(255) NOT NULL,
+        address_line2 VARCHAR(255) DEFAULT NULL,
+        city VARCHAR(100) NOT NULL,
+        postcode VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      );
+    `);
+    console.log("✅ locations");
 
     /* ===== TRADESPERSON PROFILES ===== */
     await connection.query(`

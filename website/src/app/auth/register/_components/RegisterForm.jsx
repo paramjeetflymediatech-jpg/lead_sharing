@@ -297,17 +297,78 @@ function RegisterFormContent() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.error || "Invalid OTP");
-            }
-
-            toast.success("Account verified successfully!");
-
-            // Redirect based on role
-            if (data.role === "TRADESPERSON") {
-                window.location.href = "/onboarding";
-            } else {
+                // If verification fails, fallback to homeowner home
                 window.location.href = "/homeowner";
+                return;
             }
+
+            // Verification succeeded – handle post‑registration redirect
+            if (data.role === "HOMEOWNER") {
+                const pendingJob = sessionStorage.getItem("pendingJobPostData");
+                if (pendingJob) {
+                    try {
+                        const jobData = JSON.parse(pendingJob);
+                        const jobToast = toast.loading("Posting your pending job...");
+                        const jobRes = await fetch("/api/jobs", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(jobData),
+                            credentials: "include"
+                        });
+                        const jobResult = await jobRes.json();
+                        toast.dismiss(jobToast);
+                        if (jobRes.ok) {
+                            toast.success("🎉 Job created successfully from your form details!");
+                            sessionStorage.removeItem("pendingJobPostData");
+                            // Clear other pending tags
+                            sessionStorage.removeItem("pendingTrade");
+                            sessionStorage.removeItem("pendingJobPost");
+                            setTimeout(() => {
+                                window.location.href = "/homeowner";
+                            }, 1500);
+                            return;
+                        } else {
+                            toast.error(jobResult.message || "Failed to post pending job. Redirecting to post job page...");
+                            setTimeout(() => {
+                                window.location.href = "/jobs";
+                            }, 2000);
+                            return;
+                        }
+                    } catch (jobErr) {
+                        console.error("Failed to post pending job:", jobErr);
+                        toast.error("An error occurred. Redirecting to post job page...");
+                        setTimeout(() => {
+                            window.location.href = "/jobs";
+                        }, 2000);
+                        return;
+                    }
+                }
+            } else {
+                // Non-homeowner signup, clear pending job
+                sessionStorage.removeItem("pendingJobPostData");
+            }
+
+            const redirectBase = searchParams.get('redirect') || '/jobs';
+            let targetUrl = redirectBase;
+            // Prefer trade stored in sessionStorage (from LeadsharingHome)
+            const pendingTrade = sessionStorage.getItem('pendingTrade');
+            if (pendingTrade) {
+                const separator = targetUrl.includes('?') ? '&' : '?';
+                targetUrl = `${targetUrl}${separator}trade=${pendingTrade}`;
+                sessionStorage.removeItem('pendingTrade');
+            } else {
+                // Fallback to trade param that may have been passed in URL
+                const urlTrade = searchParams.get('trade');
+                if (urlTrade) {
+                    const separator = targetUrl.includes('?') ? '&' : '?';
+                    targetUrl = `${targetUrl}${separator}trade=${urlTrade}`;
+                }
+            }
+            // Clear generic pending flag if present
+            sessionStorage.removeItem('pendingJobPost');
+            // Finally redirect the user to the intended page
+            window.location.href = targetUrl;
+            return;
         } catch (err) {
             toast.error(err.message);
             setError(err.message);

@@ -36,6 +36,48 @@ export default function LoginForm() {
 
             toast.success("Welcome back! 🎉");
 
+            if (data.role === "HOMEOWNER") {
+                const pendingJob = sessionStorage.getItem("pendingJobPostData");
+                if (pendingJob) {
+                    try {
+                        const jobData = JSON.parse(pendingJob);
+                        const jobToast = toast.loading("Posting your pending job...");
+                        const jobRes = await fetch("/api/jobs", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(jobData),
+                            credentials: "include"
+                        });
+                        const jobResult = await jobRes.json();
+                        toast.dismiss(jobToast);
+                        if (jobRes.ok) {
+                            toast.success("🎉 Job created successfully from your form details!");
+                            sessionStorage.removeItem("pendingJobPostData");
+                            setTimeout(() => {
+                                window.location.href = "/homeowner";
+                            }, 1500);
+                            return;
+                        } else {
+                            toast.error(jobResult.message || "Failed to post pending job. Redirecting to post job page...");
+                            setTimeout(() => {
+                                window.location.href = "/jobs";
+                            }, 2000);
+                            return;
+                        }
+                    } catch (jobErr) {
+                        console.error("Failed to post pending job:", jobErr);
+                        toast.error("An error occurred. Redirecting to post job page...");
+                        setTimeout(() => {
+                            window.location.href = "/jobs";
+                        }, 2000);
+                        return;
+                    }
+                }
+            } else {
+                // Non-homeowner login, clear any pending job post to prevent issues
+                sessionStorage.removeItem("pendingJobPostData");
+            }
+
             switch (data.role) {
                 case "HOMEOWNER":
                     window.location.href = "/homeowner";

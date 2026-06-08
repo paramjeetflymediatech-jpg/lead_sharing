@@ -429,6 +429,38 @@ export default function JobCreationForm() {
     fetchSubCategories();
   }, [form.category]);
 
+  // Pre-fill from pending job post data in sessionStorage if it exists
+  useEffect(() => {
+    try {
+      const pendingData = sessionStorage.getItem("pendingJobPostData");
+      if (pendingData) {
+        const parsed = JSON.parse(pendingData);
+        setForm((prev) => ({
+          ...prev,
+          category: parsed.category || prev.category,
+          subCategory: parsed.subCategory || prev.subCategory,
+          ownership: parsed.ownership || prev.ownership,
+          description: parsed.description || prev.description,
+          postcode: parsed.postcode || (parsed.location && parsed.location.postcode) || prev.postcode,
+          city: parsed.city || (parsed.location && parsed.location.city) || prev.city,
+          startTime: parsed.startTime || prev.startTime,
+          jobStage: parsed.jobStage || prev.jobStage,
+          budgetMin: parsed.budgetMin || prev.budgetMin,
+          budgetMax: parsed.budgetMax || prev.budgetMax,
+          contactName: parsed.contactName || prev.contactName,
+          contactPhone: parsed.contactPhone || prev.contactPhone,
+          contactEmail: parsed.contactEmail || prev.contactEmail,
+        }));
+        if (parsed.media && parsed.media.length > 0) {
+          setUploadedMedia(parsed.media);
+        }
+        sessionStorage.removeItem("pendingJobPostData");
+      }
+    } catch (e) {
+      console.error("Failed to load pending job data", e);
+    }
+  }, []);
+
   // Pre-fill contact info from user data
   useEffect(() => {
     if (user && !isLoadingUser) {
@@ -767,10 +799,32 @@ export default function JobCreationForm() {
     const userRole = user?.role || user?.user?.role;
 
     if (!userEmail || !userId) {
-      toast.error("Please log in first to create a job", {
+      toast.error("Saving your job details. Please log in to complete posting...", {
         position: "top-center",
         duration: 4000,
       });
+      try {
+        sessionStorage.setItem("pendingJobPostData", JSON.stringify({
+          category: form.category,
+          subCategory: form.subCategory,
+          description: form.description.trim(),
+          location: {
+            postcode: form.postcode.trim().toUpperCase(),
+            city: form.city.trim(),
+          },
+          startTime: form.startTime,
+          jobStage: form.jobStage,
+          ownership: form.ownership,
+          budgetMin: Number(form.budgetMin),
+          budgetMax: Number(form.budgetMax),
+          media: uploadedMedia,
+          contactName: form.contactName.trim(),
+          contactPhone: form.contactPhone.trim(),
+          contactEmail: form.contactEmail.trim().toLowerCase(),
+        }));
+      } catch (err) {
+        console.error("Error saving pending job data:", err);
+      }
       setTimeout(() => {
         router.push("/auth/login");
       }, 1500);

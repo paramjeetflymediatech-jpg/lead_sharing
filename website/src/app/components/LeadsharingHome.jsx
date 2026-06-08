@@ -225,8 +225,14 @@ export default function LeadsharingHome({ location }) {
             // If logged in as homeowner, redirect to /jobs
             router.push("/jobs");
         } else {
-            // If not logged in or not homeowner, redirect to register
-            router.push(`/auth/register?role=HOMEOWNER&trade=${slug}`);
+            // Store pending trade in session storage for later use after signup
+            try {
+                sessionStorage.setItem("pendingTrade", slug);
+            } catch (e) {
+                console.error("Failed to store pending trade", e);
+            }
+            // If not logged in or not homeowner, redirect to register with redirect back to jobs and trade slug
+            router.push(`/auth/register?role=HOMEOWNER&redirect=/jobs&trade=${slug}`);
         }
     };
 
@@ -242,8 +248,14 @@ export default function LeadsharingHome({ location }) {
             // If logged in as homeowner, redirect to /jobs
             router.push("/jobs");
         } else {
-            // If not logged in or not homeowner, redirect to register
-            router.push("/auth/register?role=HOMEOWNER");
+            // Store a generic pending flag in session storage to indicate a job post attempt
+            try {
+                sessionStorage.setItem("pendingJobPost", "true");
+            } catch (e) {
+                console.error("Failed to store pending job flag", e);
+            }
+            // If not logged in or not homeowner, redirect to register with redirect back to jobs
+            router.push("/auth/register?role=HOMEOWNER&redirect=/jobs");
         }
     };
 
