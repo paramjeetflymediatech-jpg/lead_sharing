@@ -798,40 +798,7 @@ export default function JobCreationForm() {
     const userId = user?._id || user?.id || user?.userId || user?.user?._id || user?.user?.id;
     const userRole = user?.role || user?.user?.role;
 
-    if (!userEmail || !userId) {
-      toast.error("Saving your job details. Please log in to complete posting...", {
-        position: "top-center",
-        duration: 4000,
-      });
-      try {
-        sessionStorage.setItem("pendingJobPostData", JSON.stringify({
-          category: form.category,
-          subCategory: form.subCategory,
-          description: form.description.trim(),
-          location: {
-            postcode: form.postcode.trim().toUpperCase(),
-            city: form.city.trim(),
-          },
-          startTime: form.startTime,
-          jobStage: form.jobStage,
-          ownership: form.ownership,
-          budgetMin: Number(form.budgetMin),
-          budgetMax: Number(form.budgetMax),
-          media: uploadedMedia,
-          contactName: form.contactName.trim(),
-          contactPhone: form.contactPhone.trim(),
-          contactEmail: form.contactEmail.trim().toLowerCase(),
-        }));
-      } catch (err) {
-        console.error("Error saving pending job data:", err);
-      }
-      setTimeout(() => {
-        router.push("/auth/login");
-      }, 1500);
-      return;
-    }
-
-    if (userRole !== "HOMEOWNER") {
+    if (userId && userRole !== "HOMEOWNER") {
       toast.error("Only homeowners can create jobs", {
         position: "top-center",
         duration: 4000,
@@ -859,8 +826,17 @@ export default function JobCreationForm() {
       contactName: form.contactName.trim(),
       contactPhone: form.contactPhone.trim(),
       contactEmail: form.contactEmail.trim().toLowerCase(),
-      userId: userId,
+      ...(userId ? { userId } : {})
     };
+
+    // Save to sessionStorage if guest user (so it is preserved if redirect/refresh occurs)
+    if (!userId) {
+      try {
+        sessionStorage.setItem("pendingJobPostData", JSON.stringify(payload));
+      } catch (err) {
+        console.error("Error saving pending job data:", err);
+      }
+    }
 
     try {
       setLoading(true);
@@ -880,12 +856,40 @@ export default function JobCreationForm() {
       const data = await res.json();
       toast.dismiss(loadingToast);
 
-      if (!res.ok) throw new Error(data.message || "Failed to create job");
+      if (!res.ok) {
+        if (res.status === 409 || data.code === "EMAIL_EXISTS") {
+          toast.error("An account with this email exists. Redirecting to log in...", {
+            position: "top-center",
+            duration: 4000,
+          });
+          setTimeout(() => {
+            router.push("/auth/login");
+          }, 1500);
+          return;
+        }
+        throw new Error(data.message || "Failed to create job");
+      }
 
-      toast.success("🎉 Job created successfully!", {
-        position: "top-center",
-        duration: 3000,
-      });
+      // Successful post - clear the pending job data from sessionStorage
+      if (!userId) {
+        try {
+          sessionStorage.removeItem("pendingJobPostData");
+        } catch (err) {
+          console.error("Error clearing pending job data:", err);
+        }
+      }
+
+      if (data.userCreated) {
+        toast.success("🎉 Job posted! Account automatically created for you.", {
+          position: "top-center",
+          duration: 3000,
+        });
+      } else {
+        toast.success("🎉 Job created successfully!", {
+          position: "top-center",
+          duration: 3000,
+        });
+      }
 
       setForm({
         category: "",
@@ -908,7 +912,7 @@ export default function JobCreationForm() {
       setShowTradespersonSearch(false);
 
       setTimeout(() => {
-        router.push("/");
+        window.location.href = "/homeowner";
       }, 2000);
     } catch (err) {
       console.error("❌ ERROR:", err);

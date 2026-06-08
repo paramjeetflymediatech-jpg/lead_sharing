@@ -12,7 +12,8 @@ export async function middleware(req) {
     pathname.startsWith("/api/me") ||
     pathname.startsWith("/api/tradespeople/") ||
     pathname.startsWith("/api/tradesperson/ratings") ||
-    pathname.startsWith("/api/auth/otp");
+    pathname.startsWith("/api/auth/otp") ||
+    (pathname === "/api/jobs" && req.method === "POST");
 
   const authHeader = req.headers.get("authorization");
   let token = req.cookies.get("auth_token")?.value;

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../config/db";
+import { hashPassword, signAuthToken } from "@/lib/auth";
+import { setAuthCookie } from "@/lib/serverAuth";
 
 const MAX_LEADS_PER_JOB = 3;
 
@@ -151,13 +153,6 @@ export async function POST(req) {
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
-    if (!userId || role !== "HOMEOWNER") {
-      return NextResponse.json(
-        { message: "Unauthorized. Only homeowners can post jobs." },
-        { status: 403 }
-      );
-    }
-
     const body = await req.json();
     console.log("📥 Received Job Body:", body); // Debug log
 
@@ -181,6 +176,19 @@ export async function POST(req) {
       contactPhone,
       contactEmail,
     } = body;
+
+    let parsedUserId = userId;
+    let parsedUserRole = role;
+    let userCreated = false;
+    let token = null;
+
+    if (parsedUserId && parsedUserRole !== "HOMEOWNER") {
+      return NextResponse.json(
+        { message: "Unauthorized. Only homeowners can post jobs." },
+        { status: 403 }
+      );
+    }
+
     const start_time = startTimeSnake || startTime || "WITHIN_2_WEEKS";
     const job_stage = (jobStageSnake || jobStage || "PLANNING").replace("INSURANCE_WORK", "INSURANCE");
 
@@ -208,10 +216,51 @@ export async function POST(req) {
       );
     }
 
+    // Auto-create user account if not logged in
+    if (!parsedUserId) {
+      const cleanEmail = contactEmail.trim().toLowerCase();
+
+      // Check if user email already exists
+      const [existingUsers] = await pool.query(
+        "SELECT id, role FROM users WHERE email = ? LIMIT 1",
+        [cleanEmail]
+      );
+
+      if (existingUsers.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "EMAIL_EXISTS",
+            message: "An account with this email already exists. Please log in to complete posting."
+          },
+          { status: 409 }
+        );
+      }
+
+      // Automatically create a homeowner account
+      const tempPassword = Math.random().toString(36).slice(-10);
+      const passwordHash = await hashPassword(tempPassword);
+
+      // Insert new user into DB
+      const [userInsertResult] = await pool.query(
+        `INSERT INTO users (email, password, name, role, phone, phone_verified, created_at, updated_at)
+         VALUES (?, ?, ?, 'HOMEOWNER', ?, TRUE, NOW(), NOW())`,
+        [cleanEmail, passwordHash, contactName.trim(), contactPhone.trim()]
+      );
+
+      parsedUserId = userInsertResult.insertId;
+      parsedUserRole = "HOMEOWNER";
+      userCreated = true;
+
+      // Log the user in by generating auth token and setting auth cookie
+      token = signAuthToken({ userId: parsedUserId.toString(), role: "HOMEOWNER" });
+      await setAuthCookie(token);
+    }
+
     const subCategoryId = subCategory || 0;
     const mediaJson = media ? JSON.stringify(media) : "[]";
 
-    console.log(`📝 Creating job for user ${userId}`);
+    console.log(`📝 Creating job for user ${parsedUserId}`);
 
     const [result] = await pool.query(
       `INSERT INTO jobs (
@@ -235,12 +284,12 @@ export async function POST(req) {
         updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', NOW(), NOW())`,
       [
-        userId,
+        parsedUserId,
         category,
         subCategoryId,
         description,
         postcode,
-        city || '',
+        finalCity,
         start_time,
         job_stage,
         ownership,
@@ -296,6 +345,9 @@ export async function POST(req) {
       success: true,
       message: "Job posted successfully",
       jobId: result.insertId,
+      userCreated,
+      token,
+      user: userCreated ? { id: parsedUserId.toString(), email: contactEmail.trim().toLowerCase(), name: contactName.trim(), role: 'HOMEOWNER' } : null
     });
 
   } catch (error) {
