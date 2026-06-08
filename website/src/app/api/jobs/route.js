@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../../config/db";
 import { hashPassword, signAuthToken } from "@/lib/auth";
 import { setAuthCookie } from "@/lib/serverAuth";
+import { sendWelcomeTempPasswordEmail } from "@/lib/mail";
 
 const MAX_LEADS_PER_JOB = 3;
 
@@ -181,6 +182,7 @@ export async function POST(req) {
     let parsedUserRole = role;
     let userCreated = false;
     let token = null;
+    let tempPassword = null;
 
     if (parsedUserId && parsedUserRole !== "HOMEOWNER") {
       return NextResponse.json(
@@ -238,7 +240,7 @@ export async function POST(req) {
       }
 
       // Automatically create a homeowner account
-      const tempPassword = Math.random().toString(36).slice(-10);
+      tempPassword = Math.random().toString(36).slice(-10);
       const passwordHash = await hashPassword(tempPassword);
 
       // Insert new user into DB
@@ -257,6 +259,7 @@ export async function POST(req) {
       await setAuthCookie(token);
     }
 
+    
     const subCategoryId = subCategory || 0;
     const mediaJson = media ? JSON.stringify(media) : "[]";
 
@@ -303,6 +306,17 @@ export async function POST(req) {
     );
 
     console.log(`✅ Job created with ID: ${result.insertId}`);
+
+    // Send welcome email with temp password (after both user and job are successfully inserted)
+    if (userCreated && tempPassword) {
+      try {
+        const cleanEmail = contactEmail.trim().toLowerCase();
+        await sendWelcomeTempPasswordEmail(cleanEmail, contactName.trim(), tempPassword);
+        console.log(`✅ Welcome & password email sent to ${cleanEmail}`);
+      } catch (mailErr) {
+        console.error("❌ Failed to send welcome & password email:", mailErr);
+      }
+    }
 
     // 🚀 TRIGGER NOTIFICATIONS TO RELEVANT TRADESPEOPLE
     try {
