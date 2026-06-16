@@ -13,31 +13,36 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async ({ to, subject, html }) => {
     try {
-        let recipient = "";
+        let recipientList = [];
         
         if (Array.isArray(to)) {
-            recipient = to
+            recipientList = to
                 .map(email => (email !== null && email !== undefined) ? String(email).trim() : "")
-                .filter(Boolean)
-                .join(", ");
+                .filter(Boolean);
         } else if (typeof to === "string") {
-            recipient = to.split(/[,;]/).map(email => email.trim()).filter(Boolean).join(", ");
+            recipientList = to.split(/[,;]/).map(email => email.trim()).filter(Boolean);
         } else if (to) {
-            recipient = String(to).trim();
+            recipientList = [String(to).trim()];
         }
 
-        if (!recipient) {
+        if (recipientList.length === 0) {
             throw new Error("No recipients specified for sendEmail");
         }
 
-        const info = await transporter.sendMail({
-            from: process.env.SMTP_FROM || '"AllCarePros" <no-reply@allcarepros.ca>',
-            to: recipient,
-            subject,
-            html,
+        // Send individually to each recipient so they only see their own email address
+        const sendPromises = recipientList.map(async (recipient) => {
+            const info = await transporter.sendMail({
+                from: process.env.SMTP_FROM || '"AllCarePros" <no-reply@allcarepros.ca>',
+                to: recipient,
+                subject,
+                html,
+            });
+            console.log("Message sent to %s: %s", recipient, info.messageId);
+            return info;
         });
-        console.log("Message sent: %s", info.messageId);
-        return info;
+
+        const results = await Promise.all(sendPromises);
+        return results[0]; // Return the first result for compatibility
     } catch (error) {
         console.error("Error sending email:", error);
         throw error;
