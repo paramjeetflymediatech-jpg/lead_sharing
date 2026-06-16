@@ -26,8 +26,9 @@ export async function POST(request) {
 
         // 📧 Notify Admin
         try {
+            const supportEmails = process.env.SUPPORT_EMAILS || "anujguptaflymedia@gmail.com, support@allcarepros.com";
             await sendEmail({
-                to: "anujguptaflymedia@gmail.com",
+                to: supportEmails,
                 subject: `New Support Inquiry: ${subject || 'No Subject'}`,
                 html: `
                     <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 12px;">

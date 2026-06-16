@@ -13,9 +13,26 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async ({ to, subject, html }) => {
     try {
+        let recipient = "";
+        
+        if (Array.isArray(to)) {
+            recipient = to
+                .map(email => (email !== null && email !== undefined) ? String(email).trim() : "")
+                .filter(Boolean)
+                .join(", ");
+        } else if (typeof to === "string") {
+            recipient = to.split(/[,;]/).map(email => email.trim()).filter(Boolean).join(", ");
+        } else if (to) {
+            recipient = String(to).trim();
+        }
+
+        if (!recipient) {
+            throw new Error("No recipients specified for sendEmail");
+        }
+
         const info = await transporter.sendMail({
             from: process.env.SMTP_FROM || '"AllCarePros" <no-reply@leadsharing.com>',
-            to,
+            to: recipient,
             subject,
             html,
         });
