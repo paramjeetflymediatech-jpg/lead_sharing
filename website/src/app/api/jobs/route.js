@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../../config/db";
 import { hashPassword, signAuthToken } from "@/lib/auth";
 import { setAuthCookie } from "@/lib/serverAuth";
-import { sendWelcomeTempPasswordEmail } from "@/lib/mail";
+import { sendWelcomeTempPasswordEmail, sendNewJobAdminNotificationEmail } from "@/lib/mail";
 
 const MAX_LEADS_PER_JOB = 3;
 
@@ -316,6 +316,30 @@ export async function POST(req) {
       } catch (mailErr) {
         console.error("❌ Failed to send welcome & password email:", mailErr);
       }
+    }
+
+    // 📧 Notify Admin via Email
+    try {
+      const [catRows] = await pool.query('SELECT name FROM categories WHERE id = ?', [category]);
+      const categoryName = catRows[0]?.name || "N/A";
+
+      await sendNewJobAdminNotificationEmail({
+        id: result.insertId,
+        categoryName,
+        description,
+        city: finalCity,
+        postcode,
+        startTime: start_time,
+        jobStage: job_stage,
+        budgetMin,
+        budgetMax,
+        contactName,
+        contactEmail,
+        contactPhone,
+      });
+      console.log(`✅ Admin email notification sent for job #${result.insertId}`);
+    } catch (adminMailErr) {
+      console.error("❌ Failed to send admin email notification:", adminMailErr);
     }
 
     // 🚀 TRIGGER NOTIFICATIONS TO RELEVANT TRADESPEOPLE

@@ -1,5 +1,6 @@
 
 import nodemailer from "nodemailer";
+import pool from "../../config/db.js";
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_SERVER_HOST,
@@ -79,5 +80,70 @@ export const sendWelcomeTempPasswordEmail = async (email, name, tempPassword) =>
     `;
 
     return sendEmail({ to: email, subject, html });
+};
+
+export const sendNewJobAdminNotificationEmail = async (job) => {
+    try {
+        // Retrieve emails of all admin users from the DB
+        const [adminRows] = await pool.query("SELECT email FROM users WHERE role = 'ADMIN'");
+        const adminEmails = adminRows.map(row => row.email).filter(Boolean);
+
+        // Combine DB admins with support/admin emails from environment variables
+        const supportEmailsStr = process.env.SUPPORT_EMAILS || "anujguptaflymedia@gmail.com, support@allcarepros.com";
+        const envEmails = supportEmailsStr.split(/[,;]/).map(email => email.trim()).filter(Boolean);
+        
+        // Use a Set to remove duplicate email addresses
+        const uniqueRecipients = Array.from(new Set([...adminEmails, ...envEmails]));
+
+        if (uniqueRecipients.length === 0) {
+            console.warn("No admin recipients found for new job notification");
+            return;
+        }
+
+        const adminUrl = `${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/admin/jobs`;
+        const subject = `New Job Created #${job.id}: ${job.categoryName || "New Category"} in ${job.city || "Canada"}`;
+        
+        const html = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 12px;">
+                <h2 style="color: #1149C7; text-align: center;">New Job Posted</h2>
+                <p>Hello Admin,</p>
+                <p>A new job has been successfully created on AllCarePros. Below are the job details:</p>
+                
+                <div style="background-color: #f4f4f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Job ID:</strong> #${job.id}</p>
+                    <p style="margin: 5px 0;"><strong>Category:</strong> ${job.categoryName || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>City:</strong> ${job.city || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>Postcode:</strong> ${job.postcode || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>Start Time:</strong> ${job.startTime || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>Job Stage:</strong> ${job.jobStage || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>Budget:</strong> ${job.budgetMin ? `$${job.budgetMin}` : 'N/A'} - ${job.budgetMax ? `$${job.budgetMax}` : 'N/A'}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Description:</strong></p>
+                    <p style="margin: 5px 0; font-style: italic; color: #555;">${job.description || "N/A"}</p>
+                </div>
+                
+                <div style="background-color: #eef2ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1149C7;">
+                    <p style="margin: 0 0 5px 0;"><strong>Contact Information:</strong></p>
+                    <p style="margin: 5px 0;"><strong>Name:</strong> ${job.contactName || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>Phone:</strong> ${job.contactPhone || "N/A"}</p>
+                    <p style="margin: 5px 0;"><strong>Email:</strong> ${job.contactEmail || "N/A"}</p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${adminUrl}" style="background: #1149C7; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                        View in Admin Dashboard
+                    </a>
+                </div>
+                
+                <p style="font-size: 12px; color: #71717a; text-align: center; border-top: 1px solid #e4e4e7; padding-top: 15px; margin-top: 30px;">
+                    This is an automated notification from the AllCarePros system.
+                </p>
+            </div>
+        `;
+
+        return sendEmail({ to: uniqueRecipients, subject, html });
+    } catch (error) {
+        console.error("Error sending admin job email notification:", error);
+        throw error;
+    }
 };
 
