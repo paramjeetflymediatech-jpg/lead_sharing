@@ -174,6 +174,8 @@ export const Blog = {
 
             if (updates.length === 0) return null;
 
+            updates.push('updated_at = CURRENT_TIMESTAMP');
+
             values.push(id);
             await pool.query(`UPDATE blogs SET ${updates.join(', ')} WHERE id = ?`, values);
             return this.findById(id);

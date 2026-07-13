@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
             description: blog.ogDescription || blog.seoDescription || blog.excerpt,
             images: blog.ogImage || blog.featuredImage ? [{ url: blog.ogImage || blog.featuredImage }] : [],
             type: 'article',
-            publishedTime: blog.createdAt,
+            publishedTime: blog.updatedAt || blog.createdAt,
             authors: [blog.author],
         },
     };
@@ -97,7 +97,7 @@ export default async function BlogPostPage({ params }) {
                         </div>
                         <div className="flex items-center gap-2">
                             <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
-                            <span>{new Date(blog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            <span>{new Date(blog.updatedAt || blog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                         {blog.tags && (
                             <div className="flex items-center gap-2">

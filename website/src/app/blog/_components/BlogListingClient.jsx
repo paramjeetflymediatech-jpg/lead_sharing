@@ -108,7 +108,7 @@ export default function BlogListingClient() {
                                     <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
                                         <div className="flex items-center gap-1">
                                             <CalendarDaysIcon className="w-4 h-4" />
-                                            {new Date(blog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            {new Date(blog.updatedAt || blog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <UserIcon className="w-4 h-4" />
