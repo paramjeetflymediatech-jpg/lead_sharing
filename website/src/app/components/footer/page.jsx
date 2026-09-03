@@ -189,7 +189,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 mt-10 pt-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-            <p>© 2026 Leadsharing Ltd. All Rights Reserved</p>
+            <p>© 2026 All Care Pros. All Rights Reserved</p>
             <p>
               Designed & Developed by{" "}
               <a

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast, Toaster } from "react-hot-toast";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 // Validation Constants
 const VALIDATION_RULES = {
@@ -1047,16 +1048,14 @@ export default function JobCreationForm() {
             </div>
           </div>
 
-          {/* Trustpilot Rating */}
-          <div className="flex flex-col sm:flex-row items-center justify-center mt-4 gap-2 text-white text-xs sm:text-sm">
-            <span className="mr-0 sm:mr-2">Great</span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="w-4 h-4 sm:w-5 sm:h-5 bg-[#1149C7] flex items-center justify-center text-xs">★</div>
+          {/* Trust Rating */}
+          <div className="flex flex-col sm:flex-row items-center justify-center text-white text-xs sm:text-sm font-medium gap-1 sm:gap-2">
+            <div className="flex text-[#00b67a]">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <StarIcon key={star} className="h-4 w-4 sm:h-5 sm:w-5" />
               ))}
-              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-gray-400 flex items-center justify-center text-xs">★</div>
             </div>
-            <span className="ml-0 sm:ml-2 underline cursor-pointer">5,000+ reviews on Trustpilot</span>
+            <span className="ml-0 sm:ml-2">Trusted by Homeowners across Canada</span>
           </div>
         </div>
       )}
