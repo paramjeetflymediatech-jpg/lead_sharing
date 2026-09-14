@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDownIcon, Bars3Icon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/solid";
 import { LOCATION_DATA } from "@/constants/locations";
+import { cachedFetch, invalidateCache } from "@/lib/client-cache";
 
 export default function Header() {
   const router = useRouter();
@@ -29,10 +30,12 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
-    // Fetch trades
-    fetch('/api/subcategories')
-      .then(res => res.json())
+    let isMounted = true;
+
+    // Fetch trades with shared cache
+    cachedFetch('/api/subcategories', {}, 600000)
       .then(data => {
+        if (!isMounted || !Array.isArray(data)) return;
         setTrades(data.map(t => t.name));
 
         // Group trades by category
@@ -51,10 +54,10 @@ export default function Header() {
       })
       .catch(err => console.error(err));
 
-    // Fetch services by location
-    fetch('/api/services')
-      .then(res => res.json())
+    // Fetch services by location with shared cache
+    cachedFetch('/api/services', {}, 600000)
       .then(data => {
+        if (!isMounted || !Array.isArray(data)) return;
         const grouped = data.reduce((acc, service) => {
           const loc = service.location || (service.name.includes(" in ") ? service.name.split(" in ")[1] : "Other");
           if (!acc[loc]) acc[loc] = [];
@@ -65,17 +68,21 @@ export default function Header() {
       })
       .catch(err => console.error(err));
 
-    // Fetch locations
-    fetch('/api/locations')
-      .then(res => res.json())
+    // Fetch locations with shared cache
+    cachedFetch('/api/locations', {}, 600000)
       .then(data => {
+        if (!isMounted || !Array.isArray(data)) return;
         setDbLocations(data);
         if (data.length > 0) setActiveRegion(data[0].name);
       })
       .catch(err => console.error(err));
 
-    // Fetch user
+    // Fetch user with shared cache
     fetchUser();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Lock body scroll when mobile menu is open
@@ -103,11 +110,10 @@ export default function Header() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("/api/profile", {
+      const data = await cachedFetch("/api/profile", {
         credentials: "include"
-      });
-      if (res.ok) {
-        const data = await res.json();
+      }, 60000);
+      if (data && data.data) {
         setUser(data.data);
       }
     } catch (error) {
@@ -118,6 +124,7 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      invalidateCache();
       setUser(null);
       setShowUserMenu(false);
       router.push("/auth/login");
@@ -127,9 +134,11 @@ export default function Header() {
     }
   };
 
-  const filteredHeaderTrades = searchQuery === ""
-    ? []
-    : trades.filter((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredHeaderTrades = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return trades.filter((t) => t.toLowerCase().includes(q)).slice(0, 10);
+  }, [searchQuery, trades]);
 
   const adviceLinks = {
     "Ask a tradesperson": "/ask-a-tradesperson",

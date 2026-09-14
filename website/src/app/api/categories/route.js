@@ -38,7 +38,10 @@ export async function POST(req) {
 }
 
 export async function GET() {
-  // await connectToDatabase();
   const categories = await Category.find();
-  return NextResponse.json(categories);
+  return NextResponse.json(categories, {
+    headers: {
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+    },
+  });
 }

@@ -96,9 +96,7 @@ export default function Testimonials() {
                                         <span className="font-bold text-gray-900 text-xs xs:text-sm sm:text-base">
                                             {t.name}
                                         </span>
-                                        <span className="text-[#1149C7] text-[10px] xs:text-xs sm:text-sm font-bold cursor-pointer hover:underline">
-                                            Read more
-                                        </span>
+                                       
                                     </div>
                                 </div>
                             );

@@ -122,12 +122,20 @@ export async function GET(req) {
       const subcategories = await SubCategory.find({ 
         category: categoryId 
       });
-      return NextResponse.json(subcategories);
+      return NextResponse.json(subcategories, {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      });
     }
 
     // Warna sab subcategories bhejo
     const subcategories = await SubCategory.find();
-    return NextResponse.json(subcategories);
+    return NextResponse.json(subcategories, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
     
   } catch (error) {
     console.error("SUBCATEGORY FETCH ERROR:", error);

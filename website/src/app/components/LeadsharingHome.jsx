@@ -1,13 +1,44 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { LOCATION_DATA } from "@/constants/locations";
 import { FaAppStore, FaGooglePlay } from 'react-icons/fa';
 import JobCreationForm from "./jobForm";
 import Testimonials from "./Testimonials";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DocumentCheckIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { DocumentCheckIcon, ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { cachedFetch } from "@/lib/client-cache";
+
+const FALLBACK_TRADES = [
+    "Plumbing",
+    "Electrical",
+    "Painting & Decorating",
+    "Carpentry",
+    "Plastering",
+    "Heating",
+    "Roofing",
+    "Gardening",
+    "Bathroom Fitting",
+    "Kitchen Fitting",
+    "Tiling",
+    "Locksmith",
+    "Handyman",
+    "Flooring",
+    "Bricklaying",
+    "Appliance Repair"
+];
+
+const POPULAR_JOBS_STATIC = [
+    { name: "Internal painting and decorating", image: "/trades/painter.png", slug: "painter" },
+    { name: "Electrical installation or testing", image: "/trades/electrician.png", slug: "electrician" },
+    { name: "Plumbing repair and maintenance", image: "/trades/plumber.png", slug: "plumber" },
+    { name: "Bathroom, kitchen and WC Plumbing", image: "/trades/plumber.png", slug: "plumber" },
+    { name: "Gas boiler - installation", image: "/trades/heating.png", slug: "heating" },
+    { name: "Plaster skimming", image: "/trades/plasterer.png", slug: "plasterer" }
+];
+
+const INITIAL_TRADES_LIMIT = 32;
 
 export default function LeadsharingHome({ location }) {
     const router = useRouter();
@@ -18,14 +49,13 @@ export default function LeadsharingHome({ location }) {
     const [subcategories, setSubcategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState(null);
-    const [isLoadingUser, setIsLoadingUser] = useState(true);
+    const [showAllTrades, setShowAllTrades] = useState(false);
+    const [tradeSearch, setTradeSearch] = useState("");
 
     // Pagination for All Trades section
     const [currentPage, setCurrentPage] = useState(1);
 
     const getInitialData = () => {
-        // Since we removed static fallback, returning null when no initial dynamic data is provided.
-        // If needed, dynamic fetching handles the hydration.
         return null;
     };
 
@@ -34,10 +64,12 @@ export default function LeadsharingHome({ location }) {
 
     useEffect(() => {
         const updateItemsPerPage = () => {
-            if (window.innerWidth < 640) {
-                setItemsPerPage(20);
-            } else {
-                setItemsPerPage(48);
+            if (typeof window !== "undefined") {
+                if (window.innerWidth < 640) {
+                    setItemsPerPage(20);
+                } else {
+                    setItemsPerPage(48);
+                }
             }
         };
 
@@ -59,25 +91,21 @@ export default function LeadsharingHome({ location }) {
         "/trades/carpenter.png"
     ];
 
-    // Fetch user data
+    // Fetch user data in background without blocking initial page render
     const fetchUser = useCallback(async () => {
         try {
-            setIsLoadingUser(true);
-            const res = await fetch("/api/me", {
+            const userData = await cachedFetch("/api/me", {
                 credentials: "include",
-                cache: "no-store",
-            });
+            }, 60000); // 1 min cache for user session
 
-            if (res.ok) {
-                const userData = await res.json();
-                setUser(userData);
+            if (userData && (userData.user || userData.role || userData.email)) {
+                const userObj = userData.user || userData;
+                setUser(userObj);
 
                 // 🚫 Redirect tradesperson away from homepage
-                const userRole = userData?.role || userData?.user?.role;
+                const userRole = userObj?.role;
                 if (userRole === "TRADESPERSON") {
-                    console.log("Tradesperson detected, redirecting to /tradesperson");
                     router.push("/tradesperson");
-                    return;
                 }
             } else {
                 setUser(null);
@@ -85,8 +113,6 @@ export default function LeadsharingHome({ location }) {
         } catch (error) {
             console.error("Error fetching user:", error);
             setUser(null);
-        } finally {
-            setIsLoadingUser(false);
         }
     }, [router]);
 
@@ -102,7 +128,7 @@ export default function LeadsharingHome({ location }) {
 
     // Update SEO dynamically when a service is selected
     useEffect(() => {
-        if (selectedLocationData?.seo) {
+        if (selectedLocationData?.seo && typeof document !== "undefined") {
             document.title = selectedLocationData.seo.title;
             const metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc) {
@@ -110,35 +136,37 @@ export default function LeadsharingHome({ location }) {
             }
             const metaKeywords = document.querySelector('meta[name="keywords"]');
             if (metaKeywords) {
-                metaKeywords.setAttribute('content', selectedLocationData.seo.keywords);
+                metaKeywords.setAttribute('content', selectedLocationData.seo.keywords || "");
             }
         }
     }, [selectedLocationData]);
 
     useEffect(() => {
         if (location && !selectedLocationData) {
-            // Re-sync if props change after mount
             setSelectedLocationData(getInitialData());
         }
-    }, [location]);
+    }, [location, selectedLocationData]);
 
     useEffect(() => {
+        let isMounted = true;
+
         const fetchData = async () => {
             try {
-                const [catsRes, subCatsRes] = await Promise.all([
-                    fetch('/api/categories'),
-                    fetch('/api/subcategories')
+                const [catsData, subCatsData] = await Promise.all([
+                    cachedFetch('/api/categories', {}, 600000), // 10 min cache
+                    cachedFetch('/api/subcategories', {}, 600000)
                 ]);
-                const catsData = await catsRes.json();
-                const subCatsData = await subCatsRes.json();
-                console.log('catsData', catsData)
-                console.log('subCatsData', subCatsData)
-                setCategories(catsData);
-                setSubcategories(subCatsData);
+
+                if (isMounted) {
+                    setCategories(Array.isArray(catsData) ? catsData : []);
+                    setSubcategories(Array.isArray(subCatsData) ? subCatsData : []);
+                }
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error("Error fetching homepage data:", error);
             } finally {
-                setIsLoading(false);
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
         };
 
@@ -149,124 +177,19 @@ export default function LeadsharingHome({ location }) {
         }, 5000);
 
         return () => {
+            isMounted = false;
             clearInterval(imageTimer);
         };
     }, []);
 
-    const nextImage = () => {
-        setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    };
-
-    const prevImage = () => {
-        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-    };
-
-    const popularTrades = subcategories.slice(0, 6).map(sub => ({
-        name: sub.name,
-        sub: sub.category?.name || "General Trade",
-        slug: sub.slug,
-        image: `/trades/${sub.slug}.png`
-    }));
-
-    const displayPopularTrades = popularTrades;
-    console.log('displayPopularTrades', displayPopularTrades)
-
-    const allTrades = subcategories.map(sub => sub.name);
-    const displayAllTrades = allTrades;
-
-    const [showTradeDropdown, setShowTradeDropdown] = useState(false);
-    const [showJobDropdown, setShowJobDropdown] = useState(false);
-
-    const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-    const locationDropdownRef = useRef(null);
-
-    // Close location dropdown when clicking outside
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (locationDropdownRef.current && !locationDropdownRef.current.contains(event.target)) {
-                setShowLocationDropdown(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const jobTypes = allTrades;
-
-    const filteredTrades = trade === ""
-        ? displayAllTrades
-        : displayAllTrades.filter((t) => t.toLowerCase().includes(trade.toLowerCase()));
-
-    const filteredJobs = description === ""
-        ? jobTypes
-        : jobTypes.filter((j) => j.toLowerCase().includes(description.toLowerCase()));
-
-    // Function to scroll to job form
-    const scrollToJobForm = () => {
-        if (jobFormRef.current) {
-            jobFormRef.current.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        }
-    };
-
-    // Handle popular job click
-    const handlePopularJobClick = (e, slug) => {
-        e.preventDefault();
-
-        // Check if user is logged in and is a homeowner
-        const userEmail = user?.email || user?.user?.email;
-        const userRole = user?.role || user?.user?.role;
-
-        if (!isLoadingUser && userEmail && userRole === "HOMEOWNER") {
-            // If logged in as homeowner, redirect to /jobs
-            router.push("/jobs");
-        } else {
-            // Store pending trade in session storage for later use after signup
-            try {
-                sessionStorage.setItem("pendingTrade", slug);
-            } catch (e) {
-                console.error("Failed to store pending trade", e);
-            }
-            // If not logged in or not homeowner, redirect to register with redirect back to jobs and trade slug
-            router.push(`/auth/register?role=HOMEOWNER&redirect=/jobs&trade=${slug}`);
-        }
-    };
-
-    // Handle "Post a job" button click
-    const handlePostJobClick = (e) => {
-        e.preventDefault();
-
-        // Check if user is logged in and is a homeowner
-        const userEmail = user?.email || user?.user?.email;
-        const userRole = user?.role || user?.user?.role;
-
-        if (!isLoadingUser && userEmail && userRole === "HOMEOWNER") {
-            // If logged in as homeowner, redirect to /jobs
-            router.push("/jobs");
-        } else {
-            // Store a generic pending flag in session storage to indicate a job post attempt
-            try {
-                sessionStorage.setItem("pendingJobPost", "true");
-            } catch (e) {
-                console.error("Failed to store pending job flag", e);
-            }
-            // If not logged in or not homeowner, redirect to register with redirect back to jobs
-            router.push("/auth/register?role=HOMEOWNER&redirect=/jobs");
-        }
-    };
-
     const [dynamicServices, setDynamicServices] = useState([]);
 
     useEffect(() => {
+        let isMounted = true;
         const fetchDynamicServices = async () => {
             try {
-                const res = await fetch('/api/services');
-                if (res.ok) {
-                    const data = await res.json();
+                const data = await cachedFetch('/api/services', {}, 600000);
+                if (isMounted && Array.isArray(data)) {
                     setDynamicServices(data);
                 }
             } catch (error) {
@@ -274,90 +197,141 @@ export default function LeadsharingHome({ location }) {
             }
         };
         fetchDynamicServices();
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     // Map dynamic services to the grid
-    const dynamicLocations = dynamicServices.map(s => {
-        const descText = Array.isArray(s.description)
-            ? s.description.map(b => b.text).join(" ")
-            : (s.description || s.name);
+    const dynamicLocations = useMemo(() => {
+        return dynamicServices.map(s => {
+            const descText = Array.isArray(s.description)
+                ? s.description.map(b => b.text).join(" ")
+                : (s.description || s.name);
 
-        return {
-            name: s.name,
-            cityName: s.location || s.name.split(" in ")[1] || "Local Area",
-            data: {
-                location: s.location || s.name.split(" in ")[1] || "Local Area",
-                content: s.content || "",
-                description: s.description,
-                faq: s.faq || [],
-                seo: {
-                    title: s.name,
-                    description: descText
-                }
-            },
-            isDynamic: true
-        };
-    });
+            return {
+                name: s.name,
+                cityName: s.location || (s.name.includes(" in ") ? s.name.split(" in ")[1] : "Local Area"),
+                data: {
+                    location: s.location || (s.name.includes(" in ") ? s.name.split(" in ")[1] : "Local Area"),
+                    content: s.content || "",
+                    description: s.description,
+                    faq: s.faq || [],
+                    seo: {
+                        title: s.name,
+                        description: descText
+                    }
+                },
+                isDynamic: true
+            };
+        });
+    }, [dynamicServices]);
 
-    const allLocations = [...dynamicLocations];
+    const allLocations = dynamicLocations;
 
-    const handleServiceClick = (e, trade) => {
-        // Find the specific service data
-        if (trade.data) {
+    const handleServiceClick = (e, tradeItem) => {
+        if (tradeItem.data) {
             setSelectedLocationData({
-                ...trade.data,
-                location: trade.cityName
+                ...tradeItem.data,
+                location: tradeItem.cityName
             });
+        }
+    };
+
+    // Memoize popular trades to prevent heavy recalculations on slider ticks
+    const displayPopularTrades = useMemo(() => {
+        if (!subcategories || subcategories.length === 0) {
+            return POPULAR_JOBS_STATIC;
+        }
+        return subcategories.slice(0, 6).map(sub => ({
+            name: sub.name,
+            sub: sub.category?.name || "General Trade",
+            slug: sub.slug || sub.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            image: `/trades/${sub.slug || 'painter'}.png`
+        }));
+    }, [subcategories]);
+
+    // Memoize all trades list
+    const allTrades = useMemo(() => {
+        if (!subcategories || subcategories.length === 0) {
+            return FALLBACK_TRADES;
+        }
+        return subcategories.map(sub => sub.name);
+    }, [subcategories]);
+
+    const displayAllTrades = allTrades;
+
+    // Optimized visible trades with search and limit to handle large datasets efficiently
+    const visibleTrades = useMemo(() => {
+        let list = displayAllTrades;
+        if (tradeSearch.trim()) {
+            const q = tradeSearch.toLowerCase().trim();
+            return list.filter(t => t.toLowerCase().includes(q));
+        }
+        return showAllTrades ? list : list.slice(0, INITIAL_TRADES_LIMIT);
+    }, [displayAllTrades, showAllTrades, tradeSearch]);
+
+    // Handle popular job click
+    const handlePopularJobClick = (e, slug) => {
+        e.preventDefault();
+        const userEmail = user?.email;
+        const userRole = user?.role;
+
+        if (userEmail && userRole === "HOMEOWNER") {
+            router.push("/jobs");
+        } else {
+            try {
+                sessionStorage.setItem("pendingTrade", slug);
+            } catch (err) {
+                console.error("Failed to store pending trade", err);
+            }
+            router.push(`/auth/register?role=HOMEOWNER&redirect=/jobs&trade=${slug}`);
+        }
+    };
+
+    // Handle "Post a job" button click
+    const handlePostJobClick = (e) => {
+        e.preventDefault();
+        const userEmail = user?.email;
+        const userRole = user?.role;
+
+        if (userEmail && userRole === "HOMEOWNER") {
+            router.push("/jobs");
+        } else {
+            try {
+                sessionStorage.setItem("pendingJobPost", "true");
+            } catch (err) {
+                console.error("Failed to store pending job flag", err);
+            }
+            router.push("/auth/register?role=HOMEOWNER&redirect=/jobs");
         }
     };
 
     return (
         <div className="flex flex-col min-h-screen bg-white font-sans text-zinc-900" suppressHydrationWarning>
 
-            {/* Show loading spinner while checking user role */}
-            {isLoadingUser && (
-                <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1149C7]"></div>
-                        <p className="text-gray-600 font-medium">Loading...</p>
-                    </div>
-                </div>
-            )}
-
             {/* --- HERO SECTION (With Background Slider) --- */}
-            {/* Mobile Responsive: Optimized height and padding for all devices */}
             <section ref={jobFormRef} className="relative w-full min-h-[450px] xs:min-h-[500px] sm:min-h-[550px] md:min-h-[600px] lg:min-h-[650px] py-10 xs:py-12 sm:py-16 md:py-20 lg:py-24 px-3 xs:px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center">
 
                 {/* Background Slider */}
                 {images.map((img, index) => (
                     <div
                         key={index}
-                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out z-0 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out z-0 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                     >
-                        <img src={img} alt="Hero background" className="w-full h-full object-cover" />
+                        <img 
+                            src={img} 
+                            alt="Hero background" 
+                            className="w-full h-full object-cover" 
+                            loading={index === 0 ? "eager" : "lazy"}
+                            decoding="async"
+                        />
                         <div className="absolute inset-0 bg-black/60 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
                     </div>
                 ))}
 
-                {/* Navigation Arrows */}
-                {/* Mobile Responsive: Smaller arrows on mobile, adjusted positioning */}
-                {/* <button
-                    onClick={prevImage}
-                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/40 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all shadow-lg"
-                >
-                    <ChevronLeftIcon className="w-5 h-5 sm:w-8 sm:h-8" />
-                </button>
-                <button
-                    onClick={nextImage}
-                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/40 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all shadow-lg"
-                >
-                    <ChevronRightIcon className="w-5 h-5 sm:w-8 sm:h-8" />
-                </button> */}
-
                 {/* Content */}
-                {/* Mobile Responsive: Optimized spacing for seamless scaling */}
                 <div className="relative mx-auto max-w-4xl space-y-3 xs:space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 z-20 px-2 xs:px-3 sm:px-4 md:px-0">
-                    {/* Mobile Responsive: Fluid typography scaling across all breakpoints */}
                     <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl font-extrabold tracking-tight text-white drop-shadow-lg relative inline-block leading-tight">
                         {location ? (
                             <>
@@ -369,63 +343,49 @@ export default function LeadsharingHome({ location }) {
                         ) : (
                             <>
                                 A sleek platform that emphasizes <br className="hidden sm:block" />
-                                <span className="text-[#ffdf00]">speed, ease of use,</span>and efficiency
+                                <span className="text-[#ffdf00]">speed, ease of use,</span> and efficiency
                             </>
                         )}
                     </h1>
-                    {/* Mobile Responsive: Scaled subtitle text for readability */}
                     <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-white/95 font-medium drop-shadow-md px-2 xs:px-3 sm:px-0">
                         Find reliable, vetted tradespeople right in your neighborhood.
                     </p>
 
-                    {/* Updated Job Creation Form */}
-                    <JobCreationForm />
+                    {/* Updated Job Creation Form with initial cached data passed in */}
+                    <JobCreationForm initialCategories={categories} initialUser={user} />
                 </div>
             </section>
 
             {/* --- POPULAR JOBS --- */}
-            {/* Mobile Responsive: Reduced padding on mobile */}
             <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 max-w-7xl mx-auto w-full">
-                {/* Mobile Responsive: Proportional margins across devices */}
                 <div className="text-center mb-5 xs:mb-6 sm:mb-8 md:mb-10 lg:mb-12">
-                    {/* Mobile Responsive: Fluid heading scale */}
                     <h2 className="text-xl xs:text-2xl sm:text-2xl md:text-3xl lg:text-3xl font-extrabold text-gray-900 inline-block relative px-2">
                         Our most popular jobs
                         <div className="h-0.5 xs:h-1 w-1/2 xs:w-2/5 sm:w-1/3 bg-green-600 mx-auto mt-1.5 xs:mt-2 rounded"></div>
                     </h2>
                 </div>
 
-                {/* Mobile Responsive: Single column on mobile, 2 on tablet, 3 on desktop */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {[
-                        { name: "Internal painting and decorating", image: "/trades/painter.png", slug: "painter" },
-                        { name: "Electrical installation or testing", image: "/trades/electrician.png", slug: "electrician" },
-                        { name: "Plumbing repair and maintenance", image: "/trades/plumber.png", slug: "plumber" },
-                        { name: "Bathroom, kitchen and WC Plumbing", image: "/trades/plumber.png", slug: "plumber" },
-                        { name: "Gas boiler - installation", image: "/trades/heating.png", slug: "heating" },
-                        { name: "Plaster skimming", image: "/trades/plasterer.png", slug: "plasterer" }
-                    ].map((job, idx) => (
-                        // Mobile Responsive: Scaled card dimensions for all screens
+                    {POPULAR_JOBS_STATIC.map((job, idx) => (
                         <button
                             key={idx}
                             onClick={(e) => handlePopularJobClick(e, job.slug)}
                             className="group flex items-center bg-gray-50 hover:bg-white border border-gray-100 hover:border-gray-200 rounded-md xs:rounded-lg p-2.5 xs:p-3 sm:p-3.5 md:p-4 transition-all hover:shadow-lg cursor-pointer min-h-[72px] xs:min-h-[80px] sm:min-h-[88px] md:h-24 w-full text-left"
                         >
-                            {/* Mobile Responsive: Proportional image sizing */}
                             <div className="flex-shrink-0 mr-2.5 xs:mr-3 sm:mr-3.5 md:mr-4">
                                 <img
                                     src={job.image}
                                     alt={job.name}
-                                    className="w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 object-contain group-hover:animate-bounce transition-transform"
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 object-contain group-hover:scale-110 transition-transform"
                                 />
                             </div>
                             <div className="flex-grow min-w-0">
-                                {/* Mobile Responsive: Responsive text scaling */}
                                 <h3 className="text-[11px] xs:text-xs sm:text-sm md:text-sm font-bold text-gray-800 leading-tight group-hover:text-[#1149C7] transition-colors">
                                     {job.name}
                                 </h3>
                             </div>
-                            {/* Mobile Responsive: Icon size scaling */}
                             <div className="flex-shrink-0 ml-1.5 xs:ml-2">
                                 <ChevronRightIcon className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-gray-400 group-hover:text-[#1149C7]" />
                             </div>
@@ -435,72 +395,64 @@ export default function LeadsharingHome({ location }) {
             </section>
 
             {/* --- HOW IT WORKS --- */}
-            {/* Mobile Responsive: Reduced padding on mobile */}
             <section className="bg-zinc-50 py-8 sm:py-12 md:py-16 px-4 sm:px-6">
                 <div className="max-w-7xl mx-auto">
-                    {/* Mobile Responsive: Fluid margin scaling */}
                     <div className="text-center mb-5 xs:mb-6 sm:mb-8 md:mb-10 lg:mb-12">
-                        {/* Mobile Responsive: Optimized heading size */}
                         <h2 className="text-xl xs:text-2xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-gray-900 px-2">How our service works</h2>
                     </div>
 
-                    {/* Mobile Responsive: Responsive grid with optimal breakpoints */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xs:gap-5 sm:gap-6 md:gap-8">
                         {/* Step 1 */}
-                        {/* Mobile Responsive: Fluid card height scaling */}
                         <div className="relative h-[240px] xs:h-[260px] sm:h-[300px] md:h-[350px] lg:h-[400px] rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden group">
                             <img
-                                src="/trades/heating.png"
+                                src="/trades/postjob.png"
                                 alt="Post a job"
+                                loading="lazy"
+                                decoding="async"
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-white/80"></div>
-                            {/* Mobile Responsive: Scaled padding for all devices */}
                             <div className="relative h-full p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 flex flex-col justify-center text-left">
                                 <span className="text-blue-600 font-bold mb-1 xs:mb-1.5 sm:mb-2 text-xs xs:text-sm sm:text-base">Step 1</span>
-                                {/* Mobile Responsive: Responsive heading sizing */}
                                 <h3 className="text-base xs:text-lg sm:text-xl md:text-xl lg:text-2xl font-bold mb-1.5 xs:mb-2 sm:mb-2.5 md:mb-3 lg:mb-4 text-gray-900">Post your job for free</h3>
-                                {/* Mobile Responsive: Fluid body text */}
                                 <p className="text-gray-700 text-xs xs:text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
-                                    Describe your project using our simple form. Whether it’s a leaky tap or a full renovation, we’ll capture the details to get you accurate pricing.                                </p>
+                                    Describe your project using our simple form. Whether it’s a leaky tap or a full renovation, we’ll capture the details to get you accurate pricing.
+                                </p>
                             </div>
                         </div>
 
                         {/* Step 2 */}
-                        {/* Mobile Responsive: Fluid card height scaling */}
                         <div className="relative h-[240px] xs:h-[260px] sm:h-[300px] md:h-[350px] lg:h-[400px] rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden group">
                             <img
-                                src="/trades/painter.png"
+                                src="/trades/getquotes.png"
                                 alt="Get quotes"
+                                loading="lazy"
+                                decoding="async"
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-white/80"></div>
-                            {/* Mobile Responsive: Scaled padding for all devices */}
                             <div className="relative h-full p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 flex flex-col justify-center text-left">
                                 <span className="text-blue-600 font-bold mb-1 xs:mb-1.5 sm:mb-2 text-xs xs:text-sm sm:text-base">Step 2</span>
-                                {/* Mobile Responsive: Responsive heading sizing */}
                                 <h3 className="text-base xs:text-lg sm:text-xl md:text-xl lg:text-2xl font-bold mb-1.5 xs:mb-2 sm:mb-2.5 md:mb-3 lg:mb-4 text-gray-900">Get quotes</h3>
-                                {/* Mobile Responsive: Fluid body text */}
                                 <p className="text-gray-700 text-xs xs:text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
-                                    Sit back as rated professionals review your job. You’ll receive competitive quotes from available experts ready to help.                                </p>
+                                    Sit back as rated professionals review your job. You’ll receive competitive quotes from available experts ready to help.
+                                </p>
                             </div>
                         </div>
 
                         {/* Step 3 */}
-                        {/* Mobile Responsive: Fluid card height scaling */}
                         <div className="relative h-[240px] xs:h-[260px] sm:h-[300px] md:h-[350px] lg:h-[400px] rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden group">
                             <img
-                                src="/trades/plumber.png"
+                                src="/trades/choosetradesperson.png"
                                 alt="Choose a tradesperson"
+                                loading="lazy"
+                                decoding="async"
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-white/80"></div>
-                            {/* Mobile Responsive: Scaled padding for all devices */}
                             <div className="relative h-full p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 flex flex-col justify-center text-left">
                                 <span className="text-blue-600 font-bold mb-1 xs:mb-1.5 sm:mb-2 text-xs xs:text-sm sm:text-base">Step 3</span>
-                                {/* Mobile Responsive: Responsive heading sizing */}
                                 <h3 className="text-base xs:text-lg sm:text-xl md:text-xl lg:text-2xl font-bold mb-1.5 xs:mb-2 sm:mb-2.5 md:mb-3 lg:mb-4 text-gray-900">Choose a tradesperson</h3>
-                                {/* Mobile Responsive: Fluid body text */}
                                 <p className="text-gray-700 text-xs xs:text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
                                     Don't just guess. View full profiles, read verified reviews from neighbors, and browse past work galleries to pick your perfect match.
                                 </p>
@@ -508,12 +460,10 @@ export default function LeadsharingHome({ location }) {
                         </div>
                     </div>
 
-                    {/* Mobile Responsive: Scaled margin */}
                     <div className="mt-4 xs:mt-5 sm:mt-6 md:mt-8 lg:mt-12 text-center">
-                        {/* Mobile Responsive: Full-width button on small screens */}
                         <button
                             onClick={handlePostJobClick}
-                            className="bg-[#1149C7] hover:bg-[#0d38a0] text-white font-bold py-2.5 xs:py-3 sm:py-3.5 md:py-4 px-6 xs:px-8 sm:px-10 md:px-12 rounded-md transition-colors text-sm xs:text-base sm:text-base md:text-lg inline-block shadow-md hover:shadow-lg cursor-pointer  xs:w-auto"
+                            className="bg-[#1149C7] hover:bg-[#0d38a0] text-white font-bold py-2.5 xs:py-3 sm:py-3.5 md:py-4 px-6 xs:px-8 sm:px-10 md:px-12 rounded-md transition-colors text-sm xs:text-base sm:text-base md:text-lg inline-block shadow-md hover:shadow-lg cursor-pointer xs:w-auto"
                         >
                             Post a job
                         </button>
@@ -523,21 +473,14 @@ export default function LeadsharingHome({ location }) {
 
             {/* --- APP DOWNLOAD SECTION --- */}
             <section className="relative overflow-hidden py-14 sm:py-16 md:py-20 px-4 sm:px-6 text-white" style={{ background: 'linear-gradient(135deg, #0d3bbf 0%, #1149C7 50%, #1a5ce8 100%)' }}>
-
-                {/* Decorative background orbs */}
                 <div className="absolute top-[-60px] left-[-60px] w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff, transparent)' }} />
                 <div className="absolute bottom-[-80px] right-[-40px] w-80 h-80 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff, transparent)' }} />
                 <div className="absolute top-1/2 left-1/3 w-40 h-40 rounded-full opacity-5" style={{ background: 'radial-gradient(circle, #ffffff, transparent)' }} />
 
                 <div className="relative max-w-6xl mx-auto">
-
-                    {/* Main flex: stack on mobile, row on md+ */}
                     <div className="flex flex-col md:flex-row items-center gap-10 md:gap-12 lg:gap-20">
-
-                        {/* ── LEFT: TEXT ── */}
+                        {/* LEFT: TEXT */}
                         <div className="flex-1 text-center md:text-left">
-
-                            {/* Pill badge */}
                             <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 mb-5 backdrop-blur-sm">
                                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                                 <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Available Now</span>
@@ -552,7 +495,6 @@ export default function LeadsharingHome({ location }) {
                                 Download the AllCarePros app and manage your jobs from anywhere. Scan a QR code or tap your store below.
                             </p>
 
-                            {/* Feature chips */}
                             <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                                 {['Real-time quotes', 'In-app chat', 'Verified pros', 'Free to use'].map((f) => (
                                     <span key={f} className="text-xs bg-white/10 border border-white/20 text-white/90 rounded-full px-3 py-1">
@@ -562,30 +504,27 @@ export default function LeadsharingHome({ location }) {
                             </div>
                         </div>
 
-                        {/* ── RIGHT: QR CARDS ── */}
+                        {/* RIGHT: QR CARDS */}
                         <div className="flex flex-row gap-4 sm:gap-6 justify-center flex-shrink-0">
-
                             {/* App Store Card */}
                             <div className="group flex flex-col items-center bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 hover:border-white/40 rounded-3xl p-4 sm:p-5 w-[150px] sm:w-[165px] md:w-[175px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-
-                                {/* Store label */}
                                 <div className="flex items-center gap-1.5 mb-3">
                                     <FaAppStore style={{ fontSize: '22px' }} className="text-white" />
                                     <span className="text-xs font-semibold text-white/90">App Store</span>
                                 </div>
 
-                                {/* QR Code */}
                                 <div className="bg-white rounded-xl p-2 mb-3 shadow-lg w-full flex justify-center">
                                     <img
                                         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://apps.apple.com/us/app/allcarepros/id6761529453"
                                         alt="App Store QR Code"
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-[100px] h-[100px] sm:w-[110px] sm:h-[110px] md:w-[120px] md:h-[120px] rounded"
                                     />
                                 </div>
 
                                 <p className="text-white/60 text-[9px] mb-3 text-center tracking-wide uppercase">Scan to download</p>
 
-                                {/* Download badge */}
                                 <a
                                     href="https://apps.apple.com/us/app/allcarepros/id6761529453"
                                     target="_blank"
@@ -602,25 +541,23 @@ export default function LeadsharingHome({ location }) {
 
                             {/* Google Play Card */}
                             <div className="group flex flex-col items-center bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 hover:border-white/40 rounded-3xl p-4 sm:p-5 w-[150px] sm:w-[165px] md:w-[175px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-
-                                {/* Store label */}
                                 <div className="flex items-center gap-1.5 mb-3">
                                     <FaGooglePlay style={{ fontSize: '20px' }} className="text-white" />
                                     <span className="text-xs font-semibold text-white/90">Google Play</span>
                                 </div>
 
-                                {/* QR Code */}
                                 <div className="bg-white rounded-xl p-2 mb-3 shadow-lg w-full flex justify-center">
                                     <img
                                         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://play.google.com/store/apps/details?id=com.allcarepros.app"
                                         alt="Google Play QR Code"
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-[100px] h-[100px] sm:w-[110px] sm:h-[110px] md:w-[120px] md:h-[120px] rounded"
                                     />
                                 </div>
 
                                 <p className="text-white/60 text-[9px] mb-3 text-center tracking-wide uppercase">Scan to download</p>
 
-                                {/* Download badge */}
                                 <a
                                     href="https://play.google.com/store/apps/details?id=com.allcarepros.app"
                                     target="_blank"
@@ -634,28 +571,20 @@ export default function LeadsharingHome({ location }) {
                                     </div>
                                 </a>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* --- CHECKLIST SECTION --- */}
-            {/* Mobile Responsive: Reduced padding on mobile */}
             <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-white border-b border-gray-200">
-                {/* Mobile Responsive: Fluid gap scaling */}
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-12">
-                    {/* Mobile Responsive: Scaled icon sizing */}
                     <div className="flex-shrink-0">
                         <DocumentCheckIcon className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 text-[#1149C7]" />
                     </div>
                     <div className="text-center md:text-left">
-                        {/* Fluid heading sizing */}
                         <h2 className="text-lg xs:text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 text-[#1149C7]">Hire safely with our homeowner checklist</h2>
-                        {/* Mobile Responsive: Responsive body text */}
                         <p className="text-xs xs:text-sm sm:text-base md:text-base lg:text-lg text-gray-700 mb-3 xs:mb-4 sm:mb-5 md:mb-6">We believe in transparency. Access our essential checklist to learn how to verify insurance, check references, and manage payments securely.</p>
-                        {/* Mobile Responsive: Scaled link text */}
-                        <a href="#" className="text-[#1149C7] font-bold hover:underline text-sm xs:text-base sm:text-lg">Read our homeowner checklist ›</a>
                     </div>
                 </div>
             </section>
@@ -663,15 +592,18 @@ export default function LeadsharingHome({ location }) {
             {/* --- TESTIMONIALS --- */}
             <Testimonials />
 
-            {/* --- ALL TRADES --- */}
-            {/* Mobile Responsive: Reduced padding on mobile */}
+            {/* --- ALL TRADES & SERVICES (Optimized with Dynamic Directory and Pagination) --- */}
             <section ref={allTradesRef} className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
-                    {/* Mobile Responsive: Fluid heading and margin scaling */}
                     <div className="flex flex-col sm:flex-row items-baseline justify-between gap-4 border-b border-gray-200 pb-4 mb-8">
-                        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">
-                            Local Trades & Services
-                        </h2>
+                        <div>
+                            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">
+                                Local Trades & Services
+                            </h2>
+                            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                                Browse certified professionals across Canada
+                            </p>
+                        </div>
                         <Link
                             href="/local-tradespeople"
                             className="text-[#1149C7] font-bold hover:underline flex items-center gap-1 text-sm md:text-base group"
@@ -680,43 +612,33 @@ export default function LeadsharingHome({ location }) {
                             <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
-                    {/* Mobile Responsive: Progressive grid columns for all breakpoints */}
+
+                    {/* Progressive grid */}
                     <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-1.5 xs:gap-y-2 gap-x-3 xs:gap-x-4 sm:gap-x-5 md:gap-x-6 lg:gap-x-8 min-h-[300px]">
                         {allLocations.length > 0 ? (
-                            allLocations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((trade, index) => (
-                                // Mobile Responsive: Responsive link text
+                            allLocations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((tradeItem, index) => (
                                 <Link
-                                    key={index}
-                                    href={`/local-tradespeople/${trade.name.toLowerCase().replace(/ /g, '-')}`}
-                                    onClick={(e) => handleServiceClick(e, trade)}
-                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${(selectedLocationData?.name === trade.name) ||
-                                        (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === trade.name))
+                                    key={`${tradeItem.name}-${index}`}
+                                    href={`/local-tradespeople/${tradeItem.name.toLowerCase().replace(/ /g, '-')}`}
+                                    onClick={(e) => handleServiceClick(e, tradeItem)}
+                                    className={`hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate transition-colors ${(selectedLocationData?.name === tradeItem.name) ||
+                                        (selectedLocationData?.services?.some(s => (typeof s === 'string' ? s : s.name) === tradeItem.name))
                                         ? 'text-[#1149C7] font-bold'
                                         : 'text-[#1149C7]'
                                         }`}
-                                    title={trade.name}
+                                    title={tradeItem.name}
                                 >
-                                    {trade.name}
+                                    {tradeItem.name}
                                 </Link>
                             ))
                         ) : (
-                            [
-                                "Plumbing",
-                                "Electrical",
-                                "Painting & Decorating",
-                                "Carpentry",
-                                "Plastering",
-                                "Heating",
-                                "Roofing",
-                                "Gardening"
-                            ].map((trade, index) => (
-                                // Mobile Responsive: Responsive link text
+                            visibleTrades.map((tradeName, index) => (
                                 <Link
-                                    key={index}
-                                    href={(user?.role === 'HOMEOWNER' || user?.user?.role === 'HOMEOWNER') ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${trade.toLowerCase().replace(/ /g, '-')}`}
-                                    className="text-[#1149C7] hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block"
+                                    key={`${tradeName}-${index}`}
+                                    href={(user?.role === 'HOMEOWNER') ? "/jobs" : `/auth/register?role=HOMEOWNER&trade=${tradeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                                    className="text-[#1149C7] hover:underline text-[11px] xs:text-xs sm:text-sm py-0.5 xs:py-1 block truncate"
                                 >
-                                    {trade}
+                                    {tradeName}
                                 </Link>
                             ))
                         )}

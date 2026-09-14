@@ -437,7 +437,7 @@ import { NextResponse } from "next/server";
 import { TradespersonProfile } from "@/models/TradespersonProfile";
 import { Payment } from "@/models/Payment";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "dummy_key");
 
 export const PLANS = {
   starter: { name: "Starter Pack", amount: 9.99, credits: 10 },

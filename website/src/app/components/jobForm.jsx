@@ -1,9 +1,10 @@
 
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast, Toaster } from "react-hot-toast";
 import { StarIcon } from "@heroicons/react/24/solid";
+import { cachedFetch } from "@/lib/client-cache";
 
 // Validation Constants
 const VALIDATION_RULES = {
@@ -340,18 +341,19 @@ function TradespersonSearch({ onCancel, onReturnToJob }) {
   );
 }
 
-export default function JobCreationForm() {
+export default function JobCreationForm({ initialCategories = [], initialUser = null }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(initialCategories);
   const [filteredSubCategories, setFilteredSubCategories] = useState([]);
   const [uploadedMedia, setUploadedMedia] = useState([]);
-  const [user, setUser] = useState(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [user, setUser] = useState(initialUser);
+  const [isLoadingUser, setIsLoadingUser] = useState(!initialUser);
   const [showTradespersonSearch, setShowTradespersonSearch] = useState(false);
+  const subCategoryCacheRef = useRef({});
 
   const [form, setForm] = useState({
     category: "",
@@ -369,18 +371,32 @@ export default function JobCreationForm() {
     contactEmail: "",
   });
 
-  // Fetch user data from API
+  // Synchronize initialCategories if passed or changed
+  useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) {
+      setCategories(initialCategories);
+    }
+  }, [initialCategories]);
+
+  // Synchronize initialUser if passed or changed
+  useEffect(() => {
+    if (initialUser) {
+      setUser(initialUser);
+      setIsLoadingUser(false);
+    }
+  }, [initialUser]);
+
+  // Fetch user data if not provided
   const fetchUser = useCallback(async () => {
+    if (initialUser) return;
     try {
       setIsLoadingUser(true);
-      const res = await fetch("/api/me", {
+      const userData = await cachedFetch("/api/me", {
         credentials: "include",
-        cache: "no-store",
-      });
+      }, 60000);
 
-      if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
+      if (userData && (userData.user || userData.role || userData.email)) {
+        setUser(userData.user || userData);
       } else {
         setUser(null);
       }
@@ -390,38 +406,49 @@ export default function JobCreationForm() {
     } finally {
       setIsLoadingUser(false);
     }
-  }, []);
+  }, [initialUser]);
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    if (!initialUser) {
+      fetchUser();
+    }
+  }, [fetchUser, initialUser]);
 
-  // Fetch categories on mount (like ref code)
+  // Fetch categories on mount if not provided
   useEffect(() => {
+    if (categories && categories.length > 0) return;
     const fetchCategories = async () => {
       try {
-        const res = await fetch("/api/categories");
-        const catData = await res.json();
-        setCategories(catData);
+        const catData = await cachedFetch("/api/categories", {}, 600000);
+        if (Array.isArray(catData)) {
+          setCategories(catData);
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
     fetchCategories();
-  }, []);
+  }, [categories]);
 
-  // Fetch subcategories dynamically when category changes (like ref code)
+  // Fetch subcategories dynamically with in-memory caching per category ID
   useEffect(() => {
-    const fetchSubCategories = async () => {
-      if (!form.category) {
-        setFilteredSubCategories([]);
-        return;
-      }
+    if (!form.category) {
+      setFilteredSubCategories([]);
+      return;
+    }
 
+    // If already cached in ref, use instantly without network request
+    if (subCategoryCacheRef.current[form.category]) {
+      setFilteredSubCategories(subCategoryCacheRef.current[form.category]);
+      return;
+    }
+
+    const fetchSubCategories = async () => {
       try {
-        const res = await fetch(`/api/subcategories?categoryId=${form.category}`);
-        const subData = await res.json();
-        setFilteredSubCategories(subData);
+        const subData = await cachedFetch(`/api/subcategories?categoryId=${form.category}`, {}, 600000);
+        const validList = Array.isArray(subData) ? subData : [];
+        subCategoryCacheRef.current[form.category] = validList;
+        setFilteredSubCategories(validList);
       } catch (error) {
         console.error("Error fetching subcategories:", error);
         setFilteredSubCategories([]);
@@ -464,7 +491,7 @@ export default function JobCreationForm() {
 
   // Pre-fill contact info from user data
   useEffect(() => {
-    if (user && !isLoadingUser) {
+    if (user) {
       const userName = user.name || user.user?.name || "";
       const userPhone = user.phone || user.user?.phone || "";
       const userEmail = user.email || user.user?.email || "";
@@ -478,7 +505,7 @@ export default function JobCreationForm() {
         }));
       }
     }
-  }, [user, isLoadingUser]);
+  }, [user]);
 
   // File validation function
   const validateFile = (file) => {
