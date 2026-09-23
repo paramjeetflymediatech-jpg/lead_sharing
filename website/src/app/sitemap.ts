@@ -3,7 +3,7 @@ import { Service } from '@/models/Service';
 import { Blog } from '@/models/Blog';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leadsharing.socialflymediatech.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://allcarepros.ca';
 
     const staticPages = [
         {
