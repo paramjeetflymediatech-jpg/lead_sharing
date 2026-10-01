@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, PhotoIcon, GlobeAltIcon, ShareIcon, CodeBracketIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import CKEditorField from "@/app/components/CKEditorField";
+import ImageUploadField from "@/app/components/ImageUploadField";
 
 export default function EditBlogPage({ params }) {
     const { id } = use(params);
@@ -46,20 +47,20 @@ export default function EditBlogPage({ params }) {
                         slug: data.slug || "",
                         content: data.content || "",
                         excerpt: data.excerpt || "",
-                        featured_image: data.featuredImage || "",
+                        featured_image: data.featuredImage || data.featured_image || "",
                         status: data.status || "DRAFT",
                         author: data.author || "Admin",
                         tags: data.tags || "",
-                        seo_title: data.seoTitle || "",
-                        seo_description: data.seoDescription || "",
-                        seo_robots: data.seoRobots || "index, follow",
-                        canonical_url: data.canonicalUrl || "",
-                        og_title: data.ogTitle || "",
-                        og_description: data.ogDescription || "",
-                        og_image: data.ogImage || "",
-                        schema_markup: data.schemaMarkup || "",
-                        ga_id: data.gaId || "",
-                        gtm_id: data.gtmId || ""
+                        seo_title: data.seoTitle || data.seo_title || "",
+                        seo_description: data.seoDescription || data.seo_description || "",
+                        seo_robots: data.seoRobots || data.seo_robots || "index, follow",
+                        canonical_url: data.canonicalUrl || data.canonical_url || "",
+                        og_title: data.ogTitle || data.og_title || "",
+                        og_description: data.ogDescription || data.og_description || "",
+                        og_image: data.ogImage || data.og_image || "",
+                        schema_markup: data.schemaMarkup || data.schema_markup || "",
+                        ga_id: data.gaId || data.ga_id || "",
+                        gtm_id: data.gtmId || data.gtm_id || ""
                     });
                 } else {
                     toast.error("Failed to fetch blog post");
@@ -77,6 +78,16 @@ export default function EditBlogPage({ params }) {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFeaturedImageChange = (url) => {
+        setFormData(prev => {
+            const newData = { ...prev, featured_image: url };
+            if (!prev.og_image) {
+                newData.og_image = url;
+            }
+            return newData;
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -207,17 +218,17 @@ export default function EditBlogPage({ params }) {
                                 />
                             </div>
 
+                            <div className="space-y-4 pt-2">
+                                <ImageUploadField
+                                    label="Featured Image"
+                                    value={formData.featured_image}
+                                    onChange={handleFeaturedImageChange}
+                                    placeholder="https://example.com/image.jpg"
+                                    helperText="Upload a banner image (PNG, JPG, WebP, GIF, SVG up to 5MB) or enter an external image URL."
+                                />
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-1">
-                                    <label className="text-sm font-bold text-gray-700">Featured Image URL</label>
-                                    <input
-                                        type="text"
-                                        name="featured_image"
-                                        value={formData.featured_image}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
-                                    />
-                                </div>
                                 <div className="space-y-1">
                                     <label className="text-sm font-bold text-gray-700">Status</label>
                                     <select
@@ -240,17 +251,17 @@ export default function EditBlogPage({ params }) {
                                         className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-sm font-bold text-gray-700">Tags</label>
-                                <input
-                                    type="text"
-                                    name="tags"
-                                    value={formData.tags}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
-                                />
+                                <div className="space-y-1">
+                                    <label className="text-sm font-bold text-gray-700">Tags</label>
+                                    <input
+                                        type="text"
+                                        name="tags"
+                                        value={formData.tags}
+                                        onChange={handleChange}
+                                        placeholder="tips, guide, lead"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -334,16 +345,13 @@ export default function EditBlogPage({ params }) {
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-sm font-bold text-gray-700">OG Image URL</label>
-                                <input
-                                    type="text"
-                                    name="og_image"
-                                    value={formData.og_image}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
-                                />
-                            </div>
+                            <ImageUploadField
+                                label="OG Social Share Image"
+                                value={formData.og_image}
+                                onChange={(url) => setFormData(prev => ({ ...prev, og_image: url }))}
+                                placeholder="https://leadsharing.ca/social-image.jpg"
+                                helperText="Image preview shown when sharing on social media platforms."
+                            />
                         </div>
                     )}
 

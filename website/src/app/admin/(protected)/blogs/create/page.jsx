@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, PhotoIcon, GlobeAltIcon, ShareIcon, CodeBracketIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import CKEditorField from "@/app/components/CKEditorField";
+import ImageUploadField from "@/app/components/ImageUploadField";
 
 export default function CreateBlogPage() {
     const router = useRouter();
@@ -47,6 +48,17 @@ export default function CreateBlogPage() {
             if (name === "excerpt" && !prev.seo_description) newData.seo_description = value;
             if (name === "excerpt" && !prev.og_description) newData.og_description = value;
 
+            return newData;
+        });
+    };
+
+    const handleFeaturedImageChange = (url) => {
+        setFormData(prev => {
+            const newData = { ...prev, featured_image: url };
+            // Auto sync OG image if empty
+            if (!prev.og_image) {
+                newData.og_image = url;
+            }
             return newData;
         });
     };
@@ -181,18 +193,17 @@ export default function CreateBlogPage() {
                                 />
                             </div>
 
+                            <div className="space-y-4 pt-2">
+                                <ImageUploadField
+                                    label="Featured Image"
+                                    value={formData.featured_image}
+                                    onChange={handleFeaturedImageChange}
+                                    placeholder="https://example.com/image.jpg"
+                                    helperText="Upload a banner image (PNG, JPG, WebP, GIF, SVG up to 5MB) or enter an external image URL."
+                                />
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-1">
-                                    <label className="text-sm font-bold text-gray-700">Featured Image URL</label>
-                                    <input
-                                        type="text"
-                                        name="featured_image"
-                                        value={formData.featured_image}
-                                        onChange={handleChange}
-                                        placeholder="https://example.com/image.jpg"
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
-                                    />
-                                </div>
                                 <div className="space-y-1">
                                     <label className="text-sm font-bold text-gray-700">Status</label>
                                     <select
@@ -215,19 +226,17 @@ export default function CreateBlogPage() {
                                         className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-sm font-bold text-gray-700">Tags</label>
-                                <p className="text-xs text-gray-400 mb-2">tips, guide, lead (comma separated)</p>
-                                <input
-                                    type="text"
-                                    name="tags"
-                                    value={formData.tags}
-                                    onChange={handleChange}
-                                    placeholder="tips, guide, lead"
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
-                                />
+                                <div className="space-y-1">
+                                    <label className="text-sm font-bold text-gray-700">Tags</label>
+                                    <input
+                                        type="text"
+                                        name="tags"
+                                        value={formData.tags}
+                                        onChange={handleChange}
+                                        placeholder="tips, guide, lead"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -333,17 +342,13 @@ export default function CreateBlogPage() {
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-sm font-bold text-gray-700">OG Image URL</label>
-                                <input
-                                    type="text"
-                                    name="og_image"
-                                    value={formData.og_image}
-                                    onChange={handleChange}
-                                    placeholder="https://leadsharing.ca/social-image.jpg"
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 outline-none focus:border-[#1149C7] transition-all"
-                                />
-                            </div>
+                            <ImageUploadField
+                                label="OG Social Share Image"
+                                value={formData.og_image}
+                                onChange={(url) => setFormData(prev => ({ ...prev, og_image: url }))}
+                                placeholder="https://leadsharing.ca/social-image.jpg"
+                                helperText="Image preview shown when sharing on social media platforms."
+                            />
                         </div>
                     )}
 

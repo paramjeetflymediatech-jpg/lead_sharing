@@ -209,6 +209,7 @@ import {
     MagnifyingGlassIcon,
     PencilIcon,
     TrashIcon,
+    PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 
@@ -321,7 +322,7 @@ export default function BlogsPage() {
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 bg-gray-100">
                         <tr>
-                            <th className="px-4 py-3 text-sm">Title</th>
+                            <th className="px-4 py-3 text-sm">Blog</th>
                             <th className="px-4 py-3 text-sm hidden sm:table-cell">Status</th>
                             <th className="px-4 py-3 text-sm hidden md:table-cell">Author</th>
                             <th className="px-4 py-3 text-sm hidden md:table-cell">Date</th>
@@ -349,17 +350,32 @@ export default function BlogsPage() {
                         ) : (
                             blogs.map((blog) => (
                                 <tr key={blog._id} className="hover:bg-gray-50">
-                                    {/* TITLE */}
+                                    {/* TITLE & THUMBNAIL */}
                                     <td className="px-4 py-3">
-                                        <Link
-                                            href={`/admin/blogs/edit/${blog._id}`}
-                                            className="font-medium text-gray-900 hover:text-[#1149C7]"
-                                        >
-                                            {blog.title}
-                                        </Link>
-                                        <p className="text-xs text-gray-400 truncate max-w-[220px]">
-                                            /{blog.slug}
-                                        </p>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200 flex items-center justify-center">
+                                                {blog.featuredImage || blog.featured_image ? (
+                                                    <img
+                                                        src={blog.featuredImage || blog.featured_image}
+                                                        alt={blog.title}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <PhotoIcon className="w-5 h-5 text-gray-300" />
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <Link
+                                                    href={`/admin/blogs/edit/${blog._id}`}
+                                                    className="font-medium text-gray-900 hover:text-[#1149C7] truncate block"
+                                                >
+                                                    {blog.title}
+                                                </Link>
+                                                <p className="text-xs text-gray-400 truncate max-w-[220px]">
+                                                    /{blog.slug}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </td>
 
                                     {/* STATUS */}

@@ -18,6 +18,10 @@ export async function POST(req) {
     const allowedTypes = [
       "image/jpeg",
       "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+      "image/avif",
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -25,7 +29,7 @@ export async function POST(req) {
 
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { message: "Invalid file type. Supported: JPG, PNG, PDF, DOC" },
+        { message: "Invalid file type. Supported: JPG, PNG, WEBP, GIF, SVG, PDF, DOC" },
         { status: 400 }
       );
     }
